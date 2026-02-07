@@ -35,12 +35,29 @@ ul { list-style: none; }
 
 /* --- HEADER --- */
 header {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
     padding: 1.2rem 5%;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(15px);
-    position: fixed; top: 0; width: 100%; z-index: 1000;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+    
+    /* Stato Iniziale: Trasparente o Sfondo Pulito */
+    background: rgba(255, 255, 255, 0); /* Completamente trasparente all'inizio */
+    backdrop-filter: blur(0px); /* Niente blur all'inizio */
+    
+    position: fixed; 
+    top: 0; 
+    width: 100%; 
+    z-index: 1000;
+    transition: all 0.4s ease; /* Transizione fluida */
+    box-shadow: none;
+}
+
+/* Stato SCROLLED (quando scendi) */
+header.scrolled {
+    padding: 0.8rem 5%; /* Si rimpicciolisce leggermente */
+    background: rgba(255, 255, 255, 0.85); /* Bianco semi-trasparente */
+    backdrop-filter: blur(12px); /* Effetto vetro sfocato */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; }
@@ -50,17 +67,34 @@ header {
 }
 
 .nav-links { display: flex; gap: 2.5rem; }
+
 .nav-links a { 
     color: var(--text-main); font-weight: 500; font-size: 0.95rem; 
     position: relative;
+    transition: 0.3s;
 }
+
 .nav-links a:hover { color: var(--red-main); }
+
+/* Effetto Sottolineatura */
 .nav-links a::after {
     content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
     background: var(--red-main); transition: 0.3s;
 }
+
 .nav-links a:hover::after { width: 100%; }
 
+/* CLASSE ACTIVE (Pagina Corrente) */
+.nav-links a.active {
+    color: var(--red-main);
+    font-weight: 600;
+}
+
+.nav-links a.active::after {
+    width: 100%; /* La linea rossa rimane fissa sulla pagina attiva */
+}
+
+/* Pulsanti e Menu Mobile */
 .cta-btn {
     padding: 0.8rem 1.8rem;
     background: var(--gradient-red);
@@ -1163,7 +1197,7 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
         font-size: 2.8rem;
     }
 }
-/* --- FOOTER MODERNO --- */
+/* --- FOOTER MODERNO (REVISIONE SPAZI) --- */
 
 .modern-footer {
     background-color: #111;
@@ -1171,6 +1205,7 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
     position: relative;
     padding-top: 0;
     margin-top: 4rem;
+    padding-bottom: 0; /* Rimuoviamo padding extra */
 }
 
 /* Onda SVG decorativa in alto */
@@ -1198,17 +1233,23 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 4rem 10% 2rem;
+    /* Riduciamo il padding inferiore a 0 per mandare le scritte in fondo */
+    padding: 4rem 5% 0; 
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
 }
 
-/* Griglia Footer */
+/* Griglia Footer - SPAZI DISTRIBUITI MEGLIO */
 .footer-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 3rem;
+    /* Colonne ricalibrate: Brand largo, Link stretti, Contatti largo */
+    grid-template-columns: 1.5fr 1fr 1.2fr; 
+    gap: 4rem;
     margin-bottom: 3rem;
+    width: 100%;
 }
 
 /* Colonna Brand */
@@ -1231,11 +1272,12 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
     line-height: 1.6;
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
+    max-width: 350px; /* Limita la larghezza per pulizia */
 }
 
 .agnelli-badge {
     background: rgba(255,255,255,0.05);
-    padding: 10px 15px;
+    padding: 8px 15px;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
@@ -1266,35 +1308,29 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
 }
 
 /* Links List */
-.links-col ul li {
-    margin-bottom: 0.8rem;
-}
+.links-col ul li { margin-bottom: 0.8rem; }
 
 .links-col ul li a {
     color: #aaa;
     transition: 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; gap: 8px;
 }
 
 .links-col ul li a i {
-    font-size: 0.7rem;
-    color: var(--red-main);
-    opacity: 0.5;
-    transition: 0.3s;
+    font-size: 0.7rem; color: var(--red-main); opacity: 0.5; transition: 0.3s;
 }
 
-.links-col ul li a:hover {
-    color: white;
-    padding-left: 5px;
+.links-col ul li a:hover { color: white; padding-left: 5px; }
+.links-col ul li a:hover i { opacity: 1; }
+
+/* COLONNA CONTATTI */
+.contact-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
-.links-col ul li a:hover i {
-    opacity: 1;
-}
-
-/* Contatti e Social */
+/* Email Box */
 .contact-link {
     display: flex;
     align-items: center;
@@ -1302,8 +1338,8 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
     background: rgba(255,255,255,0.03);
     padding: 1rem;
     border-radius: 12px;
-    margin-bottom: 2rem;
     border: 1px solid transparent;
+    width: fit-content;
 }
 
 .contact-link:hover {
@@ -1312,46 +1348,55 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
 }
 
 .contact-link .icon-box {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     background: var(--red-main);
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.1rem;
-    color: white;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 1.1rem; color: white; flex-shrink: 0;
 }
 
 .contact-link span {
-    font-size: 0.9rem;
-    color: #ddd;
-    word-break: break-all; /* Per evitare che l'email esca */
+    font-size: 0.9rem; color: #ddd; word-break: break-all;
 }
 
-/* Bottone Instagram */
+/* SEZIONE SOCIAL (SOLO ICONA) */
+.social-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+/* Bottone Instagram Rotondo */
 .social-btn.instagram {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
     background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
     color: white;
-    border-radius: 50px;
-    font-weight: 600;
+    border-radius: 50%; /* Cerchio perfetto */
+    font-size: 1.5rem;
     box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
+    transition: 0.3s;
+    padding: 0;
 }
+
+.social-btn.instagram span { display: none; } /* Nasconde il testo */
 
 .social-btn.instagram:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
+    transform: translateY(-3px) rotate(10deg);
+    box-shadow: 0 6px 20px rgba(220, 39, 67, 0.5);
 }
 
-/* Footer Bottom e Separatore */
+/* FOOTER BOTTOM */
 .footer-separator {
     height: 1px;
     background: rgba(255,255,255,0.1);
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
+    margin-top: auto; /* Spinge in basso */
+    width: 100%;
 }
 
 .footer-bottom {
@@ -1362,19 +1407,15 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
     gap: 1rem;
     font-size: 0.85rem;
     color: #777;
+    padding: 1.5rem 0 2rem 0; /* Padding solo qui per lo spazio finale */
 }
 
 .legal-links {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    display: flex; align-items: center; gap: 20px;
 }
 
 .dmca-badge {
-    color: #aaa;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    color: #aaa; display: flex; align-items: center; gap: 5px;
 }
 
 .legal-links a { color: #777; }
@@ -1414,21 +1455,37 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
 @media (max-width: 900px) {
     .footer-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 2.5rem;
         text-align: center;
     }
     
     .footer-col h4::after {
-        left: 50%;
-        transform: translateX(-50%);
+        left: 50%; transform: translateX(-50%);
     }
 
     .footer-logo { justify-content: center; }
+    .brand-desc { margin: 0 auto 1.5rem; }
     .links-col ul li a { justify-content: center; }
     .contact-link { justify-content: center; text-align: left; }
+    .social-area { align-items: center; }
     
     .footer-bottom {
         flex-direction: column;
         text-align: center;
+        padding-bottom: 2rem;
     }
+}
+/* Stile foto profilo nell'header */
+.profile-pic-header {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* Cerchio perfetto */
+    object-fit: cover;
+    border: 2px solid #D32F2F; /* Rosso Agnelli */
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.profile-pic-header:hover {
+    transform: scale(1.1);
 }

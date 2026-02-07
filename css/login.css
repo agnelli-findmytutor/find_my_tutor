@@ -1,0 +1,244 @@
+:root {
+    --red-main: #D32F2F;
+    --red-dark: #9A0007;
+    --red-gradient: linear-gradient(to right, #D32F2F, #FF5252);
+    --white: #ffffff;
+    --text-dark: #333;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #f6f5f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* --- SFONDO ANIMATO --- */
+.animated-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(125deg, #fce4ec, #e3f2fd, #fff3e0);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    z-index: 0;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5;
+    animation: float 10s infinite alternate;
+}
+.blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(211, 47, 47, 0.3); }
+.blob-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(33, 150, 243, 0.2); }
+
+@keyframes float {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* --- CONTAINER PRINCIPALE --- */
+.container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    position: relative;
+    overflow: hidden;
+    width: 850px;
+    max-width: 100%;
+    min-height: 550px;
+    z-index: 10; /* Sopra lo sfondo */
+}
+
+/* Elementi Comuni */
+h1 { font-weight: 700; margin: 0; margin-bottom: 10px; }
+p { font-size: 14px; font-weight: 300; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
+span { font-size: 13px; color: #666; margin-bottom: 20px; }
+
+/* Icona decorativa */
+.icon-circle.small {
+    width: 50px; height: 50px;
+    background: var(--red-gradient); color: white;
+    border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    font-size: 1.5rem; margin-bottom: 1rem;
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
+}
+
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+
+form {
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    text-align: center;
+}
+
+/* --- PULSANTE GOOGLE CORRETTO --- */
+.google-btn {
+    width: 100%;
+    height: 50px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    
+    /* FLEXBOX PERFETTO */
+    display: flex;
+    justify-content: center; /* Centra tutto il contenuto orizzontalmente */
+    align-items: center;     /* Centra tutto verticalmente */
+    gap: 12px;               /* Spazio tra il logo G e il testo */
+    
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-top: 10px;
+    padding: 0 20px; /* Un po' di padding laterale per sicurezza */
+}
+
+.google-btn:hover {
+    background-color: #f8fcfd;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: #cce0f5;
+}
+
+/* Wrapper dell'icona */
+.g-icon-wrapper {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* IMPORTANTE: Rimuovi margin-right, ora usiamo 'gap' nel genitore */
+    margin-right: 0; 
+    flex-shrink: 0; /* Impedisce al logo di schiacciarsi */
+}
+
+.g-icon-wrapper svg {
+    width: 100%;
+    height: 100%;
+}
+
+.btn-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #5f6368;
+    /* Assicurati che non abbia margini strani */
+    margin: 0; 
+}
+/* --- LOGICA DI SCORRIMENTO (SLIDING) --- */
+.sign-in-container {
+    left: 0; width: 50%; z-index: 2;
+}
+
+.container.right-panel-active .sign-in-container {
+    transform: translateX(100%);
+}
+
+.sign-up-container {
+    left: 0; width: 50%; opacity: 0; z-index: 1;
+}
+
+.container.right-panel-active .sign-up-container {
+    transform: translateX(100%); opacity: 1; z-index: 5;
+    animation: show 0.6s;
+}
+
+@keyframes show {
+    0%, 49.99% { opacity: 0; z-index: 1; }
+    50%, 100% { opacity: 1; z-index: 5; }
+}
+
+/* --- OVERLAY ROSSO --- */
+.overlay-container {
+    position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
+    overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100;
+}
+
+.container.right-panel-active .overlay-container {
+    transform: translateX(-100%);
+}
+
+.overlay {
+    background: var(--red-gradient);
+    background-repeat: no-repeat; background-size: cover; background-position: 0 0;
+    color: #FFFFFF; position: relative; left: -100%; height: 100%; width: 200%;
+    transform: translateX(0); transition: transform 0.6s ease-in-out;
+}
+
+.container.right-panel-active .overlay {
+    transform: translateX(50%);
+}
+
+.overlay-panel {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; padding: 0 40px; text-align: center;
+    top: 0; height: 100%; width: 50%; transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left { transform: translateX(-20%); }
+.container.right-panel-active .overlay-left { transform: translateX(0); }
+.overlay-right { right: 0; transform: translateX(0); }
+.container.right-panel-active .overlay-right { transform: translateX(20%); }
+
+/* Bottoni Ghost (quelli bianchi nel pannello rosso) */
+button.ghost {
+    background-color: transparent;
+    border-color: #FFFFFF;
+    border-width: 2px;
+    border-style: solid;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 45px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.3s;
+}
+button.ghost:hover { background: white; color: var(--red-main); }
+
+/* Link Back Home */
+.back-home-btn {
+    position: absolute; top: 30px; left: 30px;
+    color: var(--text-dark); text-decoration: none;
+    font-weight: 600; display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; background: rgba(255,255,255,0.7);
+    border-radius: 30px; backdrop-filter: blur(5px); z-index: 20;
+    transition: 0.3s;
+}
+.back-home-btn:hover { background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .container { width: 90%; min-height: 600px; }
+    .overlay-container { display: none; } /* Su mobile rimuoviamo lo slide */
+    .sign-in-container { width: 100%; }
+    .sign-up-container { display: none; } /* Su mobile mostriamo solo login per ora */
+}

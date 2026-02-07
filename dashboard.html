@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span>FindMyTutor</span>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="progetto.html">Il nostro progetto</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+    </div>
+</header>
+
+    <main class="dashboard-wrapper">
+        <div class="dashboard-card reveal">
+            
+            <div class="profile-header">
+                <div class="profile-img-container">
+                    <img src="https://via.placeholder.com/150" alt="Profilo" id="userAvatar">
+                </div>
+                <h1 id="userName">Caricamento...</h1>
+                <p id="userEmail" class="email-badge">...</p>
+            </div>
+
+            <hr class="divider">
+
+            <div class="dashboard-stats">
+                <div class="stat-item">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h3>0</h3>
+                    <p>Lezioni Prenotate</p>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <h3>--</h3>
+                    <p>Valutazione</p>
+                </div>
+            </div>
+
+            <div class="dashboard-actions">
+                <button id="logoutBtn" class="action-btn logout">
+                    <i class="fas fa-sign-out-alt"></i> Disconnetti
+                </button>
+                
+                <button id="deleteBtn" class="action-btn delete">
+                    <i class="fas fa-trash-alt"></i> Elimina Account
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script src="js/dashboard.js"></script>
+
+</body>
+</html>

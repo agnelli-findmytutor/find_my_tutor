@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    // ============================================================
+    // 1. ANIMAZIONI E VISIBILITÀ (PRIORITÀ MASSIMA)
+    // ============================================================
     
-    // 1. GESTIONE SCROLL REVEAL (Animazione elementi che appaiono)
+    // Gestione Scroll Reveal (Fa apparire gli elementi nascosti)
     const observerOptions = {
-        threshold: 0.15, // L'elemento deve essere visibile al 15%
+        threshold: 0.15,
         rootMargin: "0px 0px -50px 0px"
     };
 
@@ -10,64 +14,121 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
-                // Se è una statistica, avvia il contatore
-                if (entry.target.classList.contains('stats')) {
+                
+                // Avvia contatori se necessario
+                if (entry.target.classList.contains('stats') || entry.target.classList.contains('stats-dashboard')) {
                     startCounters();
                 }
-                observer.unobserve(entry.target); // Anima solo una volta
+                observer.unobserve(entry.target);
             }
         });
     }, observerOptions);
 
+    // Attiva l'osservatore su tutti gli elementi .reveal
     document.querySelectorAll('.reveal').forEach(el => {
         observer.observe(el);
     });
 
-    // 2. MENU MOBILE
+    // ============================================================
+    // 2. GESTIONE UTENTE E SUPABASE (PROFILO)
+    // ============================================================
+    
+    // Mettiamo tutto in un try-catch per non bloccare il sito se Supabase fallisce
+    try {
+        if (typeof supabase !== 'undefined') {
+            const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
+            // La tua chiave ANON
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
+            
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            // Controlla utente loggato
+            supabaseClient.auth.getUser().then(({ data: { user } }) => {
+                if (user) {
+                    console.log("Utente loggato:", user.email);
+                    const loginBtn = document.getElementById('loginBtn') || document.querySelector('.header-actions .cta-btn');
+                    
+                    if (loginBtn) {
+                        const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
+                        // Sostituisci pulsante con foto
+                        loginBtn.outerHTML = `
+                            <a href="dashboard.html" title="Il mio Profilo" style="display: block;">
+                                <img src="${avatarUrl}" alt="Profilo" class="profile-pic-header">
+                            </a>
+                        `;
+                    }
+                }
+                const navLinks = document.querySelector('.nav-links');
+        
+        if (navLinks) {
+            // Crea il nuovo elemento della lista
+            const newLi = document.createElement('li');
+            
+            // Inserisci il link (non serve creare la pagina ora, darà 404 se cliccato)
+            newLi.innerHTML = '<a href="appuntamenti.html">I tuoi appuntamenti</a>';
+            
+            // DECIDI DOVE INSERIRLO:
+            // navLinks.children[2] lo inserisce come TERZA voce (dopo Home e Progetto)
+            // Se vuoi metterlo in fondo, usa navLinks.appendChild(newLi);
+            
+            // Lo inseriamo prima del terzo elemento esistente (es. prima di "Diventa Tutor")
+            navLinks.insertBefore(newLi, navLinks.children[2]);
+        }
+            });
+        } else {
+            console.warn("Libreria Supabase non trovata nell'HTML.");
+        }
+    } catch (err) {
+        console.error("Errore inizializzazione Supabase:", err);
+    }
+
+    // ============================================================
+    // 3. FUNZIONI UI STANDARD (Header, Menu, Carosello)
+    // ============================================================
+
+    // Header Scroll Effect
+    const header = document.querySelector('header');
+    function handleHeaderScroll() {
+        if (window.scrollY > 50) header.classList.add('scrolled');
+        else header.classList.remove('scrolled');
+    }
+    handleHeaderScroll();
+    window.addEventListener('scroll', handleHeaderScroll);
+
+    // Menu Active Link
+    const currentPage = window.location.pathname.split("/").pop() || "index.html"; 
+    const navLinksItems = document.querySelectorAll('.nav-links a');
+    navLinksItems.forEach(link => {
+        if (link.getAttribute('href') === currentPage) link.classList.add('active');
+    });
+
+    // Menu Mobile
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
-    const header = document.querySelector('header');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                Object.assign(navLinks.style, {
+                    display: 'flex', flexDirection: 'column', position: 'absolute',
+                    top: '100%', left: '0', width: '100%', background: 'white',
+                    padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', textAlign: 'center'
+                });
+            } else {
+                navLinks.style.display = '';
+            }
+        });
+    }
 
-    menuToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        
-        // Stile semplice per il menu mobile quando attivo
-        if (navLinks.classList.contains('active')) {
-            navLinks.style.display = 'flex';
-            navLinks.style.flexDirection = 'column';
-            navLinks.style.position = 'absolute';
-            navLinks.style.top = '100%';
-            navLinks.style.left = '0';
-            navLinks.style.width = '100%';
-            navLinks.style.background = 'white';
-            navLinks.style.padding = '2rem';
-            navLinks.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-            navLinks.style.textAlign = 'center';
-        } else {
-            navLinks.style.display = ''; // Reset allo stile CSS originale
-        }
-    });
-
-    // 3. EFFETTO HEADER SCROLL (Cambia ombra quando scorri)
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.style.boxShadow = "0 5px 20px rgba(0,0,0,0.1)";
-        } else {
-            header.style.boxShadow = "0 2px 15px rgba(0,0,0,0.03)";
-        }
-    });
-
-    // 4. ANIMAZIONE NUMERI (Stats)
+    // Animazione Numeri
     function startCounters() {
-        const counters = document.querySelectorAll('.counter');
-        counters.forEach(counter => {
+        document.querySelectorAll('.counter').forEach(counter => {
             const target = +counter.getAttribute('data-target');
-            const increment = target / 50; // Velocità
-            
+            const increment = Math.ceil(target / 50);
             const updateCounter = () => {
                 const c = +counter.innerText.replace('+', '');
                 if (c < target) {
-                    counter.innerText = Math.ceil(c + increment) + "+";
+                    counter.innerText = (c + increment) + "+";
                     setTimeout(updateCounter, 30);
                 } else {
                     counter.innerText = target + "+";
@@ -76,69 +137,41 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCounter();
         });
     }
-    // CODICE JAVASCRIPT PER IL CAROSELLO DA AGGIUNGERE A script.js
 
-// 5. GESTIONE CAROSELLO
-let currentSlide = 0;
-const slides = document.querySelectorAll('.carousel-slide');
-const indicators = document.querySelectorAll('.indicator');
-const totalSlides = slides.length;
+    // Gestione Carosello (se esiste)
+    const slides = document.querySelectorAll('.carousel-slide');
+    if (slides.length > 0) {
+        let currentSlide = 0;
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+        const nextBtn = document.querySelector('.carousel-control.next');
+        const prevBtn = document.querySelector('.carousel-control.prev');
 
-function showSlide(index) {
-    // Gestisci i limiti dell'indice
-    if (index >= totalSlides) {
-        currentSlide = 0;
-    } else if (index < 0) {
-        currentSlide = totalSlides - 1;
-    } else {
-        currentSlide = index;
+        function showSlide(index) {
+            if (index >= totalSlides) currentSlide = 0;
+            else if (index < 0) currentSlide = totalSlides - 1;
+            else currentSlide = index;
+
+            slides.forEach(s => s.classList.remove('active'));
+            indicators.forEach(i => i.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            if(indicators[currentSlide]) indicators[currentSlide].classList.add('active');
+        }
+
+        if(nextBtn) nextBtn.addEventListener('click', () => showSlide(currentSlide + 1));
+        if(prevBtn) prevBtn.addEventListener('click', () => showSlide(currentSlide - 1));
+        indicators.forEach(i => i.addEventListener('click', (e) => showSlide(parseInt(e.target.dataset.slide))));
     }
 
-    // Rimuovi la classe active da tutte le slide e indicatori
-    slides.forEach(slide => slide.classList.remove('active'));
-    indicators.forEach(indicator => indicator.classList.remove('active'));
-
-    // Aggiungi la classe active alla slide e all'indicatore correnti
-    slides[currentSlide].classList.add('active');
-    indicators[currentSlide].classList.add('active');
-}
-
-// Event Listener per i controlli (frecce)
-document.querySelector('.carousel-control.next').addEventListener('click', () => {
-    showSlide(currentSlide + 1);
-});
-
-document.querySelector('.carousel-control.prev').addEventListener('click', () => {
-    showSlide(currentSlide - 1);
-});
-
-// Event Listener per gli indicatori (punti)
-indicators.forEach(indicator => {
-    indicator.addEventListener('click', (e) => {
-        const slideIndex = parseInt(e.target.getAttribute('data-slide'));
-        showSlide(slideIndex);
-    });
-});
-
-// AGGIUNGI QUESTO DENTRO document.addEventListener('DOMContentLoaded', ...)
-
-// 6. GESTIONE PULSANTE "SCROLL TO TOP"
-const scrollToTopBtn = document.getElementById("scrollToTop");
-
-window.addEventListener("scroll", () => {
-    // Mostra il pulsante se scorri più di 300px
-    if (window.scrollY > 300) {
-        scrollToTopBtn.classList.add("visible");
-    } else {
-        scrollToTopBtn.classList.remove("visible");
+    // Pulsante Scroll Top
+    const scrollToTopBtn = document.getElementById("scrollToTop");
+    if (scrollToTopBtn) {
+        window.addEventListener("scroll", () => {
+            scrollToTopBtn.classList.toggle("visible", window.scrollY > 300);
+        });
+        scrollToTopBtn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
     }
-});
 
-scrollToTopBtn.addEventListener("click", () => {
-    // Scroll fluido verso l'alto
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-});
 });

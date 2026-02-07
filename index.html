@@ -10,24 +10,22 @@
 </head>
 <body>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-            <span>FindMyTutor</span>
-        </div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Trova Tutor</a></li>
-                <li><a href="#">Diventa Tutor</a></li>
-                <li><a href="#">Agnelli</a></li>
-            </ul>
-        </nav>
-        <div class="header-actions">
-            <a href="#" class="cta-btn">Accedi</a>
-            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-        </div>
-    </header>
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span>FindMyTutor</span>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="progetto.html">Il nostro progetto</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+    </div>
+</header>
 
     <section class="hero">
         <div class="hero-bg-accent"></div> <div class="hero-content reveal">
@@ -340,7 +338,8 @@
 
 <footer class="modern-footer reveal">
 
-
+    <footer class="modern-footer reveal">
+    
     <div class="footer-container">
         <div class="footer-grid">
             
@@ -360,8 +359,8 @@
             <div class="footer-col links-col">
                 <h4>Esplora</h4>
                 <ul>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Corsi Individuali</a></li>
+                    <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
+                    <li><a href="progetto.html"><i class="fas fa-chevron-right"></i>Il nostro Progetto</a></li>
                     <li><a href="#"><i class="fas fa-chevron-right"></i> Corsi di Gruppo</a></li>
                     <li><a href="#"><i class="fas fa-chevron-right"></i> Unisciti allo Staff</a></li>
                 </ul>
@@ -369,6 +368,7 @@
 
             <div class="footer-col contact-col">
                 <h4>Contattaci</h4>
+                
                 <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="contact-link">
                     <div class="icon-box"><i class="fas fa-envelope"></i></div>
                     <span>staff.findmytutor@<br>istitutoagnelli.it</span>
@@ -376,10 +376,9 @@
 
                 <div class="social-area">
                     <h4>Seguici</h4>
-                    <a href="#" class="social-btn instagram">
+                    <a href="#" class="social-btn instagram" aria-label="Instagram">
                         <i class="fab fa-instagram"></i>
-                        <span>Instagram</span>
-                    </a>
+                        </a>
                 </div>
             </div>
         </div>
@@ -400,7 +399,9 @@
     <button id="scrollToTop" class="scroll-top-btn">
         <i class="fas fa-arrow-up"></i>
     </button>
-</footer>
+</footer>  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/login.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
