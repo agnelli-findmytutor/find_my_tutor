@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: redirectUrl,
+                    redirectTo: 'https://agnelli-findmytutor.github.io/find_my_tutor/index.html',
                     queryParams: {
                         prompt: 'select_account', // Forza la scelta dell'account
                     }
