@@ -39,27 +39,41 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Errore inizializzazione Supabase:", err);
     }
 
-
-    // --- 3. GESTIONE LOGIN GOOGLE ---
+// --- 3. GESTIONE LOGIN GOOGLE (AGGIORNATA) ---
     const loginWithGoogle = async () => {
         if (!supabase) {
             alert("Errore tecnico: Libreria Supabase mancante.");
             return;
         }
 
+        // CALCOLA L'URL DI REINDIRIZZAMENTO CORRETTO
+        // Se siamo in locale (127.0.0.1 o localhost), usa l'origin semplice.
+        // Se siamo online, FORZA l'URL completo di GitHub Pages (fondamentale per evitare errore 400).
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        
+        const redirectUrl = isLocal 
+            ? window.location.origin + '/index.html' // Esempio: http://127.0.0.1:5500/index.html
+            : 'https://agnelli-findmytutor.github.io/find_my_tutor/index.html'; // URL ESATTO GITHUB
+
+        console.log("Tentativo di login. Redirect verso:", redirectUrl);
+
         try {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/index.html',
-                    queryParams: { prompt: 'select_account' }
+                    redirectTo: redirectUrl,
+                    queryParams: {
+                        prompt: 'select_account', // Forza la scelta dell'account
+                    }
                 }
             });
+
             if (error) throw error;
+            
         } catch (error) {
             console.error("Errore login:", error.message);
             alert("Errore login: " + error.message);
-            window.location.reload(); // Ricarica in caso di errore
+            window.location.reload(); // Ricarica la pagina per resettare i pulsanti
         }
     };
 
@@ -74,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnText = btn.querySelector('.btn-text');
             if(btnText) btnText.innerText = "Reindirizzamento...";
             btn.style.opacity = "0.7";
-            btn.style.pointerEvents = "none";
+            btn.style.pointerEvents = "none"; // Evita doppi click
             
             // Avvia Login
             loginWithGoogle();
