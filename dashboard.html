@@ -15,6 +15,7 @@
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
+
 <header>
     <div class="logo">
         <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -24,6 +25,7 @@
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="progetto.html">Il nostro progetto</a></li>
+            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
         </ul>
     </nav>
     <div class="header-actions">
@@ -36,9 +38,13 @@
         <div class="dashboard-card reveal">
             
             <div class="profile-header">
+                
+                <span id="profileRoleBadge" class="role-badge">...</span>
+
                 <div class="profile-img-container">
                     <img src="https://via.placeholder.com/150" alt="Profilo" id="userAvatar">
                 </div>
+                
                 <h1 id="userName">Caricamento...</h1>
                 <p id="userEmail" class="email-badge">...</p>
             </div>
@@ -59,6 +65,18 @@
             </div>
 
             <div class="dashboard-actions">
+                <a href="appuntamenti.html" id="btnAgendaTutor" class="action-btn agenda hidden">
+                    <i class="far fa-calendar-alt"></i> Agenda Tutor
+                </a>
+                
+                <button id="btnDowngrade" class="action-btn warning hidden">
+                    <i class="fas fa-user-graduate"></i> Torna solo Studente
+                </button>
+
+                <a href="prenota.html" class="action-btn secondary">
+                    <i class="fas fa-search"></i> Cerca Lezione
+                </a>
+
                 <button id="logoutBtn" class="action-btn logout">
                     <i class="fas fa-sign-out-alt"></i> Disconnetti
                 </button>
@@ -67,11 +85,47 @@
                     <i class="fas fa-trash-alt"></i> Elimina Account
                 </button>
             </div>
-
         </div>
     </main>
+<div id="downgradeModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Attenzione: Cambio Ruolo</h3>
+            <p>
+                Stai per rinunciare al ruolo di Tutor. 
+                <br><br>
+                <strong>Prima di procedere:</strong> assicurati di non avere lezioni in sospeso. 
+                La tua attuale candidatura verrà archiviata e dovrai ricompilarla se vorrai tornare Tutor.
+            </p>
+            <div class="modal-actions">
+                <button id="btnCancelDowngrade" class="btn-modal secondary">Annulla</button>
+                <button id="btnConfirmDowngrade" class="btn-modal danger">Conferma e Procedi</button>
+            </div>
+        </div>
+    </div>
+    <div id="downgradeModal" class="modal-overlay hidden">
+       </div>
 
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3>Operazione Completata</h3>
+            <p>
+                Il tuo ruolo è stato aggiornato correttamente.
+                <br>
+                Ora sei uno <strong>Studente</strong>.
+            </p>
+            <button id="btnSuccessClose" class="btn-modal success-btn" style="width:100%">
+                OK, Ricarica Pagina
+            </button>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/gestione_utente.js"></script>
     <script src="script.js"></script>
     <script src="js/dashboard.js"></script>
 

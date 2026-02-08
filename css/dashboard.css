@@ -131,3 +131,195 @@ body {
 @media (max-width: 480px) {
     .dashboard-card { padding: 2rem 1.5rem; }
 }
+/* --- AGGIUNTA BADGE RUOLO --- */
+.role-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px; /* Spazio prima della foto */
+}
+
+/* Colore Studente (Blu chiaro) */
+.badge-student {
+    background-color: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #BBDEFB;
+}
+
+/* Colore Tutor (Rosso Chiaro) */
+.badge-tutor {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+    border: 1px solid #FFCDD2;
+}
+
+/* --- TASTO AGENDA TUTOR --- */
+.action-btn.agenda {
+    background-color: #D32F2F; /* Rosso principale */
+    color: white;
+    border: none;
+    text-decoration: none; /* Importante perché è un tag <a> */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.action-btn.agenda:hover {
+    background-color: #B71C1C;
+}
+
+/* --- TASTO CERCA (Secondario) --- */
+.action-btn.secondary {
+    background-color: white;
+    color: #333;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.action-btn.secondary:hover {
+    background-color: #f5f5f5;
+}
+
+/* Classe Utility per nascondere elementi */
+.hidden {
+    display: none !important;
+}
+/* --- AGGIUNTA BADGE ADMIN --- */
+.badge-admin {
+    background-color: #f3e5f5;
+    color: #4a148c;
+    border: 1px solid #e1bee7;
+}
+/* --- TASTO TORNA STUDENTE (Arancione) --- */
+.action-btn.warning {
+    background-color: #FF9800; /* Arancione Avviso */
+    color: white;
+    border: none;
+}
+
+.action-btn.warning:hover {
+    background-color: #F57C00; /* Arancione Scuro */
+}
+/* --- MODALE PERSONALIZZATO --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Sfondo scuro semi-trasparente */
+    backdrop-filter: blur(8px);      /* Sfocatura sfondo */
+    z-index: 10000;                  /* Sopra a tutto */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Quando togliamo la classe 'hidden' via JS */
+.modal-overlay:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay:not(.hidden) .modal-card {
+    transform: translateY(0);
+}
+
+.modal-icon.warning {
+    width: 60px;
+    height: 60px;
+    background: #FFF3E0;
+    color: #FF9800;
+    font-size: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+}
+
+.modal-card h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.modal-card p {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* Bottoni del Modale */
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-modal {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-modal.secondary {
+    background: #f0f0f0;
+    color: #555;
+}
+.btn-modal.secondary:hover { background: #e0e0e0; }
+
+.btn-modal.danger {
+    background: #FF9800; /* Arancione */
+    color: white;
+}
+.btn-modal.danger:hover { background: #F57C00; }
+/* --- MODALE SUCCESSO (Verde) --- */
+.modal-icon.success {
+    background: #E8F5E9;
+    color: #2E7D32; /* Verde Scuro */
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+}
+
+.btn-modal.success-btn {
+    background: #2E7D32;
+    color: white;
+    padding: 15px;
+    font-size: 1rem;
+}
+
+.btn-modal.success-btn:hover {
+    background: #1B5E20;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.2);
+}

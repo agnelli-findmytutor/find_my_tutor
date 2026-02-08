@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatura Tutor - FindMyTutor</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <meta name="view-transition" content="same-origin">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/diventa_tutor.css">
+</head>
+<body>
+
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <span>FindMyTutor</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="progetto.html">Il nostro progetto</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <main class="application-wrapper fade-wrapper">
+        
+        <div class="application-container reveal">
+            
+            <div class="form-header">
+                <div class="icon-circle">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h1>Diventa Tutor</h1>
+                <p>Metti a disposizione il tuo talento. Guadagna crediti e aiuta i tuoi compagni.</p>
+            </div>
+
+            <div id="loginWarning" class="login-warning hidden">
+                <div class="warning-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Accesso Richiesto</h3>
+                <p>Per inviare la tua candidatura devi essere uno studente registrato.</p>
+                <br>
+                <a href="login.html" class="btn-login-redirect">
+                    Accedi o Registrati <i class="fas fa-sign-in-alt"></i>
+                </a>
+            </div>
+
+            <div id="mainFormContainer"> 
+                
+                <form id="tutorForm" class="modern-form">
+                    
+                    <div id="statusBanner" class="status-banner hidden">
+                        <div class="status-icon"><i class="fas fa-clock"></i></div>
+                        <div class="status-text">
+                            <h4>Richiesta in Valutazione</h4>
+                            <p>Stiamo controllando la tua candidatura. Puoi modificare i dati o ritirarla qui sotto.</p>
+                        </div>
+                    </div>
+
+                    <div id="successBanner" class="status-banner success hidden">
+                        <div class="status-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="status-text">
+                            <h4>Complimenti! Candidatura Accettata 🎉</h4>
+                            <p>Sei ufficialmente un Tutor di FindMyTutor. Il tuo account è stato aggiornato.</p>
+                            <br>
+                            <a href="dashboard.html" class="btn-dashboard-link">Vai alla tua Dashboard <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div id="rejectedBanner" class="status-banner error hidden">
+                        <div class="status-icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="status-text">
+                            <h4>Candidatura Rifiutata</h4>
+                            <p>Ci dispiace, la tua richiesta non è stata accettata.</p>
+                            <p class="reason-text"><strong>Motivo:</strong> <span id="rejectReasonText">...</span></p>
+                            <br>
+                            <button type="button" id="btnTryAgain" class="btn-retry">
+                                <i class="fas fa-redo"></i> Riprova e Invia Nuova Candidatura
+                            </button>
+                        </div>
+                    </div>
+                    <div id="formContent">
+                        
+                        <div class="form-section">
+                            <h3><i class="far fa-id-card"></i> Dati Personali</h3>
+                            
+                            <div class="input-group">
+                                <label>Nome e Cognome</label>
+                                <div class="input-box">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="fullName" placeholder="Es. Mario Rossi" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row-split">
+                                <div class="input-group">
+                                    <label>E-mail Istituzionale</label>
+                                    <div class="input-box">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" placeholder="mario.rossi@istitutoagnelli.it" required>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>N° Telefono</label>
+                                    <div class="input-box">
+                                        <i class="fas fa-phone"></i>
+                                        <input type="tel" id="phone" placeholder="333 1234567" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>Classe e Indirizzo</label>
+                                <div class="input-box">
+                                    <i class="fas fa-school"></i>
+                                    <input type="text" id="classInfo" placeholder="Es. 4B Informatica" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-book-open"></i> Competenze</h3>
+                            
+                            <div class="input-group">
+                                <label>Materia/e</label>
+                                <div class="input-box">
+                                    <i class="fas fa-shapes"></i>
+                                    <input type="text" id="subjects" placeholder="Es. Matematica, Informatica, Sistemi" required>
+                                </div>
+                                <small>Separa le materie con una virgola.</small>
+                            </div>
+
+                            <div class="input-group">
+                                <label>Disponibilità (Giorni e Orari)</label>
+                                <div class="input-box textarea-box">
+                                    <i class="far fa-clock"></i>
+                                    <textarea id="availability" rows="3" placeholder="Es. Lunedì 14:30-16:30, Giovedì pomeriggio..." required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            
+                            <button type="submit" id="btnSubmitNew" class="btn-apply">
+                                Invia Candidatura <i class="fas fa-arrow-right"></i>
+                            </button>
+
+                            <div id="btnGroupExisting" class="btn-group-action hidden">
+                                <button type="button" id="btnUpdate" class="btn-action btn-update">
+                                    <i class="fas fa-sync-alt"></i> Aggiorna Informazioni
+                                </button>
+                                <button type="button" id="btnWithdraw" class="btn-action btn-withdraw">
+                                    <i class="fas fa-trash-alt"></i> Ritira Candidatura
+                                </button>
+                            </div>
+
+                        </div>
+                    
+                    </div> </form>
+            </div> </div>
+
+    </main>
+    <div id="feedbackModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success">
+                <i class="fas fa-paper-plane"></i>
+            </div>
+            <h3 id="modalTitle">Candidatura Inviata!</h3>
+            <p id="modalMessage">
+                Grazie per esserti proposto. Valuteremo la tua richiesta al più presto.
+            </p>
+            <button id="btnModalClose" class="btn-modal success-btn">
+                Ottimo, ho capito
+            </button>
+        </div>
+    </div>
+
+    </body>
+</html>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script src="js/gestione_utente.js"></script>
+    <script src="js/diventa_tutor.js"></script>
+
+</body>
+</html>

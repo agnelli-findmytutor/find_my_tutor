@@ -1,0 +1,519 @@
+/* --- CONFIGURAZIONE COLORI --- */
+:root {
+    --agnelli-red: #D32F2F;
+    --agnelli-dark: #B71C1C;
+    --agnelli-light: #FFEBEE;
+    --text-main: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-input: #f8f9fa;
+}
+
+/* Wrapper che centra tutto */
+.application-wrapper {
+    min-height: 100vh;
+    padding: 120px 20px 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 1; /* Sopra i blob */
+}
+
+/* La Card Principale */
+.application-container {
+    background: white;
+    width: 100%;
+    max-width: 700px; /* Larghezza ottimale per un form */
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border-top: 6px solid var(--agnelli-red); /* Tocco di classe rosso in alto */
+    position: relative;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- INTESTAZIONE FORM --- */
+.form-header {
+    text-align: center;
+    padding: 40px 40px 20px;
+    background: white;
+}
+
+.icon-circle {
+    width: 70px;
+    height: 70px;
+    background: var(--agnelli-light);
+    color: var(--agnelli-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 20px;
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.2);
+}
+
+.form-header h1 {
+    font-size: 2rem;
+    color: var(--text-main);
+    margin-bottom: 10px;
+    font-weight: 800;
+}
+
+.form-header p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* --- CORPO DEL FORM (Riprogettato) --- */
+.modern-form {
+    padding: 0 50px 50px;
+}
+
+.form-section h3 {
+    font-size: 0.95rem;
+    color: var(--agnelli-red);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    border-bottom: 2px solid var(--agnelli-light);
+    padding-bottom: 10px;
+    margin-top: 10px;
+}
+
+.divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 30px 0;
+}
+
+/* Griglia per le righe doppie (Email/Telefono) */
+.form-row-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Due colonne uguali */
+    gap: 25px; /* Spazio tra le colonne */
+    margin-bottom: 20px;
+}
+
+/* Gruppo Input (Label sopra, Input sotto) */
+.input-group {
+    display: flex;
+    flex-direction: column; /* FONDAMENTALE: Impila verticale */
+    gap: 8px; /* Spazio tra label e input */
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #444;
+    margin-left: 5px; /* Allineamento ottico */
+}
+
+.input-group small {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    margin-left: 5px;
+    font-style: italic;
+}
+
+/* Box dell'Input (Contiene icona e campo) */
+.input-box {
+    position: relative;
+    width: 100%;
+}
+
+/* Icona dentro l'input */
+.input-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 1.1rem;
+    transition: 0.3s;
+    pointer-events: none; /* Cliccando l'icona si seleziona l'input */
+}
+
+/* Fix per icona nella textarea (deve stare in alto) */
+.input-box.textarea-box i {
+    top: 20px;
+    transform: none;
+}
+
+/* Stile Campi Input e Textarea */
+.input-box input,
+.input-box textarea {
+    width: 100%;
+    padding: 16px 20px 16px 50px; /* Spazio a sinistra per l'icona */
+    background-color: var(--bg-input); /* Grigio chiaro moderno */
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #333;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+/* Effetti Focus (Quando clicchi) */
+.input-box input:focus,
+.input-box textarea:focus {
+    background-color: #fff;
+    border-color: var(--agnelli-red);
+    box-shadow: 0 5px 20px rgba(211, 47, 47, 0.1); /* Alone rosso leggero */
+    outline: none;
+}
+
+/* Quando l'input è attivo, colora l'icona */
+.input-box:focus-within i {
+    color: var(--agnelli-red);
+}
+
+/* --- BOTTONE INVIO --- */
+.form-footer {
+    margin-top: 30px;
+}
+
+.btn-apply {
+    width: 100%;
+    padding: 18px;
+    background: var(--agnelli-red);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
+}
+
+.btn-apply:hover {
+    background: var(--agnelli-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(211, 47, 47, 0.4);
+}
+
+.btn-apply:active {
+    transform: translateY(0);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .application-container {
+        border-radius: 15px;
+    }
+    .form-header {
+        padding: 30px 20px;
+    }
+    .modern-form {
+        padding: 0 25px 30px;
+    }
+    
+    /* Su mobile le colonne diventano una sotto l'altra */
+    .form-row-split {
+        grid-template-columns: 1fr; 
+        gap: 0;
+    }
+}
+/* --- BANNER DI STATO --- */
+.status-banner {
+    background: #FFF8E1; /* Giallo chiaro */
+    border-left: 5px solid #FFC107; /* Giallo scuro */
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+.status-icon {
+    font-size: 1.5rem;
+    color: #FFA000;
+}
+
+.status-text h4 {
+    color: #B08604;
+    font-size: 1rem;
+    margin-bottom: 3px;
+}
+.status-text p {
+    color: #6d5612;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* --- PULSANTI AGGIORNA / RITIRA --- */
+.btn-group-action {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Aggiorna (Blu/Verde o Grigio Scuro) */
+.btn-update {
+    background: #2c3e50;
+    color: white;
+}
+.btn-update:hover {
+    background: #1a252f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3);
+}
+
+/* Ritira (Bianco con bordo rosso o Rosso sbiadito) */
+.btn-withdraw {
+    background: white;
+    color: #c62828;
+    border: 2px solid #ffcdd2;
+}
+.btn-withdraw:hover {
+    background: #ffebee;
+    border-color: #ef9a9a;
+}
+
+/* Utility */
+.hidden { display: none !important; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Mobile: Pulsanti uno sotto l'altro */
+@media (max-width: 600px) {
+    .btn-group-action { flex-direction: column; }
+}
+/* --- BANNER DI SUCCESSO (Verde) --- */
+.status-banner.success {
+    background: #E8F5E9;       /* Verde molto chiaro */
+    border-left-color: #2E7D32; /* Verde scuro */
+}
+
+.status-banner.success .status-icon {
+    color: #2E7D32;
+}
+
+.status-banner.success h4 {
+    color: #1B5E20;
+}
+
+.status-banner.success p {
+    color: #333;
+}
+
+/* Link Dashboard nel banner */
+.btn-dashboard-link {
+    display: inline-block;
+    background: #2E7D32;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.btn-dashboard-link:hover {
+    background: #1B5E20;
+    transform: translateX(5px);
+}
+
+/* Utility per nascondere */
+.hidden { display: none !important; }
+/* --- BLOCCO AVVISO LOGIN --- */
+.login-warning {
+    text-align: center;
+    padding: 40px 20px 60px;
+    animation: fadeIn 0.5s ease;
+}
+
+.warning-icon {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.login-warning h3 {
+    font-size: 1.5rem;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.login-warning p {
+    color: #777;
+    margin-bottom: 30px;
+}
+
+.btn-login-redirect {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--agnelli-red);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.2);
+}
+
+.btn-login-redirect:hover {
+    background-color: var(--agnelli-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(211, 47, 47, 0.3);
+}
+/* --- MODALE PERSONALIZZATO --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay:not(.hidden) .modal-card {
+    transform: translateY(0);
+}
+
+.modal-icon.success {
+    width: 70px;
+    height: 70px;
+    background: #E8F5E9;
+    color: #2E7D32;
+    font-size: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+}
+
+.modal-card h3 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.4rem;
+}
+
+.modal-card p {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.btn-modal.success-btn {
+    width: 100%;
+    background: #2E7D32;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-modal.success-btn:hover {
+    background: #1B5E20;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.2);
+}
+/* --- BANNER ERRORE (Rosso) --- */
+.status-banner.error {
+    background: #FFEBEE;       /* Rosso molto chiaro */
+    border-left-color: #D32F2F; /* Rosso Agnelli */
+}
+
+.status-banner.error .status-icon {
+    color: #D32F2F;
+}
+
+.status-banner.error h4 {
+    color: #B71C1C;
+}
+
+.reason-text {
+    margin-top: 5px !important;
+    font-style: italic;
+    color: #555 !important;
+    background: rgba(255,255,255,0.6);
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Bottone Riprova */
+.btn-retry {
+    background: #D32F2F;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.btn-retry:hover {
+    background: #B71C1C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
+}

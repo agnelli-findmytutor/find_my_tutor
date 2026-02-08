@@ -1,0 +1,325 @@
+/* --- CONFIGURAZIONE COLORI --- */
+:root {
+    --agnelli-red: #D32F2F;       /* Rosso Principale */
+    --agnelli-dark: #B71C1C;      /* Rosso Scuro per hover */
+    --agnelli-light: #FFEBEE;     /* Sfondo Rosso Chiaro */
+    --text-main: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-gray: #f4f6f8;
+}
+
+body {
+    background-color: var(--bg-gray);
+}
+
+.agenda-wrapper {
+    max-width: 1200px; /* Allargato per ospitare le due colonne */
+    margin: 0 auto;
+    padding: 110px 20px 60px;
+    min-height: 100vh;
+}
+
+/* --- TITOLO --- */
+.page-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.page-title h1 {
+    font-size: 2.2rem;
+    color: var(--text-main);
+    font-weight: 800;
+}
+.page-title p {
+    color: var(--text-light);
+    margin-top: 5px;
+}
+
+/* --- 1. BOX AVVISO --- */
+.notice-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 50px;
+    border-top: 4px solid var(--agnelli-red);
+    animation: fadeIn 0.8s ease;
+}
+
+.notice-header {
+    background: var(--agnelli-light);
+    color: var(--agnelli-red);
+    padding: 15px 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.notice-body { padding: 20px; }
+.notice-body p { color: var(--text-light); margin-bottom: 20px; font-size: 0.95rem; }
+
+.copy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.copy-card {
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: 0.2s;
+}
+
+.copy-card:hover {
+    border-color: var(--agnelli-red);
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.1);
+}
+
+.card-icon {
+    width: 40px; height: 40px;
+    background: var(--bg-gray);
+    color: var(--agnelli-red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+}
+
+.card-text { flex-grow: 1; }
+.card-text strong { display: block; font-size: 0.9rem; color: var(--text-main); }
+.card-text small { display: block; font-size: 0.8rem; color: var(--text-light); font-style: italic; }
+
+.btn-copy {
+    border: none;
+    background: transparent;
+    color: var(--agnelli-red);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+.btn-copy:hover { background: var(--agnelli-light); }
+
+/* =========================================
+   NUOVO LAYOUT DASHBOARD (Griglia 2 Colonne)
+   ========================================= */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50% Sinistra, 50% Destra */
+    gap: 30px;
+    margin-bottom: 50px;
+    align-items: start;
+}
+
+/* --- WIDGET PRENOTAZIONE (Sinistra) --- */
+.booking-widget {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    animation: fadeIn 0.8s ease;
+    height: 100%; /* Si adatta all'altezza della colonna */
+    margin-bottom: 0; /* Il margine lo gestisce la griglia */
+}
+
+.widget-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+}
+.widget-header h3 { font-size: 1.4rem; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+.widget-header h3 i { color: var(--agnelli-red); }
+.widget-header p { color: var(--text-light); font-size: 0.95rem; margin: 0; }
+
+.widget-form { padding: 30px; background: #fff; }
+
+/* Griglia Input Verticale (per stare nella colonna di sinistra) */
+.inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Una sotto l'altra per pulizia */
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.input-box { display: flex; flex-direction: column; gap: 8px; }
+.input-box label { font-size: 0.85rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+.input-box label i { color: var(--agnelli-red); margin-right: 5px; }
+
+.input-box select, .input-box input {
+    width: 100%; padding: 15px; background-color: #f8f9fa; border: 2px solid transparent;
+    border-radius: 10px; font-size: 1rem; color: #333; font-family: inherit;
+    cursor: pointer; transition: 0.3s; outline: none; height: 55px;
+}
+.input-box select:focus, .input-box input:focus {
+    background-color: #fff; border-color: var(--agnelli-red);
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.1);
+}
+
+.btn-widget-confirm {
+    width: 100%; padding: 18px; background: var(--agnelli-red); color: white;
+    font-size: 1.1rem; font-weight: 700; border: none; border-radius: 10px;
+    cursor: pointer; transition: all 0.3s; display: flex; justify-content: center;
+    align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
+}
+.btn-widget-confirm:hover { background: var(--agnelli-dark); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(211, 47, 47, 0.4); }
+
+/* --- LISTA AULE PRENOTATE (Destra) --- */
+.booked-rooms-section {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    height: 100%; /* Stessa altezza del widget */
+    overflow-y: auto; /* Scroll se ci sono troppe aule */
+    max-height: 580px; /* Limite altezza */
+    animation: fadeIn 1s ease;
+    margin-bottom: 0;
+}
+
+.section-header h3 { font-size: 1.3rem; color: var(--text-main); margin-bottom: 20px; font-weight: 700; }
+
+.booked-rooms-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Lista verticale */
+    gap: 15px;
+}
+
+.room-card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;
+    border-left: 5px solid var(--agnelli-red);
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform 0.2s;
+}
+.room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+.room-info h4 { font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px; }
+.room-info p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+.room-info i { color: var(--agnelli-red); width: 20px; text-align: center; }
+
+.btn-delete-booking {
+    margin-top: 15px; background: white; border: 1px solid #ffcdd2; color: #c62828;
+    padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;
+}
+.btn-delete-booking:hover { background: #ffebee; border-color: #ef9a9a; }
+
+/* =========================================
+   CALENDARIO LEZIONI (Griglia 2 Colonne)
+   ========================================= */
+
+#appointmentsList {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Sinistra / Destra */
+    gap: 30px;
+    align-items: start;
+}
+
+.day-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+    margin-bottom: 0; /* Gestito dal gap */
+    break-inside: avoid;
+}
+
+.day-header {
+    position: static;
+    background: transparent;
+    padding: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+    display: flex; align-items: center; gap: 15px;
+}
+.day-badge { background: var(--text-main); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; text-transform: capitalize; }
+.day-line { display: none; }
+
+.lesson-card {
+    background: white; border-radius: 12px; padding: 0; margin-bottom: 15px;
+    box-shadow: none; border: 1px solid #eee; display: flex; overflow: hidden;
+    transition: transform 0.2s; border-left: 5px solid var(--agnelli-red);
+}
+.lesson-card:hover { transform: translateY(-2px); border-color: var(--agnelli-red); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+.lesson-time { background: var(--agnelli-light); color: var(--agnelli-red); min-width: 80px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-right: 1px solid #eee; }
+.time-start { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+.time-dur { font-size: 0.7rem; margin-top: 4px; opacity: 0.8; }
+
+.lesson-details { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+.lesson-subject { text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; color: var(--text-light); font-weight: 700; margin-bottom: 4px; }
+.lesson-student { font-size: 1rem; color: var(--text-main); font-weight: 600; margin-bottom: 5px; }
+.lesson-student span { color: var(--agnelli-red); }
+.lesson-meta { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text-light); }
+.lesson-meta i { color: var(--agnelli-red); }
+
+/* --- RESPONSIVE (Mobile) --- */
+@media (max-width: 900px) {
+    /* Su schermi piccoli torna tutto in una colonna */
+    .dashboard-grid { grid-template-columns: 1fr; }
+    #appointmentsList { grid-template-columns: 1fr; }
+    
+    .agenda-wrapper { padding: 100px 15px 40px; }
+    .booked-rooms-section { max-height: none; overflow: visible; }
+}
+
+/* Animations & Utils */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+@keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+.loader-placeholder { text-align: center; padding: 40px; color: var(--agnelli-red); }
+.empty-calendar { text-align: center; padding: 40px 20px; color: var(--text-light); grid-column: 1 / -1; }
+.empty-calendar i { font-size: 3rem; color: #ddd; margin-bottom: 15px; }
+
+#toast {
+    visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center;
+    border-radius: 50px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px;
+    transform: translateX(-50%); font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+#toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+/* --- MODALI INTERNI --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    z-index: 10000; display: flex; justify-content: center; align-items: center;
+    opacity: 0; visibility: hidden; transition: 0.3s ease;
+}
+.modal-overlay:not(.hidden) { opacity: 1; visibility: visible; }
+
+.modal-card {
+    background: white; padding: 30px; border-radius: 15px;
+    width: 90%; max-width: 400px; text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    transform: translateY(20px); transition: 0.3s ease;
+}
+.modal-overlay:not(.hidden) .modal-card { transform: translateY(0); }
+
+.modal-icon {
+    width: 60px; height: 60px; border-radius: 50%; 
+    display: flex; justify-content: center; align-items: center; 
+    margin: 0 auto 20px; font-size: 1.5rem;
+}
+.modal-icon.warning { background: #FFEBEE; color: #D32F2F; }
+.modal-icon.success { background: #E8F5E9; color: #2E7D32; }
+
+.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+.btn-modal { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-modal.secondary { background: #f0f0f0; color: #555; }
+.btn-modal.danger { background: #D32F2F; color: white; }
+.btn-modal.success-btn { background: #2E7D32; color: white; margin-top: 15px; }
+
+/* Stile pulsante Cestino nella lista */
+.btn-delete-booking {
+    background: white; border: 1px solid #ffcdd2; color: #d32f2f;
+    width: 35px; height: 35px; border-radius: 50%;
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.btn-delete-booking:hover { background: #ffebee; transform: scale(1.1); }
+

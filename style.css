@@ -1489,3 +1489,194 @@ footer { background: #1a1a1a; color: white; padding: 3rem 10%; margin-top: 4rem;
 .profile-pic-header:hover {
     transform: scale(1.1);
 }
+/* --- FIX CENTRAMENTO MENU HEADER --- */
+
+/* Applichiamo la modifica solo su PC (schermi grandi) */
+@media (min-width: 900px) {
+    
+    header {
+        position: relative; /* Necessario per far funzionare l'absolute del figlio */
+    }
+
+    header nav {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+    }
+    
+    /* Assicuriamoci che il logo e il profilo stiano ai lati estremi */
+    .logo {
+        z-index: 2; /* Per stare sopra se lo schermo si stringe */
+    }
+    
+    .header-actions {
+        z-index: 2;
+        margin-left: auto; /* Spinge il profilo tutto a destra */
+    }
+}
+/* --- MENU MOBILE SIDEBAR (CORRETTO E VISIBILE) --- */
+
+/* Nascondi il panino su PC */
+.menu-toggle {
+    display: none;
+}
+
+/* Regole SOLO per Mobile */
+@media (max-width: 900px) {
+
+    /* 1. Mostra il pulsante (Panino) */
+    .menu-toggle {
+        display: block;
+        font-size: 1.8rem;
+        cursor: pointer;
+        z-index: 9999; /* Z-Index altissimo per stare sopra a tutto */
+        color: #333; /* Colore scuro per vederlo bene */
+        position: relative;
+    }
+
+    /* 2. La Sidebar Laterale */
+    .nav-links {
+        position: fixed !important; /* Forza la posizione fissa */
+        top: 0;
+        right: -100%; /* Nascosto a destra */
+        height: 100vh; /* Tutta l'altezza */
+        width: 75%;    /* Larghezza menu */
+        max-width: 300px;
+        background-color: white !important; /* Sfondo bianco OPACO */
+        
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        
+        box-shadow: -5px 0 15px rgba(0,0,0,0.2); /* Ombra per staccarlo dallo sfondo */
+        transition: right 0.4s ease; /* Animazione fluida */
+        z-index: 9998; /* Appena sotto il pulsante panino */
+        
+        /* Reset di eventuali stili desktop */
+        transform: none !important; 
+        left: auto !important;
+    }
+
+    /* 3. Classe che attiva il menu */
+    .nav-links.active {
+        right: 0 !important; /* Lo porta visibile */
+    }
+
+    /* Stile dei link dentro il menu */
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-links li a {
+        font-size: 1.2rem;
+        display: block;
+        padding: 10px;
+    }
+    
+    /* Overlay Scuro (Sfondo che copre il sito) */
+    .overlay-menu {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); /* Nero semitrasparente */
+        z-index: 9000; /* Sotto al menu ma sopra al sito */
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+    }
+    
+    .overlay-menu.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+/* --- USER PROFILE HEADER (Badge + Foto) --- */
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Spazio tra scritta e foto */
+}
+
+/* Stile base del Badge */
+.badge-student, .badge-tutor {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    white-space: nowrap; /* Non andare a capo */
+}
+
+/* Stile STUDENTE (Blu/Grigio) */
+.badge-student {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+/* Stile TUTOR (Rosso Agnelli) */
+.badge-tutor {
+    background-color: #FFEBEE; /* Rosso chiarissimo */
+    color: #D32F2F;            /* Rosso scuro */
+    border: 1px solid #ffcdd2;
+}
+
+/* Aggiustamento foto profilo per allineamento */
+.profile-pic-header {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: block; /* Toglie spazi sotto l'immagine */
+    transition: transform 0.2s;
+}
+
+.profile-pic-header:hover {
+    transform: scale(1.1);
+    border-color: #D32F2F;
+}
+
+/* --- MOBILE FIX --- */
+/* Quando il menu diventa mobile, vogliamo che il badge si veda bene */
+@media (max-width: 900px) {
+    .user-profile-header {
+        flex-direction: column-reverse; /* Foto sopra, scritta sotto */
+        margin-bottom: 10px;
+    }
+    
+    .badge-student, .badge-tutor {
+        font-size: 0.7rem;
+    }
+}
+/* --- TRANSIZIONI DI PAGINA --- */
+
+/* 1. Stato Iniziale (Appena caricata) */
+body {
+    animation: fadeInPage 0.3s ease-out forwards;
+    opacity: 0; /* Parte invisibile */
+}
+
+/* Animazione Entrata */
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 2. Classe per l'Uscita (Aggiunta via JS quando clicchi) */
+body.fade-out {
+    animation: fadeOutPage 0.15s ease-in forwards;
+}
+
+/* Animazione Uscita */
+@keyframes fadeOutPage {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}

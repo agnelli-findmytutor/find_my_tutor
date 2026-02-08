@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Studente - FindMyTutor</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="view-transition" content="same-origin">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/prenota.css">
+</head>
+<body>
+
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+   <header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span>FindMyTutor</span>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="progetto.html">Il nostro progetto</a></li>
+            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+    </div>
+</header>
+
+    <main class="dashboard-wrapper fade-wrapper">
+        
+        <div class="container-agenda reveal">
+            
+            <div class="page-header">
+                <h1>Agenda Studente</h1>
+                <p>Cerca un tutor, prenota la tua ripetizione e gestisci il tuo calendario.</p>
+            </div>
+
+            <div class="split-layout">
+                
+                <div class="card-box booking-card">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-plus"></i>
+                        <h3>Nuova Prenotazione</h3>
+                    </div>
+                    <p class="card-subtitle">Seleziona i dettagli per bloccare la tua lezione.</p>
+                    
+                    <form id="bookingForm">
+                        
+                        <div class="row-group">
+                            <div class="form-group">
+                                <label>Anno Tutor</label>
+                                <select id="filterYear" required>
+                                    <option value="" disabled selected>Seleziona...</option>
+                                    <option value="3">3° Anno</option>
+                                    <option value="4">4° Anno</option>
+                                    <option value="5">5° Anno</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Materia</label>
+                                <input type="text" id="filterSubject" placeholder="Es. Matematica" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Scegli Tutor</label>
+                            <select id="selectTutor" disabled required>
+                                <option value="">Imposta prima i filtri...</option>
+                            </select>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="row-group">
+                            <div class="form-group">
+                                <label>Data</label>
+                                <input type="date" id="lessonDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Ora Inizio</label>
+                                <input type="time" id="lessonTime" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Durata</label>
+                            <div class="duration-pills">
+                                <input type="radio" name="duration" id="d60" value="60" checked>
+                                <label for="d60">1 Ora</label>
+                                
+                                <input type="radio" name="duration" id="d90" value="90">
+                                <label for="d90">1h 30m</label>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label><i class="far fa-comment-dots"></i> Argomenti Specifici (Opzionale)</label>
+                            <textarea id="lessonNotes" rows="3" placeholder="Es. Vorrei ripassare le equazioni di secondo grado..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-confirm-booking">
+                            <i class="fas fa-check-circle"></i> Conferma Prenotazione
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-box list-card">
+                    <div class="card-header">
+                        <i class="fas fa-list-alt"></i>
+                        <h3>Le tue Lezioni</h3>
+                    </div>
+                    <p class="card-subtitle">Gestisci le lezioni già programmate.</p>
+                    
+                    <div id="myLessonsList" class="lessons-scroll-area">
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>Nessuna lezione in programma.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div> </div>
+    </main>
+
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success"><i class="fas fa-check"></i></div>
+            <h3 id="successTitle">Prenotata!</h3>
+            <p id="successMessage">Operazione completata.</p>
+            <button id="btnSuccessClose" class="btn-modal success-btn">OK</button>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning"><i class="fas fa-trash-alt"></i></div>
+            <h3>Annulla Lezione</h3>
+            <p>Sei sicuro di voler annullare questa lezione?</p>
+            <div class="modal-actions">
+                <button id="btnCancelDelete" class="btn-modal secondary">Indietro</button>
+                <button id="btnConfirmDelete" class="btn-modal danger">Sì, Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="warningModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3>Attenzione</h3>
+            <p id="warningMessage">Messaggio di avviso.</p>
+            <button id="btnWarningClose" class="btn-modal secondary" style="background:#FF9800; color:white;">Ho capito</button>
+        </div>
+    </div>
+    
+<div id="editModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="card-header-simple" style="border-bottom:none; padding-bottom:0;">
+                <h3 style="margin:0; color:var(--text-dark);">Modifica Lezione</h3>
+            </div>
+            
+            <form id="editForm" style="margin-top:20px; text-align:left;">
+                <input type="hidden" id="editLessonId">
+                <input type="hidden" id="editTutorId"> <div class="row-group">
+                    <div class="form-group">
+                        <label>Nuova Data</label>
+                        <input type="date" id="editDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nuovo Orario</label>
+                        <input type="time" id="editTime" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Materia</label>
+                    <input type="text" id="editSubject" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Durata</label>
+                    <select id="editDuration">
+                        <option value="60 min">1 Ora (60 min)</option>
+                        <option value="90 min">1 Ora e mezza (90 min)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Argomenti</label>
+                    <textarea id="editNotes" rows="2" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btnCancelEdit" class="btn-modal secondary">Annulla</button>
+                    <button type="submit" class="btn-modal primary">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script src="js/gestione_utente.js"></script>
+    <script src="js/prenota.js"></script>
+
+</body>
+</html>

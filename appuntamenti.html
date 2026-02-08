@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Tutor - FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="view-transition" content="same-origin">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/appuntamenti.css">
+</head>
+<body>
+
+    <div class="overlay-menu"></div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <span>FindMyTutor</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="progetto.html">Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
+
+    <main class="agenda-wrapper">
+        
+        <div class="page-title reveal">
+            <h1>La tua Agenda Tutor</h1>
+            <p>Visualizza le lezioni programmate e gestisci gli imprevisti.</p>
+        </div>
+
+        <div class="notice-container reveal">
+            <div class="notice-header">
+                <i class="fas fa-exclamation-circle"></i> 
+                <span>Linee Guida Disdetta</span>
+            </div>
+            <div class="notice-body">
+                <p>Se devi annullare una lezione già prenotata, usa queste motivazioni ufficiali:</p>
+                
+                <div class="copy-grid">
+                    <div class="copy-card">
+                        <div class="card-icon"><i class="fas fa-user-clock"></i></div>
+                        <div class="card-text">
+                            <strong>Imprevisto Personale</strong>
+                            <small>"Assenza imprevista del tutor"</small>
+                        </div>
+                        <button onclick="copyText('Assenza imprevista del tutor assegnato')" class="btn-copy">
+                            <i class="far fa-copy"></i> Copia
+                        </button>
+                    </div>
+
+                    <div class="copy-card">
+                        <div class="card-icon"><i class="fas fa-building"></i></div>
+                        <div class="card-text">
+                            <strong>Aula non disponibile</strong>
+                            <small>"Posti in aula terminati"</small>
+                        </div>
+                        <button onclick="copyText('Posti in aula terminati')" class="btn-copy">
+                            <i class="far fa-copy"></i> Copia
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div class="dashboard-grid">
+            
+            <div class="booking-widget reveal">
+                <div class="widget-header">
+                    <h3><i class="fas fa-calendar-plus"></i> Nuova Prenotazione</h3>
+                    <p>Seleziona i dettagli per bloccare l'aula.</p>
+                </div>
+               <form id="roomBookingForm" class="widget-form">
+    <div class="inputs-grid">
+        
+        <div class="input-box">
+            <label><i class="fas fa-door-open"></i> Aula</label>
+            <select id="selectRoom" required>
+                <option value="Aula Magna">Aula Magna</option>
+                <option value="Aula 3A">Aula 3A</option>
+                <option value="Aula 4B">Aula 4B</option>
+            </select>
+        </div>
+
+        <div class="input-box">
+            <label><i class="far fa-calendar-alt"></i> Data</label>
+            <input type="date" id="selectDate" required class="date-input">
+        </div>
+
+        <div class="input-box">
+            <label><i class="far fa-clock"></i> Orario Inizio</label>
+            <input type="time" id="selectTime" required class="date-input" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; color: #444;">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1; background: #E3F2FD; padding: 20px; border-radius: 12px; border: 1px solid #90CAF9; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1); margin-top: 10px;">
+            <label style="color: #1565C0; font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; display: block;">
+                <i class="fas fa-link"></i> Collega a una tua lezione
+            </label>
+            
+            <select id="selectLessonLink" style="width: 100%; padding: 12px; border: 1px solid #64B5F6; border-radius: 8px; background-color: white; color: #333; font-size: 0.95rem; outline: none; cursor: pointer;">
+                <option value="">Nessuna lezione da collegare</option>
+            </select>
+            
+            <small style="display: block; margin-top: 8px; color: #455A64; font-size: 0.85rem; font-style: italic;">
+                <i class="fas fa-info-circle"></i> Seleziona prima Data e Ora per visualizzare le lezioni compatibili.
+            </small>
+        </div>
+
+    </div>
+    
+    <button type="submit" class="btn-widget-confirm">Conferma</button>
+</form>
+            </div>
+
+            <div class="booked-rooms-section reveal">
+                <div class="section-header">
+                    <h3><i class="fas fa-list-ul"></i> Le tue Aule</h3>
+                </div>
+                <div id="roomBookingsList" class="booked-rooms-grid">
+                    <div class="loader-placeholder">Caricamento...</div>
+                </div>
+            </div>
+
+        </div> 
+        <div class="calendar-stream" id="appointmentsList">
+            </div>
+
+    </main>
+<div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3>Elimina Prenotazione</h3>
+            <p>Sei sicuro di voler cancellare questa prenotazione? L'operazione non può essere annullata.</p>
+            <div class="modal-actions">
+                <button id="btnCancelDelete" class="btn-modal secondary">Annulla</button>
+                <button id="btnConfirmDelete" class="btn-modal danger">Sì, Cancella</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 id="successTitle">Operazione Riuscita!</h3>
+            <p id="successMessage">Tutto è andato a buon fine.</p>
+            <button id="btnSuccessClose" class="btn-modal success-btn" style="width:100%">OK</button>
+        </div>
+    </div>
+    <div id="warningModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 id="warningTitle">Attenzione</h3>
+            <p id="warningMessage">Operazione non consentita.</p>
+            <button id="btnWarningClose" class="btn-modal secondary" style="width:100%; background:#FF9800; color:white;">Ho capito</button>
+        </div>
+    </div>
+    <div id="cancelLessonModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3 style="color: #D32F2F;">Cancella Lezione</h3>
+        
+        <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">
+            Stai per cancellare la lezione con lo studente. Questa azione è irreversibile.
+        </p>
+
+        <div style="background: #ffebee; border-left: 4px solid #D32F2F; padding: 10px; margin-bottom: 15px; text-align: left; font-size: 0.85rem; color: #b71c1c;">
+            <strong>ATTENZIONE:</strong> Cancellare lezioni senza un motivo valido (es. malattia o gravi imprevisti) comporterà la revisione del tuo account e la possibile <strong>perdita del ruolo di Tutor</strong>.
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+            <label style="font-weight: bold; font-size: 0.85rem;">Motivo della cancellazione (Obbligatorio)</label>
+            <textarea id="cancelReason" rows="3" placeholder="Scrivi qui il motivo..." style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button id="btnAbortCancel" class="btn-modal secondary">Indietro</button>
+            <button id="btnExecCancel" class="btn-modal danger">Conferma Cancellazione</button>
+        </div>
+    </div>
+</div>
+    <div id="toast"><i class="fas fa-check"></i> Testo copiato!</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/gestione_utente.js"></script>
+    <script src="script.js"></script>
+    <script src="js/appuntamenti.js"></script>
+    <script src="js/gestione_utente.js"></script>
+
+</body>
+</html>

@@ -39,31 +39,38 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Errore inizializzazione Supabase:", err);
     }
 
-// --- 3. GESTIONE LOGIN GOOGLE (AGGIORNATA) ---
+// --- 3. GESTIONE LOGIN GOOGLE (VERSIONE INTELLIGENTE) ---
     const loginWithGoogle = async () => {
         if (!supabase) {
             alert("Errore tecnico: Libreria Supabase mancante.");
             return;
         }
 
-        // CALCOLA L'URL DI REINDIRIZZAMENTO CORRETTO
-        // Se siamo in locale (127.0.0.1 o localhost), usa l'origin semplice.
-        // Se siamo online, FORZA l'URL completo di GitHub Pages (fondamentale per evitare errore 400).
-        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        
-        const redirectUrl = isLocal 
-            ? window.location.origin + '/index.html' // Esempio: http://127.0.0.1:5500/index.html
-            : 'https://agnelli-findmytutor.github.io/find_my_tutor/index.html'; // URL ESATTO GITHUB
+        // 1. CAPIAMO DOVE SIAMO
+        // Se l'indirizzo nel browser è "127.0.0.1" o "localhost", siamo in locale.
+        const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
 
-        console.log("Tentativo di login. Redirect verso:", redirectUrl);
+        // 2. SCEGLIAMO IL LINK DI DESTINAZIONE
+        let redirectLink;
+
+        if (isLocal) {
+            // SE SIAMO IN LOCALE: Usa l'indirizzo attuale del tuo PC (es. http://127.0.0.1:5500/index.html)
+            redirectLink = window.location.origin + '/index.html';
+            console.log("Modalità Sviluppo (Locale): Redirect a " + redirectLink);
+        } else {
+            // SE SIAMO ONLINE: Usa il link fisso di GitHub (obbligatorio per Supabase online)
+            redirectLink = 'https://agnelli-findmytutor.github.io/find_my_tutor/index.html';
+            console.log("Modalità Produzione (Online): Redirect a " + redirectLink);
+        }
 
         try {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: 'https://agnelli-findmytutor.github.io/find_my_tutor/index.html',
+                    // Qui usiamo la variabile calcolata sopra
+                    redirectTo: redirectLink,
                     queryParams: {
-                        prompt: 'select_account', // Forza la scelta dell'account
+                        prompt: 'select_account'
                     }
                 }
             });
@@ -73,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Errore login:", error.message);
             alert("Errore login: " + error.message);
-            window.location.reload(); // Ricarica la pagina per resettare i pulsanti
+            window.location.reload();
         }
     };
 

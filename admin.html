@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Admin - FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <meta name="view-transition" content="same-origin">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <style>
+        /* Stili Specifici Admin */
+        .admin-wrapper { max-width: 1200px; margin: 120px auto; padding: 20px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .admin-header h1 { color: #4a148c; /* Viola Admin */ }
+        
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 50px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid #4a148c; }
+        .stat-card h3 { font-size: 2.5rem; margin: 10px 0; color: #4a148c; }
+        
+        /* Tabelle */
+        .table-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px; overflow-x: auto; }
+        .table-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f3e5f5; color: #4a148c; font-weight: 700; }
+        
+        /* Controlli */
+        .role-select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
+        .btn-action { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; color: white; font-size: 0.8rem; }
+        .btn-save { background: #2e7d32; }
+        .btn-delete { background: #c62828; }
+        
+        /* Badge */
+        .badge-role { padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .role-admin { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; }
+        .role-tutor { background: #ffebee; color: #c62828; }
+        .role-studente { background: #e3f2fd; color: #1565c0; }
+        
+        .badge-info { background: #e0f7fa; color: #006064; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span>FindMyTutor</span>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="progetto.html">Il nostro progetto</a></li>
+            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+    </div>
+</header>
+
+    <main class="admin-wrapper fade-wrapper reveal">
+        
+        <div class="admin-header">
+            <div>
+                <h1>Panoramica del Sistema</h1>
+                <p>Benvenuto nel pannello di controllo.</p>
+            </div>
+            <a href="dashboard.html" class="cta-btn" style="background:#4a148c;">Mia Dashboard</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> <span id="countUsers">0</span></h3>
+                <p>Utenti Totali</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-chalkboard-teacher"></i> <span id="countTutors">0</span></h3>
+                <p>Tutors Attivi</p>
+            </div>
+            
+            <div class="stat-card" style="border-bottom-color: #ff9800;">
+                <h3><i class="fas fa-envelope-open-text" style="color: #ff9800;"></i> <span id="countRequests">0</span></h3>
+                <p>Candidature in attesa</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3><i class="fas fa-calendar-check"></i> <span id="countLessons">0</span></h3>
+                <p>Lezioni Totali</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-building"></i> <span id="countRooms">0</span></h3>
+                <p>Aule Prenotate</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-user-graduate"></i> Richieste "Diventa Tutor"</h2>
+            </div>
+            <table id="requestsTable">
+                <thead>
+                    <tr>
+                        <th>Candidato</th>
+                        <th>Dettagli (Classe/Materie)</th>
+                        <th>Disponibilità</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4">Caricamento richieste...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-users-cog"></i> Gestione Utenti & Ruoli</h2>
+            </div>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Ruolo Attuale</th>
+                        <th>Modifica Ruolo</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4">Caricamento utenti...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-list-alt"></i> Registro Prenotazioni Aule</h2>
+            </div>
+            <table id="bookingsTable">
+                <thead>
+                    <tr>
+                        <th>Aula</th>
+                        <th>Data & Ora</th>
+                        <th>Prenotata da</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4">Caricamento prenotazioni...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>             <script src="js/gestione_utente.js"></script>   <script src="js/admin.js"></script>             </body>
+</html>

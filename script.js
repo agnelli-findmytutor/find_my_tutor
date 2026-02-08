@@ -30,97 +30,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // 2. GESTIONE UTENTE E SUPABASE (PROFILO)
-    // ============================================================
-    
-    // Mettiamo tutto in un try-catch per non bloccare il sito se Supabase fallisce
-    try {
-        if (typeof supabase !== 'undefined') {
-            const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
-            // La tua chiave ANON
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
-            
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            // Controlla utente loggato
-            supabaseClient.auth.getUser().then(({ data: { user } }) => {
-                if (user) {
-                    console.log("Utente loggato:", user.email);
-                    const loginBtn = document.getElementById('loginBtn') || document.querySelector('.header-actions .cta-btn');
-                    
-                    if (loginBtn) {
-                        const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
-                        // Sostituisci pulsante con foto
-                        loginBtn.outerHTML = `
-                            <a href="dashboard.html" title="Il mio Profilo" style="display: block;">
-                                <img src="${avatarUrl}" alt="Profilo" class="profile-pic-header">
-                            </a>
-                        `;
-                    }
-                }
-                const navLinks = document.querySelector('.nav-links');
-        
-        if (navLinks) {
-            // Crea il nuovo elemento della lista
-            const newLi = document.createElement('li');
-            
-            // Inserisci il link (non serve creare la pagina ora, darà 404 se cliccato)
-            newLi.innerHTML = '<a href="appuntamenti.html">I tuoi appuntamenti</a>';
-            
-            // DECIDI DOVE INSERIRLO:
-            // navLinks.children[2] lo inserisce come TERZA voce (dopo Home e Progetto)
-            // Se vuoi metterlo in fondo, usa navLinks.appendChild(newLi);
-            
-            // Lo inseriamo prima del terzo elemento esistente (es. prima di "Diventa Tutor")
-            navLinks.insertBefore(newLi, navLinks.children[2]);
-        }
-            });
-        } else {
-            console.warn("Libreria Supabase non trovata nell'HTML.");
-        }
-    } catch (err) {
-        console.error("Errore inizializzazione Supabase:", err);
-    }
-
-    // ============================================================
-    // 3. FUNZIONI UI STANDARD (Header, Menu, Carosello)
+    // 2. FUNZIONI UI STANDARD (Header, Scroll, Carosello)
     // ============================================================
 
     // Header Scroll Effect
     const header = document.querySelector('header');
-    function handleHeaderScroll() {
-        if (window.scrollY > 50) header.classList.add('scrolled');
-        else header.classList.remove('scrolled');
+    if (header) {
+        function handleHeaderScroll() {
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        }
+        handleHeaderScroll();
+        window.addEventListener('scroll', handleHeaderScroll);
     }
-    handleHeaderScroll();
-    window.addEventListener('scroll', handleHeaderScroll);
 
-    // Menu Active Link
+    // Menu Active Link (Evidenzia la pagina corrente)
     const currentPage = window.location.pathname.split("/").pop() || "index.html"; 
     const navLinksItems = document.querySelectorAll('.nav-links a');
     navLinksItems.forEach(link => {
         if (link.getAttribute('href') === currentPage) link.classList.add('active');
     });
 
-    // Menu Mobile
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            if (navLinks.classList.contains('active')) {
-                Object.assign(navLinks.style, {
-                    display: 'flex', flexDirection: 'column', position: 'absolute',
-                    top: '100%', left: '0', width: '100%', background: 'white',
-                    padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', textAlign: 'center'
-                });
-            } else {
-                navLinks.style.display = '';
-            }
-        });
-    }
-
-    // Animazione Numeri
+    // Animazione Numeri (Counters)
     function startCounters() {
         document.querySelectorAll('.counter').forEach(counter => {
             const target = +counter.getAttribute('data-target');
@@ -138,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gestione Carosello (se esiste)
+    // Gestione Carosello (se esiste nella pagina)
     const slides = document.querySelectorAll('.carousel-slide');
     if (slides.length > 0) {
         let currentSlide = 0;
@@ -154,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             slides.forEach(s => s.classList.remove('active'));
             indicators.forEach(i => i.classList.remove('active'));
-            slides[currentSlide].classList.add('active');
+            
+            if(slides[currentSlide]) slides[currentSlide].classList.add('active');
             if(indicators[currentSlide]) indicators[currentSlide].classList.add('active');
         }
 
@@ -174,4 +106,109 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+    // ============================================================
+    // 3. GESTIONE MENU MOBILE AVANZATO (SIDEBAR)
+    // ============================================================
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    const headerActions = document.querySelector('.header-actions');
+    const loginBtn = document.getElementById('loginBtn') || document.querySelector('.header-actions .cta-btn') || document.querySelector('.user-profile-header'); 
+    // Nota: loginBtn ora cerca anche .user-profile-header nel caso lo script gestione_utente.js abbia già fatto la sostituzione
+    const overlay = document.querySelector('.overlay-menu');
+
+    // Funzione per spostare il bottone Accedi (o Profilo) dentro/fuori dal menu mobile
+    function moveLoginButton() {
+        // Rileva l'elemento corrente (potrebbe essere cambiato da gestione_utente.js)
+        const currentBtn = document.getElementById('loginBtn') || document.querySelector('.header-actions .cta-btn') || document.querySelector('.user-profile-header');
+        
+        if (!currentBtn) return;
+
+        if (window.innerWidth <= 900) {
+            // MOBILE: Sposta nel menu laterale
+            if (navLinks && !navLinks.contains(currentBtn)) {
+                const liContainer = document.createElement('li');
+                liContainer.className = 'mobile-login-wrapper';
+                liContainer.appendChild(currentBtn);
+                navLinks.appendChild(liContainer);
+            }
+        } else {
+            // DESKTOP: Riporta nell'header
+            if (navLinks && (navLinks.contains(currentBtn) || document.querySelector('.mobile-login-wrapper'))) {
+                const wrapper = document.querySelector('.mobile-login-wrapper');
+                if (wrapper) wrapper.remove();
+                
+                if(headerActions && menuToggle) {
+                    headerActions.insertBefore(currentBtn, menuToggle);
+                } else if (headerActions) {
+                    headerActions.appendChild(currentBtn);
+                }
+            }
+        }
+    }
+
+    // Esegui lo spostamento al caricamento e al ridimensionamento
+    moveLoginButton();
+    window.addEventListener('resize', moveLoginButton);
+
+    // Gestione Apertura/Chiusura Menu
+    if (menuToggle && navLinks) {
+        const closeMenu = () => {
+            navLinks.classList.remove('active');
+            menuToggle.classList.remove('active');
+            if(overlay) overlay.classList.remove('active');
+            document.body.style.overflow = ''; 
+        };
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+            if(overlay) overlay.classList.toggle('active');
+            
+            if (navLinks.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        if(overlay) overlay.addEventListener('click', closeMenu);
+
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMenu);
+        });
+    }
+    // ============================================================
+    // GESTIONE TRANSIZIONI PAGINA (SMOOTH NAVIGATION)
+    // ============================================================
+    
+    // 1. Intercetta tutti i click sui link
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+
+        // Se è un link valido, interno, e non apre una nuova scheda
+        if (link && link.href && link.target !== '_blank' && !link.href.includes('#')) {
+            
+            // Controlla se è un link interno al tuo sito
+            if (link.hostname === window.location.hostname) {
+                e.preventDefault(); // FERMA il caricamento immediato
+
+                // Aggiungi la classe che fa svanire la pagina
+                document.body.classList.add('fade-out');
+
+                // Aspetta che finisca l'animazione (300ms) poi cambia pagina
+                setTimeout(() => {
+                    window.location.href = link.href;
+                }, 300);
+            }
+        }
+    });
+
+    // 2. Fix per il pulsante "Indietro" del browser
+    // Se l'utente torna indietro, rimuovi la classe fade-out altrimenti la pagina resta invisibile
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            document.body.classList.remove('fade-out');
+        }
+    });
 });
