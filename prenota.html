@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/prenota.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
@@ -83,16 +84,24 @@
 
                         <div class="divider"></div>
 
-                        <div class="row-group">
                             <div class="form-group">
-                                <label>Data</label>
-                                <input type="date" id="lessonDate" required>
+                                <label>3. Seleziona Data</label>
+                                
+                                <div id="tutorAvailDisplay" style="background:#e3f2fd; color:#1565c0; padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;">
+                                    <i class="fas fa-info-circle"></i> <strong>Disponibilità Tutor:</strong><br>
+                                    <span id="availText">--</span>
+                                </div>
+
+                                <input type="date" id="selectDate" required disabled style="opacity: 0.6;">
+                                <small id="dateError" style="color: #d32f2f; display: none;">⛔ Il tutor non è disponibile in questo giorno.</small>
                             </div>
+
                             <div class="form-group">
-                                <label>Ora Inizio</label>
-                                <input type="time" id="lessonTime" required>
+                                <label>4. Seleziona Orario Disponibile</label>
+                                <select id="selectTime" required disabled style="opacity: 0.6; cursor: not-allowed;">
+                                    <option value="">-- Prima seleziona una data valida --</option>
+                                </select>
                             </div>
-                        </div>
 
                         <div class="form-group">
                             <label>Durata</label>

@@ -6,8 +6,8 @@ const FIXED_HOURS = ["14:30 - 15:30", "15:30 - 16:30", "16:30 - 17:30"];
 const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Variabili Stato
-let bookingIdToDelete = null; // Per cancellare Aula
-let lessonIdToCancel = null;  // Per cancellare Lezione
+let bookingIdToDelete = null; // Per cancellare Aula (fisicamente)
+let lessonIdToCancel = null;  // Per cancellare Lezione (logicamente - status 'Cancellata')
 let myFutureLessons = []; 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Modali
     const deleteModal = document.getElementById('deleteModal') || document.getElementById('confirmModal'); // Per Aule
-    const cancelLessonModal = document.getElementById('cancelLessonModal'); // NUOVO: Per Lezioni
+    const cancelLessonModal = document.getElementById('cancelLessonModal'); // Per Lezioni
     const successModal = document.getElementById('successModal');
     const warningModal = document.getElementById('warningModal');
 
@@ -203,52 +203,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- LOGICA CANCELLAZIONE AULA ---
-// --- LOGICA CANCELLAZIONE LEZIONE (AGGIORNATA: NON CANCELLA, MA AGGIORNA LO STATO) ---
-    if(btnExecCancel) btnExecCancel.addEventListener('click', async () => {
-        if(!lessonIdToCancel) return;
-
-        const reason = document.getElementById('cancelReason').value.trim();
-        
-        // CONTROLLO OBBLIGATORIO MOTIVO
-        if(reason.length < 5) {
-            alert("Devi specificare un motivo valido (minimo 5 caratteri) per cancellare la lezione.");
-            return;
-        }
-
-        const originalText = btnExecCancel.innerText;
-        btnExecCancel.innerText = "Cancellazione in corso...";
-        btnExecCancel.disabled = true;
-
+    // --- LOGICA CANCELLAZIONE AULA (Questa USA .delete() perché l'aula si rimuove fisicamente) ---
+    if(btnCancelDelete) btnCancelDelete.addEventListener('click', () => { closeModal(deleteModal); bookingIdToDelete = null; });
+    if(btnConfirmDelete) btnConfirmDelete.addEventListener('click', async () => {
+        if (!bookingIdToDelete) return;
+        const originalText = btnConfirmDelete.innerText;
+        btnConfirmDelete.innerText = "Attendere...";
         try {
-            // *** PUNTO CRUCIALE: Usiamo .update() invece di .delete() ***
-            // La lezione rimane nel database, ma lo stato diventa 'Cancellata'
-            const { error } = await sbClient.from('appointments')
-                .update({ 
-                    status: 'Cancellata', 
-                    cancellation_reason: reason 
-                })
-                .eq('id', lessonIdToCancel);
-
-            if(error) throw error;
-
-            closeModal(cancelLessonModal);
-            showSuccess("Lezione Cancellata", "La lezione è stata annullata ma rimarrà visibile nello storico.");
-            
-            // Ricarica la lista per mostrare la card rossa
-            fetchAppointments(); 
-
-        } catch(err) {
-            console.error(err);
-            alert("Errore durante l'aggiornamento: " + err.message);
-        } finally {
-            btnExecCancel.innerText = originalText;
-            btnExecCancel.disabled = false;
-            lessonIdToCancel = null;
-        }
+            const { error } = await sbClient.from('room_bookings').delete().eq('id', bookingIdToDelete);
+            if (error) throw error;
+            closeModal(deleteModal);
+            showSuccess("Cancellata", "La prenotazione aula è stata rimossa.");
+            fetchRoomBookings();
+        } catch (err) { alert("Errore: " + err.message); } 
+        finally { btnConfirmDelete.innerText = originalText; bookingIdToDelete = null; }
     });
 
-    // --- NUOVO: LOGICA CANCELLAZIONE LEZIONE (Con Motivo) ---
+    // --- LOGICA CANCELLAZIONE LEZIONE (Questa USA .update() per non farla sparire) ---
     window.openCancelLessonModal = (id) => {
         lessonIdToCancel = id;
         document.getElementById('cancelReason').value = ""; // Reset campo motivo
@@ -276,18 +247,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnExecCancel.disabled = true;
 
         try {
-            // Nota: Qui potremmo salvare il motivo in una tabella "logs" se esistesse.
-            // Per ora cancelliamo la lezione come richiesto.
-            
-            const { error } = await sbClient.from('appointments').delete().eq('id', lessonIdToCancel);
+            // *** PUNTO CRUCIALE: Usiamo .update() ***
+            // La lezione rimane nel database, ma lo stato diventa 'Cancellata'
+            const { error } = await sbClient.from('appointments')
+                .update({ 
+                    status: 'Cancellata', 
+                    cancellation_reason: reason 
+                })
+                .eq('id', lessonIdToCancel);
+
             if(error) throw error;
 
             closeModal(cancelLessonModal);
-            showSuccess("Lezione Cancellata", "La lezione è stata rimossa dall'agenda.");
-            fetchAppointments(); // Ricarica lista
+            showSuccess("Lezione Cancellata", "La lezione è stata annullata ma rimarrà visibile nello storico.");
+            
+            // Ricarica la lista per mostrare la card rossa
+            fetchAppointments(); 
 
         } catch(err) {
-            alert("Errore durante la cancellazione: " + err.message);
+            console.error(err);
+            alert("Errore durante l'aggiornamento: " + err.message);
         } finally {
             btnExecCancel.innerText = originalText;
             btnExecCancel.disabled = false;

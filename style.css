@@ -41,37 +41,54 @@ header {
     padding: 1.2rem 5%;
     
     /* Stato Iniziale: Trasparente o Sfondo Pulito */
-    background: rgba(255, 255, 255, 0); /* Completamente trasparente all'inizio */
-    backdrop-filter: blur(0px); /* Niente blur all'inizio */
+    background: rgba(255, 255, 255, 0); 
+    backdrop-filter: blur(0px); 
     
     position: fixed; 
     top: 0; 
     width: 100%; 
     z-index: 1000;
-    transition: all 0.4s ease; /* Transizione fluida */
+    transition: all 0.4s ease; 
     box-shadow: none;
+    box-sizing: border-box; /* Assicura che il padding non rompa la larghezza */
 }
 
 /* Stato SCROLLED (quando scendi) */
 header.scrolled {
-    padding: 0.8rem 5%; /* Si rimpicciolisce leggermente */
-    background: rgba(255, 255, 255, 0.85); /* Bianco semi-trasparente */
-    backdrop-filter: blur(12px); /* Effetto vetro sfocato */
+    padding: 0.8rem 5%; 
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(12px); 
     box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; }
+.logo { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-weight: 700; 
+    font-size: 1.2rem; 
+    flex-shrink: 0; /* IMPEDISCE AL LOGO DI SCHIACCIARSI */
+}
+
 .logo-icon { 
-    color: var(--red-main); font-size: 1.5rem; 
+    color: var(--red-main); 
+    font-size: 1.5rem; 
     filter: drop-shadow(0 2px 4px rgba(211, 47, 47, 0.3));
 }
 
-.nav-links { display: flex; gap: 2.5rem; }
+.nav-links { 
+    display: flex; 
+    gap: 2.5rem; /* Spazio standard */
+    align-items: center;
+}
 
 .nav-links a { 
-    color: var(--text-main); font-weight: 500; font-size: 0.95rem; 
+    color: var(--text-main); 
+    font-weight: 500; 
+    font-size: 0.95rem; 
     position: relative;
     transition: 0.3s;
+    white-space: nowrap; /* FONDAMENTALE: Impedisce al testo di andare a capo */
 }
 
 .nav-links a:hover { color: var(--red-main); }
@@ -91,7 +108,7 @@ header.scrolled {
 }
 
 .nav-links a.active::after {
-    width: 100%; /* La linea rossa rimane fissa sulla pagina attiva */
+    width: 100%; 
 }
 
 /* Pulsanti e Menu Mobile */
@@ -100,10 +117,42 @@ header.scrolled {
     background: var(--gradient-red);
     color: white; border-radius: 50px; font-weight: 600;
     box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+    white-space: nowrap; /* Non manda a capo il testo del bottone */
+    flex-shrink: 0; /* Non fa schiacciare il bottone */
 }
 .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(211, 47, 47, 0.6); }
 
 .menu-toggle { display: none; font-size: 1.5rem; color: var(--text-main); cursor: pointer; }
+
+
+/* --- GESTIONE RIDIMENSIONAMENTO (MEDIA QUERIES) --- */
+
+/* Step 1: Schermi Medi (Laptop piccoli/Tablet orizzontali) - Riduciamo gli spazi */
+@media screen and (max-width: 1200px) {
+    .nav-links {
+        gap: 1.5rem; /* Riduciamo lo spazio tra i link da 2.5rem a 1.5rem */
+    }
+    header {
+        padding: 1.2rem 2%; /* Riduciamo i margini laterali */
+    }
+    header.scrolled {
+        padding: 0.8rem 2%;
+    }
+}
+
+/* Step 2: Schermi Piccoli (Tablet verticali/Mobile) - Nascondiamo menu, mostriamo hamburger */
+/* Puoi aggiustare 992px a 1050px se vedi che i link si toccano ancora */
+@media screen and (max-width: 992px) {
+    .nav-links {
+        display: none; /* Nasconde i link testuali */
+    }
+    .cta-btn {
+        display: none; /* Opzionale: Nasconde il bottone accedi se lo metti nel menu a tendina */
+    }
+    .menu-toggle {
+        display: block; /* Mostra l'icona del menu */
+    }
+}
 
 /* --- HERO SECTION --- */
 .hero {

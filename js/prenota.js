@@ -4,10 +4,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// --- NUOVO: Mappa per convertire i giorni ---
+const DAY_MAP = {
+    'domenica': 0, 'lunedì': 1, 'martedì': 2, 'mercoledì': 3, 
+    'giovedì': 4, 'venerdì': 5, 'sabato': 6
+};
+
 // Variabili Globali
 let allTutors = []; 
 let currentLessons = []; 
 let idToModify = null;
+let currentTutorAvailability = []; // NUOVO: Salva gli orari del tutor selezionato
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -17,6 +24,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectTutor = document.getElementById('selectTutor');
     const bookingForm = document.getElementById('bookingForm');
     const myLessonsList = document.getElementById('myLessonsList');
+
+    // --- NUOVI ELEMENTI DOM (Prenotazione) ---
+    // Nota: Assicurati che nel tuo HTML gli ID siano questi (come da step precedente)
+    const dateInput = document.getElementById('selectDate'); // Era lessonDate
+    const timeSelect = document.getElementById('selectTime'); // Era lessonTime
+    const availDisplay = document.getElementById('tutorAvailDisplay');
+    const availText = document.getElementById('availText');
+    const dateError = document.getElementById('dateError');
 
     // Modali
     const successModal = document.getElementById('successModal');
@@ -42,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function check24Hours(dateString, timeString) {
         try {
             const now = new Date();
-            const lessonDate = new Date(`${dateString}T${timeString}`);
+            const lessonDate = new Date(`${dateString}T${timeString.split('-')[0]}`); // Prende l'ora di inizio
             const diffMs = lessonDate - now;
             const diffHours = diffMs / (1000 * 60 * 60);
             return diffHours >= 24;
@@ -60,9 +75,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- LOGICA MODALI ---
     
     // Funzione APRI MODIFICA
-    function handleOpenEdit(id) {
+    window.handleOpenEdit = (id) => {
         const lesson = currentLessons.find(l => l.id === id);
-        
         if(!lesson) return;
 
         // Controllo 24h
@@ -82,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('editLessonId').value = lesson.id;
         document.getElementById('editDate').value = lesson.date;
         document.getElementById('editTime').value = lesson.time_slot;
-        document.getElementById('editSubject').value = lesson.subject || '';
+        // document.getElementById('editSubject').value = lesson.subject || ''; // Se esiste nel modale edit
         document.getElementById('editNotes').value = lesson.notes || '';
         
         // Durata
@@ -94,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Funzione APRI ANNULLA
-    function handleOpenDelete(id) {
+    window.handleOpenDelete = (id) => {
         const lesson = currentLessons.find(l => l.id === id);
         if(!lesson) return;
 
@@ -120,18 +134,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 1. CARICA TUTOR ---
     async function loadTutors() {
         try {
+            // Scarichiamo anche la colonna 'availability'
             const { data } = await sbClient.from('profiles').select('*').eq('role', 'tutor');
             allTutors = data || [];
         } catch(e) { console.error(e); }
     }
     await loadTutors();
 
-    // --- 2. FILTRI ---
+    // --- 2. FILTRI (AGGIORNATO PER DATA-AVAIL) ---
     function filterTutors() {
         const y = filterYear.value;
         const s = filterSubject.value.toLowerCase().trim();
+        
         selectTutor.innerHTML = '<option value="">Seleziona...</option>';
         selectTutor.disabled = true;
+        
+        // Reset prenotazione se cambio filtri
+        resetDateAndTime();
 
         if(!y || s.length < 2) return;
 
@@ -146,9 +165,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t.id;
+                
                 let name = t.full_name || (t.first_name + ' ' + t.last_name);
                 if(!t.full_name && !t.first_name) name = "Staff Tutor";
+                
                 opt.textContent = `${name} (${t.class_info || 'ND'})`;
+                
+                // NUOVO: Salviamo la disponibilità nell'attributo
+                opt.setAttribute('data-avail', t.availability || ""); 
+
                 selectTutor.appendChild(opt);
             });
         } else {
@@ -160,17 +185,130 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterYear.addEventListener('change', filterTutors);
     filterSubject.addEventListener('input', filterTutors);
 
-    // --- 3. PRENOTA (Submit) ---
+    // --- NUOVO: LOGICA PARSING DISPONIBILITÀ ---
+    
+    // Quando si seleziona un tutor
+    selectTutor.addEventListener('change', () => {
+        resetDateAndTime();
+        
+        const selectedOption = selectTutor.options[selectTutor.selectedIndex];
+        const rawAvail = selectedOption.getAttribute('data-avail');
+
+        if (!rawAvail) {
+            availDisplay.style.display = 'none';
+            // Se non ha orari, potresti lasciare libero o bloccare.
+            // Qui lasciamo un alert ma permettiamo (o blocchiamo, a scelta).
+            // Per ora blocchiamo datePicker per evitare errori.
+            alert("Questo tutor non ha inserito orari specifici. Contattalo.");
+            return;
+        }
+
+        // Parsing Stringa: "Lunedì 14:00-16:00, Mercoledì..."
+        currentTutorAvailability = [];
+        const parts = rawAvail.split(',');
+
+        parts.forEach(part => {
+            part = part.trim();
+            // Cerca il primo spazio per separare Giorno da Ore
+            const spaceIndex = part.indexOf(' ');
+            if (spaceIndex === -1) return;
+
+            const dayName = part.substring(0, spaceIndex).trim().toLowerCase(); // es. "lunedì"
+            const timeRange = part.substring(spaceIndex + 1).trim(); // es. "14:00-16:00"
+
+            if (DAY_MAP.hasOwnProperty(dayName)) {
+                currentTutorAvailability.push({
+                    dayIndex: DAY_MAP[dayName], 
+                    range: timeRange 
+                });
+            }
+        });
+
+        // Mostra il box blu
+        if(availText) availText.textContent = rawAvail;
+        if(availDisplay) availDisplay.style.display = 'block';
+
+        // Sblocca Data
+        if(dateInput) {
+            dateInput.disabled = false;
+            dateInput.style.opacity = "1";
+            dateInput.min = new Date().toISOString().split('T')[0]; // Minimo oggi
+        }
+    });
+
+    // Quando si seleziona la data (Check Giorno)
+    if(dateInput) {
+        dateInput.addEventListener('change', () => {
+            const selectedDate = new Date(dateInput.value);
+            const dayOfWeek = selectedDate.getDay(); // 0 (Dom) - 6 (Sab)
+
+            // Trova se c'è disponibilità per questo giorno
+            const validSlots = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
+
+            if (validSlots.length > 0) {
+                // Giorno Valido
+                if(dateError) dateError.style.display = 'none';
+                
+                timeSelect.disabled = false;
+                timeSelect.style.opacity = "1";
+                timeSelect.style.cursor = "pointer";
+                
+                // Popola Select Orari
+                timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
+                validSlots.forEach(slot => {
+                    const opt = document.createElement('option');
+                    opt.value = slot.range; 
+                    opt.textContent = slot.range;
+                    timeSelect.appendChild(opt);
+                });
+                timeSelect.style.backgroundColor = "#e8f5e9"; // Verde chiaro feedback
+            } else {
+                // Giorno NON Valido
+                if(dateError) dateError.style.display = 'block';
+                
+                timeSelect.innerHTML = '<option value="">-- Data non valida --</option>';
+                timeSelect.disabled = true;
+                timeSelect.style.backgroundColor = "#ffebee"; // Rosso chiaro
+                timeSelect.value = "";
+            }
+        });
+    }
+
+    // Helper Reset
+    function resetDateAndTime() {
+        if(dateInput) {
+            dateInput.value = "";
+            dateInput.disabled = true;
+            dateInput.style.opacity = "0.6";
+        }
+        if(dateError) dateError.style.display = 'none';
+        
+        if(timeSelect) {
+            timeSelect.innerHTML = '<option value="">-- Prima seleziona una data --</option>';
+            timeSelect.disabled = true;
+            timeSelect.style.opacity = "0.6";
+            timeSelect.style.backgroundColor = "";
+        }
+        if(availDisplay) availDisplay.style.display = 'none';
+    }
+
+
+    // --- 3. PRENOTA (Submit AGGIORNATO) ---
     bookingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const tid = selectTutor.value;
         const sub = filterSubject.value;
-        const date = document.getElementById('lessonDate').value;
-        const time = document.getElementById('lessonTime').value;
+        
+        // NUOVO: Prendi valori dai nuovi input
+        const date = dateInput ? dateInput.value : null;
+        const time = timeSelect ? timeSelect.value : null; // Ora è una select, non text
+        
         const dur = document.querySelector('input[name="duration"]:checked').value;
         const notes = document.getElementById('lessonNotes') ? document.getElementById('lessonNotes').value : '';
 
         if(!tid) { showWarning("Seleziona tutor"); return; }
+        if(!date || !time) { showWarning("Seleziona data e orario validi."); return; }
 
         try {
             const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
@@ -183,20 +321,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 date: date,
                 time_slot: time,
                 duration: dur + " min",
-                status: 'Confermato',
+                status: 'Confermato', // O 'In Attesa' se preferisci
                 tutor_name_cache: tName,
                 notes: notes
             }]);
+            
             if(error) throw error;
+            
             showSuccess("Prenotata!", "Lezione confermata.");
             bookingForm.reset();
+            resetDateAndTime(); // Resetta i campi dinamici
+            
+            // Reset filtri manuale per pulizia
+            selectTutor.innerHTML = '<option value="">Seleziona...</option>';
             selectTutor.disabled = true;
+
             fetchLessons();
         } catch(e) { showWarning(e.message); }
     });
 
-    // --- 4. LISTA LEZIONI (AGGIORNATA CON AULA) ---
-    // --- 4. LISTA LEZIONI (AGGIORNATA PER VEDERE CANCELLAZIONI) ---
+    // --- 4. LISTA LEZIONI (TUA LOGICA ORIGINALE + CANCELLAZIONI) ---
     async function fetchLessons() {
         myLessonsList.innerHTML = '<p style="text-align:center">Caricamento...</p>';
         try {
@@ -215,15 +359,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isCancelled = l.status === 'Cancellata';
                 
                 // Colore Badge
-                let badgeClass = 'confermato'; // Verde default
-                if(isCancelled) badgeClass = 'cancellato'; // Rosso (definiremo il css se manca)
+                let badgeClass = 'confermato'; 
+                if(isCancelled) badgeClass = 'cancellato'; 
 
-                // Stile specifico per lezione cancellata
-                const cardStyle = isCancelled 
-                    ? "background:#ffebee; border-color:#ef5350;" 
-                    : "background:white;";
-
-                // Logica Aula (Mostra solo se attiva)
+                // Logica Aula
                 let roomInfo = '';
                 if (!isCancelled) {
                     roomInfo = l.room_name 
@@ -239,17 +378,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                        </div>`
                     : '';
 
-                // Pulsanti (Nascondi se cancellata)
+                // Pulsanti
                 const buttonsDisplay = isCancelled 
                     ? `<div style="text-align:right; font-size:0.8rem; color:#d32f2f; font-weight:bold; margin-top:10px;">Lezione Annullata</div>`
                     : `<div class="lesson-actions">
-                        <button class="btn-mini edit btn-edit-action"><i class="fas fa-pen"></i> Modifica</button>
-                        <button class="btn-mini delete btn-delete-action"><i class="fas fa-trash"></i> Annulla</button>
+                        <button class="btn-mini edit btn-edit-action" onclick="handleOpenEdit('${l.id}')"><i class="fas fa-pen"></i> Modifica</button>
+                        <button class="btn-mini delete btn-delete-action" onclick="handleOpenDelete('${l.id}')"><i class="fas fa-trash"></i> Annulla</button>
                        </div>`;
 
                 const item = document.createElement('div');
                 item.className = 'lesson-item';
-                // Sovrascriviamo lo stile inline per renderla rossa se cancellata
                 if(isCancelled) item.style.cssText = "border-left: 4px solid #d32f2f; background: #fff5f5;";
 
                 item.innerHTML = `
@@ -268,15 +406,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     ${buttonsDisplay}
                 `;
-
-                // Listener solo se non è cancellata
-                if(!isCancelled) {
-                    const btnEdit = item.querySelector('.btn-edit-action');
-                    const btnDelete = item.querySelector('.btn-delete-action');
-                    if(btnEdit) btnEdit.addEventListener('click', () => handleOpenEdit(l.id));
-                    if(btnDelete) btnDelete.addEventListener('click', () => handleOpenDelete(l.id));
-                }
-
                 myLessonsList.appendChild(item);
             });
         } catch(e) { console.error(e); }
@@ -289,7 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const d = document.getElementById('editDate').value;
         const t = document.getElementById('editTime').value;
-        const sub = document.getElementById('editSubject').value;
+        const sub = document.getElementById('editSubject').value; // Verifica se esiste nel DOM
         const note = document.getElementById('editNotes').value;
         const dur = document.getElementById('editDuration').value;
 
