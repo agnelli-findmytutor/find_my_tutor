@@ -4,7 +4,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- NUOVO: Mappa per convertire i giorni ---
+// Mappa giorni
 const DAY_MAP = {
     'domenica': 0, 'lunedì': 1, 'martedì': 2, 'mercoledì': 3, 
     'giovedì': 4, 'venerdì': 5, 'sabato': 6
@@ -13,8 +13,8 @@ const DAY_MAP = {
 // Variabili Globali
 let allTutors = []; 
 let currentLessons = []; 
-let idToModify = null;
-let currentTutorAvailability = []; // NUOVO: Salva gli orari del tutor selezionato
+let idToModify = null; // ID della lezione selezionata
+let currentTutorAvailability = []; 
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -25,101 +25,124 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bookingForm = document.getElementById('bookingForm');
     const myLessonsList = document.getElementById('myLessonsList');
 
-    // --- NUOVI ELEMENTI DOM (Prenotazione) ---
-    // Nota: Assicurati che nel tuo HTML gli ID siano questi (come da step precedente)
-    const dateInput = document.getElementById('selectDate'); // Era lessonDate
-    const timeSelect = document.getElementById('selectTime'); // Era lessonTime
+    // Inputs Prenotazione
+    const dateInput = document.getElementById('selectDate');
+    const timeSelect = document.getElementById('selectTime');
     const availDisplay = document.getElementById('tutorAvailDisplay');
     const availText = document.getElementById('availText');
     const dateError = document.getElementById('dateError');
 
     // Modali
-    const successModal = document.getElementById('successModal');
-    const deleteModal = document.getElementById('deleteModal');
-    const warningModal = document.getElementById('warningModal');
     const editModal = document.getElementById('editModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const successModal = document.getElementById('successModal');
+    const warningModal = document.getElementById('warningModal');
+
+    // --- 1. CHECK UTENTE ---
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (!user) { window.location.href = "login.html"; return; }
 
     // --- FUNZIONI UTILI ---
-    function showSuccess(t, m) {
-        document.getElementById('successTitle').textContent = t;
-        document.getElementById('successMessage').textContent = m;
-        successModal.classList.remove('hidden');
-    }
     
-    function showWarning(m) {
-        document.getElementById('warningMessage').innerHTML = m;
-        warningModal.classList.remove('hidden');
-    }
-    
-    function closeModal(m) { m.classList.add('hidden'); }
-
-    // Controllo 24 Ore
-    function check24Hours(dateString, timeString) {
-        try {
-            const now = new Date();
-            const lessonDate = new Date(`${dateString}T${timeString.split('-')[0]}`); // Prende l'ora di inizio
-            const diffMs = lessonDate - now;
-            const diffHours = diffMs / (1000 * 60 * 60);
-            return diffHours >= 24;
-        } catch (e) {
-            console.error("Errore data", e);
-            return true; // Se errore, permetti (fallback)
-        }
-    }
-
     function getTutorEmail(tid) {
         const t = allTutors.find(x => x.id === tid);
         return t && t.email ? t.email : 'segreteria@istitutoagnelli.it';
     }
 
-    // --- LOGICA MODALI ---
+    // Controllo 24h
+    function check24Hours(dateString, timeString) {
+        try {
+            const now = new Date();
+            const startTime = timeString.split('-')[0].trim();
+            const lessonDate = new Date(`${dateString}T${startTime}`);
+            const diffMs = lessonDate - now;
+            const diffHours = diffMs / (1000 * 60 * 60);
+            return diffHours >= 24;
+        } catch (e) {
+            console.error("Errore data", e);
+            return true; 
+        }
+    }
+
+    function showWarning(msg) {
+        const wMsg = document.getElementById('warningMessage');
+        if(wMsg) wMsg.innerHTML = msg;
+        if(warningModal) warningModal.classList.remove('hidden');
+    }
+
+    function showSuccess(title, msg) {
+        const sTitle = document.getElementById('successTitle');
+        const sMsg = document.getElementById('successMessage');
+        if(sTitle) sTitle.textContent = title;
+        if(sMsg) sMsg.textContent = msg;
+        if(successModal) successModal.classList.remove('hidden');
+    }
+
+    function closeModal(modal) { 
+        if(modal) modal.classList.add('hidden'); 
+    }
+
+    // --- 2. GESTIONE CLICK SULLA LISTA (EVENT DELEGATION) ---
+    // Intercetta i click sui pulsanti generati dinamicamente
     
-    // Funzione APRI MODIFICA
-    window.handleOpenEdit = (id) => {
-        const lesson = currentLessons.find(l => l.id === id);
+    myLessonsList.addEventListener('click', (e) => {
+        // Cerca se è stato cliccato un bottone MODIFICA (o l'icona dentro)
+        const btnEdit = e.target.closest('.btn-action-edit');
+        if (btnEdit) {
+            const id = btnEdit.getAttribute('data-id');
+            openEditModal(id);
+            return;
+        }
+
+        // Cerca se è stato cliccato un bottone ANNULLA (o l'icona dentro)
+        const btnDelete = e.target.closest('.btn-action-delete');
+        if (btnDelete) {
+            const id = btnDelete.getAttribute('data-id');
+            openDeleteModal(id);
+            return;
+        }
+    });
+
+    // --- LOGICA APERTURA MODALI ---
+
+    function openEditModal(id) {
+        // Usa == invece di === per permettere confronto stringa/numero
+        const lesson = currentLessons.find(l => l.id == id);
         if(!lesson) return;
 
-        // Controllo 24h
         if (!check24Hours(lesson.date, lesson.time_slot)) {
             const email = getTutorEmail(lesson.tutor_id);
-            showWarning(`
-                <strong>Modifica bloccata.</strong><br>
-                Mancano meno di 24 ore.<br><br>
-                Contatta il tutor: <a href="mailto:${email}">${email}</a>
-            `);
+            showWarning(`<strong>Modifica bloccata.</strong><br>Mancano meno di 24 ore.<br>Contatta: ${email}`);
             return;
         }
 
         idToModify = id;
         
-        // Popola i campi
+        // Popola il form
         document.getElementById('editLessonId').value = lesson.id;
         document.getElementById('editDate').value = lesson.date;
         document.getElementById('editTime').value = lesson.time_slot;
-        // document.getElementById('editSubject').value = lesson.subject || ''; // Se esiste nel modale edit
         document.getElementById('editNotes').value = lesson.notes || '';
         
-        // Durata
-        let dur = lesson.duration || '60 min';
-        if(!dur.includes("min")) dur += " min";
-        document.getElementById('editDuration').value = dur;
+        // Gestione durata
+        let dur = lesson.duration || '60';
+        dur = dur.replace(' min', '').trim(); // Pulisce "60 min" -> "60"
+        document.getElementById('editDuration').value = dur + " min"; // Rimette "60 min" per combaciare con la select
+
+        // Gestione materia
+        const subjInput = document.getElementById('editSubject');
+        if(subjInput) subjInput.value = lesson.subject || '';
 
         editModal.classList.remove('hidden');
     }
 
-    // Funzione APRI ANNULLA
-    window.handleOpenDelete = (id) => {
-        const lesson = currentLessons.find(l => l.id === id);
+    function openDeleteModal(id) {
+        const lesson = currentLessons.find(l => l.id == id); // Usa ==
         if(!lesson) return;
 
-        // Controllo 24h
         if (!check24Hours(lesson.date, lesson.time_slot)) {
             const email = getTutorEmail(lesson.tutor_id);
-            showWarning(`
-                <strong>Impossibile annullare.</strong><br>
-                Mancano meno di 24 ore.<br><br>
-                Scrivi al tutor: <a href="mailto:${email}">${email}</a>
-            `);
+            showWarning(`<strong>Impossibile annullare.</strong><br>Mancano meno di 24 ore.<br>Scrivi a: ${email}`);
             return;
         }
 
@@ -127,230 +150,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         deleteModal.classList.remove('hidden');
     }
 
-    // --- CHECK USER ---
-    const { data: { user } } = await sbClient.auth.getUser();
-    if (!user) { window.location.href = "login.html"; return; }
+    // --- 3. CARICAMENTO DATI ---
 
-    // --- 1. CARICA TUTOR ---
     async function loadTutors() {
         try {
-            // Scarichiamo anche la colonna 'availability'
             const { data } = await sbClient.from('profiles').select('*').eq('role', 'tutor');
             allTutors = data || [];
         } catch(e) { console.error(e); }
     }
     await loadTutors();
 
-    // --- 2. FILTRI (AGGIORNATO PER DATA-AVAIL) ---
-    function filterTutors() {
-        const y = filterYear.value;
-        const s = filterSubject.value.toLowerCase().trim();
-        
-        selectTutor.innerHTML = '<option value="">Seleziona...</option>';
-        selectTutor.disabled = true;
-        
-        // Reset prenotazione se cambio filtri
-        resetDateAndTime();
-
-        if(!y || s.length < 2) return;
-
-        const filtered = allTutors.filter(t => {
-            const c = t.class_info ? t.class_info.toString() : "";
-            const sub = t.subjects ? t.subjects.toLowerCase() : "";
-            return c.startsWith(y) && sub.includes(s);
-        });
-
-        if(filtered.length > 0) {
-            selectTutor.disabled = false;
-            filtered.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.id;
-                
-                let name = t.full_name || (t.first_name + ' ' + t.last_name);
-                if(!t.full_name && !t.first_name) name = "Staff Tutor";
-                
-                opt.textContent = `${name} (${t.class_info || 'ND'})`;
-                
-                // NUOVO: Salviamo la disponibilità nell'attributo
-                opt.setAttribute('data-avail', t.availability || ""); 
-
-                selectTutor.appendChild(opt);
-            });
-        } else {
-            const opt = document.createElement('option');
-            opt.textContent = "Nessun tutor trovato";
-            selectTutor.appendChild(opt);
-        }
-    }
-    filterYear.addEventListener('change', filterTutors);
-    filterSubject.addEventListener('input', filterTutors);
-
-    // --- NUOVO: LOGICA PARSING DISPONIBILITÀ ---
-    
-    // Quando si seleziona un tutor
-    selectTutor.addEventListener('change', () => {
-        resetDateAndTime();
-        
-        const selectedOption = selectTutor.options[selectTutor.selectedIndex];
-        const rawAvail = selectedOption.getAttribute('data-avail');
-
-        if (!rawAvail) {
-            availDisplay.style.display = 'none';
-            // Se non ha orari, potresti lasciare libero o bloccare.
-            // Qui lasciamo un alert ma permettiamo (o blocchiamo, a scelta).
-            // Per ora blocchiamo datePicker per evitare errori.
-            alert("Questo tutor non ha inserito orari specifici. Contattalo.");
-            return;
-        }
-
-        // Parsing Stringa: "Lunedì 14:00-16:00, Mercoledì..."
-        currentTutorAvailability = [];
-        const parts = rawAvail.split(',');
-
-        parts.forEach(part => {
-            part = part.trim();
-            // Cerca il primo spazio per separare Giorno da Ore
-            const spaceIndex = part.indexOf(' ');
-            if (spaceIndex === -1) return;
-
-            const dayName = part.substring(0, spaceIndex).trim().toLowerCase(); // es. "lunedì"
-            const timeRange = part.substring(spaceIndex + 1).trim(); // es. "14:00-16:00"
-
-            if (DAY_MAP.hasOwnProperty(dayName)) {
-                currentTutorAvailability.push({
-                    dayIndex: DAY_MAP[dayName], 
-                    range: timeRange 
-                });
-            }
-        });
-
-        // Mostra il box blu
-        if(availText) availText.textContent = rawAvail;
-        if(availDisplay) availDisplay.style.display = 'block';
-
-        // Sblocca Data
-        if(dateInput) {
-            dateInput.disabled = false;
-            dateInput.style.opacity = "1";
-            dateInput.min = new Date().toISOString().split('T')[0]; // Minimo oggi
-        }
-    });
-
-    // Quando si seleziona la data (Check Giorno)
-    if(dateInput) {
-        dateInput.addEventListener('change', () => {
-            const selectedDate = new Date(dateInput.value);
-            const dayOfWeek = selectedDate.getDay(); // 0 (Dom) - 6 (Sab)
-
-            // Trova se c'è disponibilità per questo giorno
-            const validSlots = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
-
-            if (validSlots.length > 0) {
-                // Giorno Valido
-                if(dateError) dateError.style.display = 'none';
-                
-                timeSelect.disabled = false;
-                timeSelect.style.opacity = "1";
-                timeSelect.style.cursor = "pointer";
-                
-                // Popola Select Orari
-                timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
-                validSlots.forEach(slot => {
-                    const opt = document.createElement('option');
-                    opt.value = slot.range; 
-                    opt.textContent = slot.range;
-                    timeSelect.appendChild(opt);
-                });
-                timeSelect.style.backgroundColor = "#e8f5e9"; // Verde chiaro feedback
-            } else {
-                // Giorno NON Valido
-                if(dateError) dateError.style.display = 'block';
-                
-                timeSelect.innerHTML = '<option value="">-- Data non valida --</option>';
-                timeSelect.disabled = true;
-                timeSelect.style.backgroundColor = "#ffebee"; // Rosso chiaro
-                timeSelect.value = "";
-            }
-        });
-    }
-
-    // Helper Reset
-    function resetDateAndTime() {
-        if(dateInput) {
-            dateInput.value = "";
-            dateInput.disabled = true;
-            dateInput.style.opacity = "0.6";
-        }
-        if(dateError) dateError.style.display = 'none';
-        
-        if(timeSelect) {
-            timeSelect.innerHTML = '<option value="">-- Prima seleziona una data --</option>';
-            timeSelect.disabled = true;
-            timeSelect.style.opacity = "0.6";
-            timeSelect.style.backgroundColor = "";
-        }
-        if(availDisplay) availDisplay.style.display = 'none';
-    }
-
-
-    // --- 3. PRENOTA (Submit AGGIORNATO) ---
-    bookingForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const tid = selectTutor.value;
-        const sub = filterSubject.value;
-        
-        // NUOVO: Prendi valori dai nuovi input
-        const date = dateInput ? dateInput.value : null;
-        const time = timeSelect ? timeSelect.value : null; // Ora è una select, non text
-        
-        const dur = document.querySelector('input[name="duration"]:checked').value;
-        const notes = document.getElementById('lessonNotes') ? document.getElementById('lessonNotes').value : '';
-
-        if(!tid) { showWarning("Seleziona tutor"); return; }
-        if(!date || !time) { showWarning("Seleziona data e orario validi."); return; }
-
-        try {
-            const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
-            const { error } = await sbClient.from('appointments').insert([{
-                user_id: user.id,
-                tutor_id: tid,
-                student_name: user.user_metadata.full_name || user.email,
-                student_email: user.email,
-                subject: sub,
-                date: date,
-                time_slot: time,
-                duration: dur + " min",
-                status: 'Confermato', // O 'In Attesa' se preferisci
-                tutor_name_cache: tName,
-                notes: notes
-            }]);
-            
-            if(error) throw error;
-            
-            showSuccess("Prenotata!", "Lezione confermata.");
-            bookingForm.reset();
-            resetDateAndTime(); // Resetta i campi dinamici
-            
-            // Reset filtri manuale per pulizia
-            selectTutor.innerHTML = '<option value="">Seleziona...</option>';
-            selectTutor.disabled = true;
-
-            fetchLessons();
-        } catch(e) { showWarning(e.message); }
-    });
-
-    // --- 4. LISTA LEZIONI (TUA LOGICA ORIGINALE + CANCELLAZIONI) ---
     async function fetchLessons() {
         myLessonsList.innerHTML = '<p style="text-align:center">Caricamento...</p>';
         try {
             const { data } = await sbClient.from('appointments').select('*').eq('user_id', user.id).order('date', {ascending:true});
-            
             currentLessons = data || [];
             myLessonsList.innerHTML = '';
             
             if(currentLessons.length === 0) {
-                myLessonsList.innerHTML = '<div class="empty-state"><p>Nessuna lezione.</p></div>';
+                myLessonsList.innerHTML = '<div class="empty-state"><p>Nessuna lezione prenotata.</p></div>';
                 return;
             }
 
@@ -358,11 +176,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const d = new Date(l.date).toLocaleDateString('it-IT');
                 const isCancelled = l.status === 'Cancellata';
                 
-                // Colore Badge
-                let badgeClass = 'confermato'; 
-                if(isCancelled) badgeClass = 'cancellato'; 
-
-                // Logica Aula
                 let roomInfo = '';
                 if (!isCancelled) {
                     roomInfo = l.room_name 
@@ -370,7 +183,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     : `<div class="lesson-detail" style="color:#999; font-style:italic; margin-top:5px;"><i class="fas fa-door-closed"></i> Aula da definire</div>`;
                 }
 
-                // Logica Motivo Cancellazione
                 const cancelReasonDisplay = isCancelled
                     ? `<div style="margin-top:10px; background:white; padding:10px; border-radius:8px; border-left:4px solid #d32f2f; color:#c62828;">
                          <strong><i class="fas fa-ban"></i> Cancellata dal Tutor:</strong><br>
@@ -378,12 +190,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                        </div>`
                     : '';
 
-                // Pulsanti
+                // NOTA: Qui usiamo classi "btn-action-edit" e attributi data-id invece di onclick
                 const buttonsDisplay = isCancelled 
                     ? `<div style="text-align:right; font-size:0.8rem; color:#d32f2f; font-weight:bold; margin-top:10px;">Lezione Annullata</div>`
                     : `<div class="lesson-actions">
-                        <button class="btn-mini edit btn-edit-action" onclick="handleOpenEdit('${l.id}')"><i class="fas fa-pen"></i> Modifica</button>
-                        <button class="btn-mini delete btn-delete-action" onclick="handleOpenDelete('${l.id}')"><i class="fas fa-trash"></i> Annulla</button>
+                        <button class="btn-mini edit btn-action-edit" data-id="${l.id}"><i class="fas fa-pen"></i> Modifica</button>
+                        <button class="btn-mini delete btn-action-delete" data-id="${l.id}"><i class="fas fa-trash"></i> Annulla</button>
                        </div>`;
 
                 const item = document.createElement('div');
@@ -411,44 +223,195 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(e) { console.error(e); }
     }
 
-    // --- EVENTI PULSANTI MODALI ---
-    
-    // Conferma Modifica
-    document.getElementById('editForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const d = document.getElementById('editDate').value;
-        const t = document.getElementById('editTime').value;
-        const sub = document.getElementById('editSubject').value; // Verifica se esiste nel DOM
-        const note = document.getElementById('editNotes').value;
-        const dur = document.getElementById('editDuration').value;
+    // --- 4. GESTIONE MODALI (SALVA/ANNULLA) ---
 
-        try {
-            const { error } = await sbClient.from('appointments').update({
-                date: d, time_slot: t, subject: sub, notes: note, duration: dur
-            }).eq('id', idToModify);
+    // Submit Modifica
+    const editForm = document.getElementById('editForm');
+    if(editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const d = document.getElementById('editDate').value;
+            const t = document.getElementById('editTime').value;
+            const note = document.getElementById('editNotes').value;
+            let dur = document.getElementById('editDuration').value;
+            
+            if(!dur.includes('min')) dur += " min";
 
-            if(error) throw error;
-            closeModal(editModal);
-            showSuccess("Fatto", "Lezione aggiornata.");
-            fetchLessons();
-        } catch(err) { showWarning("Errore: " + err.message); }
-    });
+            const subjInput = document.getElementById('editSubject');
+            const subject = subjInput ? subjInput.value : null;
+
+            const updateData = { date: d, time_slot: t, notes: note, duration: dur };
+            if(subject) updateData.subject = subject;
+
+            try {
+                const { error } = await sbClient.from('appointments').update(updateData).eq('id', idToModify);
+                if(error) throw error;
+                closeModal(editModal);
+                showSuccess("Fatto", "Lezione aggiornata.");
+                fetchLessons();
+            } catch(err) { showWarning("Errore: " + err.message); }
+        });
+    }
 
     // Conferma Cancellazione
-    document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
-        if(idToModify) {
-            await sbClient.from('appointments').delete().eq('id', idToModify);
-            closeModal(deleteModal);
-            fetchLessons();
+    const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+    if(btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', async () => {
+            if(idToModify) {
+                await sbClient.from('appointments').delete().eq('id', idToModify);
+                closeModal(deleteModal);
+                fetchLessons();
+                showSuccess("Cancellata", "Lezione eliminata.");
+            }
+        });
+    }
+
+    // Chiusura Modali
+    const btnCancelEdit = document.getElementById('btnCancelEdit');
+    if(btnCancelEdit) btnCancelEdit.addEventListener('click', () => closeModal(editModal));
+
+    const btnCancelDelete = document.getElementById('btnCancelDelete');
+    if(btnCancelDelete) btnCancelDelete.addEventListener('click', () => closeModal(deleteModal));
+
+    const btnSuccessClose = document.getElementById('btnSuccessClose');
+    if(btnSuccessClose) btnSuccessClose.addEventListener('click', () => closeModal(successModal));
+
+    const btnWarningClose = document.getElementById('btnWarningClose');
+    if(btnWarningClose) btnWarningClose.addEventListener('click', () => closeModal(warningModal));
+
+
+    // --- 5. LOGICA PRENOTAZIONE (FILTRI E ORARI) ---
+
+    function filterTutors() {
+        const y = filterYear.value;
+        const s = filterSubject.value.toLowerCase().trim();
+        selectTutor.innerHTML = '<option value="">Seleziona...</option>';
+        selectTutor.disabled = true;
+        resetDateAndTime();
+
+        if(!y || s.length < 2) return;
+
+        const filtered = allTutors.filter(t => {
+            const c = t.class_info ? t.class_info.toString() : "";
+            const sub = t.subjects ? t.subjects.toLowerCase() : "";
+            return c.startsWith(y) && sub.includes(s);
+        });
+
+        if(filtered.length > 0) {
+            selectTutor.disabled = false;
+            filtered.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                let name = t.full_name || "Tutor";
+                opt.textContent = `${name} (${t.class_info || 'ND'})`;
+                opt.setAttribute('data-avail', t.availability || ""); 
+                selectTutor.appendChild(opt);
+            });
+        } else {
+            const opt = document.createElement('option');
+            opt.textContent = "Nessun tutor trovato";
+            selectTutor.appendChild(opt);
+        }
+    }
+    filterYear.addEventListener('change', filterTutors);
+    filterSubject.addEventListener('input', filterTutors);
+
+    selectTutor.addEventListener('change', () => {
+        resetDateAndTime();
+        const selectedOption = selectTutor.options[selectTutor.selectedIndex];
+        const rawAvail = selectedOption.getAttribute('data-avail');
+        if (!rawAvail) {
+            availDisplay.style.display = 'none';
+            alert("Tutor senza orari predefiniti.");
+            return;
+        }
+        currentTutorAvailability = [];
+        const parts = rawAvail.split(',');
+        parts.forEach(part => {
+            part = part.trim();
+            const spaceIndex = part.indexOf(' ');
+            if (spaceIndex === -1) return;
+            const dayName = part.substring(0, spaceIndex).trim().toLowerCase();
+            const timeRange = part.substring(spaceIndex + 1).trim();
+            if (DAY_MAP.hasOwnProperty(dayName)) {
+                currentTutorAvailability.push({ dayIndex: DAY_MAP[dayName], range: timeRange });
+            }
+        });
+        availText.textContent = rawAvail;
+        availDisplay.style.display = 'block';
+        dateInput.disabled = false;
+        dateInput.style.opacity = "1";
+        dateInput.min = new Date().toISOString().split('T')[0];
+    });
+
+    dateInput.addEventListener('change', () => {
+        const selectedDate = new Date(dateInput.value);
+        const dayOfWeek = selectedDate.getDay();
+        const validSlots = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
+
+        if (validSlots.length > 0) {
+            dateError.style.display = 'none';
+            timeSelect.disabled = false;
+            timeSelect.style.opacity = "1";
+            timeSelect.style.cursor = "pointer";
+            timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
+            validSlots.forEach(slot => {
+                const opt = document.createElement('option');
+                opt.value = slot.range;
+                opt.textContent = slot.range;
+                timeSelect.appendChild(opt);
+            });
+            timeSelect.style.backgroundColor = "#e8f5e9";
+        } else {
+            dateError.style.display = 'block';
+            timeSelect.innerHTML = '<option value="">-- Data non valida --</option>';
+            timeSelect.disabled = true;
+            timeSelect.style.backgroundColor = "#ffebee";
+            timeSelect.value = "";
         }
     });
 
-    // Chiusura Modali
-    document.getElementById('btnCancelEdit').addEventListener('click', () => closeModal(editModal));
-    document.getElementById('btnCancelDelete').addEventListener('click', () => closeModal(deleteModal));
-    document.getElementById('btnSuccessClose').addEventListener('click', () => closeModal(successModal));
-    document.getElementById('btnWarningClose').addEventListener('click', () => closeModal(warningModal));
+    function resetDateAndTime() {
+        dateInput.value = "";
+        dateInput.disabled = true;
+        dateInput.style.opacity = "0.6";
+        dateError.style.display = 'none';
+        timeSelect.innerHTML = '<option value="">-- Prima seleziona data --</option>';
+        timeSelect.disabled = true;
+        timeSelect.style.opacity = "0.6";
+        timeSelect.style.backgroundColor = "";
+        availDisplay.style.display = 'none';
+    }
 
-    // Init
+    bookingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tid = selectTutor.value;
+        const sub = filterSubject.value;
+        const date = dateInput.value;
+        const time = timeSelect.value;
+        const durEl = document.querySelector('input[name="duration"]:checked');
+        const dur = durEl ? durEl.value + " min" : "60 min";
+        const notes = document.getElementById('lessonNotes').value;
+
+        if(!tid || !date || !time) { showWarning("Compila tutti i campi."); return; }
+
+        try {
+            const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
+            const { error } = await sbClient.from('appointments').insert([{
+                user_id: user.id, tutor_id: tid, student_name: user.user_metadata.full_name || user.email,
+                student_email: user.email, subject: sub, date: date, time_slot: time,
+                duration: dur, status: 'Confermato', tutor_name_cache: tName, notes: notes
+            }]);
+            if(error) throw error;
+            showSuccess("Prenotata!", "Lezione confermata.");
+            bookingForm.reset();
+            resetDateAndTime();
+            selectTutor.innerHTML = '<option value="">Seleziona...</option>';
+            selectTutor.disabled = true;
+            fetchLessons();
+        } catch(e) { showWarning(e.message); }
+    });
+
+    // Avvio
     fetchLessons();
 });
