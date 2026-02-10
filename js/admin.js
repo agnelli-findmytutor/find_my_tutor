@@ -5,7 +5,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Variabili Stato
 let currentLessons = [];
+let allCancelledLessons = [];
 let allUsers = []; 
+let allPendingRequests = [];
+let allHistoryRequests = [];
 let selectedId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -243,10 +246,11 @@ async function loadTutorRequests() {
     const { data: requests, error } = await sb.from('tutor_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
     if (error) { tbody.innerHTML = `<tr><td colspan="4">Errore</td></tr>`; return; }
     tbody.innerHTML = '';
+    allPendingRequests = requests || [];
     if (!requests || requests.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessuna candidatura.</td></tr>'; return; }
     requests.forEach(req => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td><span class="badge-info">${req.class_info}</span><br><small>${req.subjects}</small></td><td><small>${req.availability}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action btn-save" onclick="processRequest(${req.id}, '${req.email}', 'approved')"><i class="fas fa-check"></i></button><button class="btn-action btn-delete" onclick="processRequest(${req.id}, '${req.email}', 'rejected')"><i class="fas fa-times"></i></button></div></td>`;
+        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td><span class="badge-info">${req.class_info}</span><br><small>${req.subjects}</small></td><td><small>${req.availability}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'pending')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-save" onclick="processRequest(${req.id}, '${req.email}', 'approved')"><i class="fas fa-check"></i></button><button class="btn-action btn-delete" onclick="processRequest(${req.id}, '${req.email}', 'rejected')"><i class="fas fa-times"></i></button></div></td>`;
         tbody.appendChild(row);
     });
 }
@@ -261,12 +265,13 @@ async function loadRequestsHistory() {
     const { data, error } = await sb.from('tutor_requests').select('*').neq('status', 'pending').order('created_at', { ascending: false });
     if (error) return; 
     tbody.innerHTML = '';
+    allHistoryRequests = data || [];
     if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessuno storico.</td></tr>'; return; }
     data.forEach(req => {
         const isApp = req.status === 'approved';
         const badge = isApp ? `<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold;">APPROVATA</span>` : `<span style="background:#ffebee; color:#c62828; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold;">RIFIUTATA</span>`;
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td>${badge}</td><td><small>${new Date(req.created_at).toLocaleDateString()}</small></td><td><button class="btn-action btn-delete" onclick="deleteRequest(${req.id})"><i class="fas fa-trash"></i></button></td>`;
+        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td>${badge}</td><td><small>${new Date(req.created_at).toLocaleDateString()}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'history')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-delete" onclick="deleteRequest(${req.id})"><i class="fas fa-trash"></i></button></div></td>`;
         tbody.appendChild(row);
     });
 }
@@ -385,6 +390,7 @@ async function loadCancelledLessons() {
     list.innerHTML = '<p style="text-align:center;">Caricamento...</p>';
     const { data, error } = await sb.from('appointments').select('*').eq('status', 'Cancellata').order('date', { ascending: false });
     if(error) { list.innerHTML = "Errore."; return; }
+    allCancelledLessons = data || [];
     renderLessons(list, data, true);
 }
 
@@ -422,3 +428,77 @@ function renderLessons(container, data, isReg) {
         container.appendChild(div);
     });
 }
+
+// --- FUNZIONI GLOBALI PER I PULSANTI LEZIONI ---
+window.openEdit = (id) => {
+    // Cerca la lezione in entrambe le liste (attive e cancellate)
+    const lesson = [...currentLessons, ...allCancelledLessons].find(l => l.id == id);
+    if (!lesson) return;
+
+    selectedId = id;
+    
+    // Popola i campi del modale con i dati esistenti
+    const dateEl = document.getElementById('editDate');
+    const timeEl = document.getElementById('editTime');
+    const statusEl = document.getElementById('editStatus');
+    const roomEl = document.getElementById('editRoom');
+    const notesEl = document.getElementById('editNotes');
+
+    if(dateEl) dateEl.value = lesson.date;
+    if(timeEl) timeEl.value = lesson.time_slot;
+    if(statusEl) statusEl.value = lesson.status;
+    if(roomEl) roomEl.value = lesson.room_name || '';
+    if(notesEl) notesEl.value = lesson.notes || '';
+
+    document.getElementById('adminEditModal').classList.remove('hidden');
+};
+
+window.openCancel = (id) => {
+    selectedId = id;
+    document.getElementById('adminCancelReason').value = ''; // Reset campo motivo
+    document.getElementById('adminCancelModal').classList.remove('hidden');
+};
+
+window.openPermDelete = (id) => {
+    selectedId = id;
+    document.getElementById('adminDeletePermanentModal').classList.remove('hidden');
+};
+
+// --- VISUALIZZA DETTAGLI CANDIDATURA (POP-UP) ---
+window.viewRequestDetails = (id, type) => {
+    const source = type === 'pending' ? allPendingRequests : allHistoryRequests;
+    const req = source.find(r => r.id === id);
+    if(!req) return;
+    
+    // Crea il modale se non esiste
+    let modal = document.getElementById('requestDetailModal');
+    if(!modal) {
+        modal = document.createElement('div');
+        modal.id = 'requestDetailModal';
+        modal.className = 'modal-overlay hidden';
+        modal.innerHTML = `
+            <div class="modal-card" style="text-align:left; max-width:500px;">
+                <div class="modal-icon" style="background:#E1F5FE; color:#0288d1;"><i class="fas fa-info-circle"></i></div>
+                <h3 style="text-align:center; margin-bottom:20px; color:#333;">Dettagli Candidatura</h3>
+                <div id="reqDetailContent" style="font-size:0.95rem; line-height:1.6; color:#444;"></div>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" onclick="document.getElementById('requestDetailModal').classList.add('hidden')">Chiudi</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    const content = document.getElementById('reqDetailContent');
+    content.innerHTML = `
+        <p><strong><i class="fas fa-user"></i> Nome:</strong> ${req.full_name}</p>
+        <p><strong><i class="fas fa-envelope"></i> Email:</strong> ${req.email}</p>
+        <p><strong><i class="fas fa-phone"></i> Telefono:</strong> ${req.phone || 'N/A'}</p>
+        <p><strong><i class="fas fa-school"></i> Classe:</strong> ${req.class_info}</p>
+        <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
+        <p><strong><i class="fas fa-book"></i> Materie:</strong><br><span style="background:#f5f5f5; padding:2px 6px; border-radius:4px;">${req.subjects}</span></p>
+        <p style="margin-top:10px;"><strong><i class="far fa-clock"></i> Disponibilità:</strong><br>${req.availability}</p>
+    `;
+    
+    modal.classList.remove('hidden');
+};

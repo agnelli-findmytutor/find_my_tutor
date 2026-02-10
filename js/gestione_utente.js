@@ -137,6 +137,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Aggiorniamo l'interfaccia (nel caso la cache fosse vecchia o vuota)
         updateInterface(userRole, avatarUrl);
 
+        // --- AUTO-FILL EMAIL (Solo su diventa_tutor.html) ---
+        if (window.location.pathname.includes('diventa_tutor.html')) {
+            // Cerca l'input email (per ID 'email' o genericamente per tipo)
+            const emailInput = document.getElementById('email') || document.querySelector('input[type="email"]');
+            if (emailInput) {
+                emailInput.value = user.email;
+                emailInput.readOnly = true; // Rende il campo non modificabile
+                emailInput.style.backgroundColor = "#e9ecef"; // Sfondo grigio per indicare che è bloccato
+                emailInput.style.cursor = "not-allowed";
+            }
+        }
+
     } else {
         // Se Supabase dice che non siamo loggati, ma avevamo mostrato l'interfaccia (cache), dobbiamo pulire
         if (cachedRole) {

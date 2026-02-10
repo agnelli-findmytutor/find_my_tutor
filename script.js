@@ -212,3 +212,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Funzione globale per copiare testo (usata in appuntamenti.html)
+function copyText(text) {
+    const showToast = () => {
+        const toast = document.getElementById("toast");
+        if (toast) {
+            // Se c'è un timer attivo (click rapidi), cancellalo per riavviare
+            if (toast._timer) clearTimeout(toast._timer);
+
+            // Reset animazione: rimuovi classe, forza reflow, riaggiungi
+            toast.classList.remove("show");
+            void toast.offsetWidth; 
+            toast.classList.add("show");
+            
+            // Nascondi dopo 3 secondi
+            toast._timer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+    };
+
+    // 1. Prova API moderna (HTTPS)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showToast).catch(() => fallbackCopy(text, showToast));
+    } else {
+        // 2. Fallback per HTTP o browser vecchi
+        fallbackCopy(text, showToast);
+    }
+}
+
+function fallbackCopy(text, onSuccess) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed"; // Evita scroll pagina
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try { if(document.execCommand('copy')) onSuccess(); } catch (e) { console.error(e); }
+    document.body.removeChild(textArea);
+}
