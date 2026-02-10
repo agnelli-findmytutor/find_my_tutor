@@ -73,6 +73,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- SEZIONE LEZIONI (Spostata sopra e rinnovata) -->
+        <div class="lessons-section reveal">
+            <div class="section-header-main">
+                <h3><i class="fas fa-chalkboard-teacher"></i> Gestione Lezioni</h3>
+            </div>
+            
+            <!-- BOX AVVISO CANCELLAZIONI (Appare solo se ci sono novità) -->
+            <div id="cancellationAlert" class="cancellation-alert hidden"></div>
+
+            <!-- NAVIGAZIONE TABS -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('upcoming')">In Programma</button>
+                <button class="tab-btn" onclick="switchTab('past')">Passate</button>
+                <button class="tab-btn" onclick="switchTab('cancelled')">Cancellate</button>
+            </div>
+
+            <!-- CONTENUTI TABS -->
+            <div id="tab-upcoming" class="tab-content active"><div id="upcomingList" class="calendar-stream"></div></div>
+            <div id="tab-past" class="tab-content"><div id="pastList" class="calendar-stream"></div></div>
+            <div id="tab-cancelled" class="tab-content"><div id="cancelledList" class="calendar-stream"></div></div>
+        </div>
+
 <div class="dashboard-grid">
             
             <div class="booking-widget reveal">
@@ -129,8 +152,6 @@
             </div>
 
         </div> 
-        <div class="calendar-stream" id="appointmentsList">
-            </div>
 
     </main>
 <div id="deleteModal" class="modal-overlay hidden">

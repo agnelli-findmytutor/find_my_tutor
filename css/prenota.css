@@ -367,3 +367,46 @@ textarea::placeholder {
     color: #aaa;
     font-style: italic;
 }
+
+/* --- GROUP MODE STYLES (BLUE) --- */
+.group-toggle-container { margin-bottom: 20px; }
+.btn-group-toggle {
+    width: 100%; padding: 12px; border-radius: 10px; border: 2px dashed #1565C0;
+    background: #E3F2FD; color: #1565C0; font-weight: 700; cursor: pointer; transition: 0.3s;
+}
+.btn-group-toggle.active { background: #1565C0; color: white; border-style: solid; }
+
+/* Cambio colore card in modalità gruppo */
+.card-box.group-mode { border-top-color: #1565C0; }
+.card-box.group-mode .card-header i { background: #E3F2FD; color: #1565C0; }
+.card-box.group-mode .form-group label { color: #1565C0; }
+.card-box.group-mode .btn-confirm-booking { background: #1565C0; }
+
+/* Ricerca Studenti */
+.group-selection-area {
+    background: #f0f7ff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bbdefb;
+}
+.search-container-mini { position: relative; margin-top: 10px; }
+.search-container-mini input { padding-right: 40px !important; }
+.search-container-mini i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+
+.search-results-dropdown {
+    background: white; border: 1px solid #ddd; border-radius: 8px; max-height: 150px;
+    overflow-y: auto; margin-top: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.search-item {
+    padding: 10px 15px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f5f5f5;
+}
+.search-item:hover { background: #e3f2fd; }
+
+.selected-chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.student-chip {
+    background: #1565C0; color: white; padding: 5px 12px; border-radius: 20px;
+    font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600;
+}
+.student-chip i { cursor: pointer; opacity: 0.8; }
+.student-chip i:hover { opacity: 1; }
+
+/* Modale Successo Blu */
+#successModal.group-success .modal-icon { background: #E3F2FD; color: #1565C0; }
+#successModal.group-success .success-btn { background: #1565C0; }

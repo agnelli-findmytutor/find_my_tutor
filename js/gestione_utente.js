@@ -149,6 +149,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+        // --- CONTROLLO BAN (Notifica Popup) ---
+        try {
+            const { data: banLog, error: banError } = await sbClient
+                .from('banned_tutors_log')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('seen', false)
+                .maybeSingle();
+            
+            if (banError) console.error("Errore lettura ban:", banError);
+
+            if (banLog) {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay'; // Visibile di default (senza 'hidden')
+                // Forziamo lo stile per essere sicuri che appaia sopra tutto
+                modal.style.cssText = "z-index: 100000; opacity: 1; visibility: visible; display: flex;";
+                modal.innerHTML = `
+                    <div class="modal-card">
+                        <div class="modal-icon warning" style="background:#FFEBEE; color:#c62828;"><i class="fas fa-user-slash"></i></div>
+                        <h3 style="color:#c62828;">Ruolo Revocato</h3>
+                        <p>Il tuo ruolo di Tutor è stato rimosso dall'amministrazione.</p>
+                        <div style="background:#f9f9f9; padding:15px; border-left:4px solid #c62828; border-radius:4px; color:#333; margin-bottom:20px; font-size:0.9rem; text-align:left;">
+                            <strong>Motivo:</strong><br> ${banLog.reason}
+                        </div>
+                        <button class="btn-modal primary" id="ackBanBtn" style="width:100%;">Ho capito, torna a Studente</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                document.getElementById('ackBanBtn').onclick = async () => {
+                    const { error: updateErr } = await sbClient
+                        .from('banned_tutors_log')
+                        .update({ seen: true })
+                        .eq('id', banLog.id);
+                    
+                    if(updateErr) console.error("Errore aggiornamento ban:", updateErr);
+                    modal.remove();
+                    window.location.reload(); // Ricarica per aggiornare l'interfaccia a Studente
+                };
+            }
+        } catch (e) { console.error("Err ban check", e); }
+
     } else {
         // Se Supabase dice che non siamo loggati, ma avevamo mostrato l'interfaccia (cache), dobbiamo pulire
         if (cachedRole) {

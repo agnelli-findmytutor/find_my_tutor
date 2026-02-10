@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- ELEMENTI DOM ---
     const roomBookingsList = document.getElementById('roomBookingsList');
-    const appointmentsList = document.getElementById('appointmentsList');
     const bookingForm = document.getElementById('roomBookingForm');
     
     // Inputs Form
@@ -294,58 +293,168 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function fetchAppointments() {
-        if(!appointmentsList) return;
-        appointmentsList.innerHTML = '<p>Caricamento agenda...</p>';
+        const upcomingList = document.getElementById('upcomingList');
+        if(!upcomingList) return;
+        
+        upcomingList.innerHTML = '<p>Caricamento agenda...</p>';
+        
         try {
             const { data, error } = await sbClient.from('appointments').select('*').eq('tutor_id', user.id).order('date', { ascending: true });
             if (error) throw error;
-            renderCalendar(data);
-        } catch (err) { appointmentsList.innerHTML = `<p style="color:red">Errore: ${err.message}</p>`; }
+            processAppointments(data);
+        } catch (err) { console.error(err); upcomingList.innerHTML = `<p style="color:red">Errore: ${err.message}</p>`; }
     }
 
-    function renderCalendar(appointments) {
-        appointmentsList.innerHTML = '';
-        if (!appointments || appointments.length === 0) {
-            appointmentsList.innerHTML = `<div class="empty-calendar" style="text-align:center; color:#999; padding:20px;"><p>Nessuna lezione in programma.</p></div>`;
+    function processAppointments(appointments) {
+        const todayObj = new Date();
+        const today = todayObj.toISOString().split('T')[0];
+        
+        // Data limite (30 giorni fa) per nascondere le vecchie cancellazioni
+        const limitDate = new Date();
+        limitDate.setDate(todayObj.getDate() - 30);
+        const limitStr = limitDate.toISOString().split('T')[0];
+        
+        const upcoming = [];
+        const past = [];
+        const cancelled = [];
+
+        appointments.forEach(app => {
+            if (app.status === 'Cancellata') {
+                // Mostra solo se la data della lezione è recente (ultimi 30gg) o futura
+                if (app.date >= limitStr) {
+                    cancelled.push(app);
+                }
+            } else if (app.date >= today) {
+                upcoming.push(app);
+            } else {
+                past.push(app);
+            }
+        });
+
+        // Renderizza le liste
+        renderList(document.getElementById('upcomingList'), upcoming, 'Nessuna lezione in programma.');
+        renderList(document.getElementById('pastList'), past.reverse(), 'Nessuna lezione passata.'); // Reverse per vedere le più recenti prima
+        renderList(document.getElementById('cancelledList'), cancelled.reverse(), 'Nessuna lezione cancellata.');
+
+        // --- GESTIONE AVVISO CANCELLAZIONI (NOVITÀ) ---
+        checkNewCancellations(cancelled);
+    }
+
+    function checkNewCancellations(cancelledLessons) {
+        const alertBox = document.getElementById('cancellationAlert');
+        if (!alertBox || cancelledLessons.length === 0) return;
+
+        // Recupera ID già visti dal LocalStorage
+        const seenIds = JSON.parse(localStorage.getItem('fmt_seen_cancellations') || '[]');
+        
+        // Filtra solo quelle NON viste
+        const newCancellations = cancelledLessons.filter(l => !seenIds.includes(l.id));
+
+        if (newCancellations.length > 0) {
+            let html = `
+                <div class="alert-header">
+                    <i class="fas fa-bell"></i> Attenzione: Lezioni Cancellate
+                </div>
+                <p style="margin:5px 0 10px; font-size:0.9rem; color:#555;">Alcune lezioni sono state annullate recentemente:</p>
+            `;
+            
+            newCancellations.forEach(l => {
+                html += `
+                    <div class="alert-item">
+                        <strong>${l.date} - ${l.time_slot}</strong> con ${l.student_name}<br>
+                        <span style="font-size:0.85rem; color:#b71c1c;">Motivo: ${l.cancellation_reason || 'N/D'}</span>
+                    </div>
+                `;
+            });
+
+            html += `<button id="btnDismissAlert" class="btn-dismiss">Ho capito</button>`;
+            alertBox.innerHTML = html;
+            alertBox.classList.remove('hidden');
+
+            // Listener per il tasto "Ho capito"
+            document.getElementById('btnDismissAlert').addEventListener('click', () => {
+                // Aggiungi i nuovi ID ai visti
+                const updatedSeen = [...seenIds, ...newCancellations.map(l => l.id)];
+                localStorage.setItem('fmt_seen_cancellations', JSON.stringify(updatedSeen));
+                alertBox.classList.add('hidden');
+            });
+        }
+    }
+
+    function renderList(container, apps, emptyMsg) {
+        container.innerHTML = '';
+        if (!apps || apps.length === 0) {
+            container.innerHTML = `<div class="empty-calendar"><p>${emptyMsg}</p></div>`;
             return;
         }
+
         const groups = {};
-        appointments.forEach(app => { if (!groups[app.date]) groups[app.date] = []; groups[app.date].push(app); });
+        apps.forEach(app => { if (!groups[app.date]) groups[app.date] = []; groups[app.date].push(app); });
+        
         Object.keys(groups).sort().forEach(dateStr => {
-            const apps = groups[dateStr];
+            const dayApps = groups[dateStr];
             const dateObj = new Date(dateStr);
             const dateLabel = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
             const daySection = document.createElement('div');
-            let html = `<div class="day-header" style="margin-top:25px; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:15px; color:#D32F2F; font-weight:700; text-transform:capitalize;">${dateLabel}</div>`;
-            apps.forEach(app => {
+            daySection.className = 'day-section';
+            
+            let html = `<div class="day-header">${dateLabel}</div>`;
+            
+            dayApps.forEach(app => {
                 const isCancelled = app.status === 'Cancellata';
-                let cardStyle = "background:white; padding:20px; border-radius:12px; border-left:5px solid #D32F2F; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05); position:relative;";
-                let statusColor = 'green';
-                if (isCancelled) {
-                    cardStyle = "background:#fff5f5; padding:20px; border-radius:12px; border-left:5px solid #b71c1c; margin-bottom:15px; opacity:0.9;";
-                    statusColor = "#b71c1c";
-                }
-                const roomBadge = !isCancelled && app.room_name ? `<span style="background:#E3F2FD; color:#1565c0; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; margin-left:10px;"><i class="fas fa-door-open"></i> ${app.room_name}</span>` : '';
-                const deleteButtonArea = !isCancelled 
-                    ? `<div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #eee; text-align: right;"><button onclick="window.openCancelLessonModal('${app.id}')" style="background: #ffebee; color: #d32f2f; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600;"><i class="fas fa-times-circle"></i> Cancella Lezione</button></div>`
-                    : `<div style="margin-top: 10px; text-align: right; color: #b71c1c; font-weight: bold; font-size: 0.8rem;">LEZIONE ANNULLATA</div>`;
+                const statusClass = isCancelled ? 'cancelled' : 'active';
                 
-                html += `<div class="lesson-card" style="${cardStyle}">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div style="flex:1;">
-                                <h4 style="margin:0; font-size:1.1rem; color:#333;">${app.subject || 'Materia'} ${roomBadge}</h4>
-                                <p style="margin:5px 0 0; color:#666; font-size:0.9rem;"><strong>${app.student_name}</strong></p>
-                            </div>
-                            <div style="text-align:right; margin-left:15px;">
-                                <div style="font-weight:700; font-size:1.1rem; color:#333;">${app.time_slot}</div>
-                                <div style="font-size:0.8rem; color:${statusColor}; margin-top:4px; font-weight:600; text-transform:uppercase;">${app.status || 'Attivo'}</div>
+                const roomBadge = !isCancelled && app.room_name 
+                    ? `<span class="room-badge"><i class="fas fa-door-open"></i> ${app.room_name}</span>` 
+                    : '';
+                
+                const deleteButtonArea = !isCancelled 
+                    ? `<div class="card-actions"><button onclick="window.openCancelLessonModal('${app.id}')" class="btn-cancel-lesson"><i class="fas fa-times-circle"></i> Cancella</button></div>`
+                    : `<div class="card-status-text">LEZIONE ANNULLATA</div>`;
+                
+                const notesHtml = app.notes ? `<div class="lesson-notes"><i class="far fa-comment-dots"></i> ${app.notes}</div>` : '';
+
+                const groupBadge = app.is_group 
+                    ? `<span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px;">GRUPPO</span>` 
+                    : '';
+                
+                const groupMembers = (app.is_group && app.group_members) 
+                    ? `<p style="font-size:0.8rem; color:#1565C0; margin-top:2px;">+ ${app.group_members}</p>` 
+                    : '';
+
+                html += `<div class="lesson-card ${statusClass}">
+                        <div class="card-content">
+                            <div class="card-main">
+                                <div class="time-display">${app.time_slot}</div>
+                                <div class="info-display">
+                                    <h4>${app.subject || 'Materia'} ${roomBadge} ${groupBadge}</h4>
+                                    <p class="student-name"><i class="fas fa-user-graduate"></i> ${app.student_name}</p>
+                                    ${groupMembers}
+                                    ${notesHtml}
+                                </div>
                             </div>
                         </div>
                         ${deleteButtonArea}
                     </div>`;
             });
             daySection.innerHTML = html;
-            appointmentsList.appendChild(daySection);
+            container.appendChild(daySection);
         });
     }
 });
+
+// --- FUNZIONE GLOBALE TABS ---
+window.switchTab = (tabName) => {
+    // Nascondi tutti i contenuti
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Disattiva tutti i bottoni
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // Attiva corrente
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    
+    // Trova il bottone cliccato (hack veloce basato sull'ordine o testo, ma meglio event.target se passato)
+    // Qui usiamo un selettore semplice basato sull'onclick
+    const btn = document.querySelector(`button[onclick="switchTab('${tabName}')"]`);
+    if(btn) btn.classList.add('active');
+};

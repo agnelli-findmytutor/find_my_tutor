@@ -47,7 +47,7 @@ header {
     position: fixed; 
     top: 0; 
     width: 100%; 
-    z-index: 1000;
+    z-index: 9100; /* Superiore all'overlay (9000) per rendere cliccabile il menu */
     transition: all 0.4s ease; 
     box-shadow: none;
     box-sizing: border-box; /* Assicura che il padding non rompa la larghezza */
@@ -1728,4 +1728,9 @@ body.fade-out {
 @keyframes fadeOutPage {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* UTILITY GLOBALE: Nascondi elementi */
+.hidden {
+    display: none !important;
 }

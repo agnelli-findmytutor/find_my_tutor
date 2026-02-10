@@ -13,6 +13,24 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/prenota.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        /* Stile Stelle Recensione */
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 2.5rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .star-rating label:hover, .star-rating label:hover ~ label, .star-rating input:checked ~ label { color: #ffc107; }
+    </style>
 </head>
 <body>
 
@@ -57,6 +75,12 @@
                     </div>
                     <p class="card-subtitle">Seleziona i dettagli per bloccare la tua lezione.</p>
                     
+                    <div class="group-toggle-container">
+                        <button type="button" id="btnToggleGroup" class="btn-group-toggle">
+                            <i class="fas fa-users"></i> Prenotazione di Gruppo
+                        </button>
+                    </div>
+
                     <form id="bookingForm">
                         
                         <div class="row-group">
@@ -103,6 +127,17 @@
                                 </select>
                             </div>
 
+                        <!-- SEZIONE GRUPPO (Nascosta di default) -->
+                        <div id="groupSection" class="group-selection-area hidden">
+                            <label><i class="fas fa-user-plus"></i> Aggiungi compagni (Max 5)</label>
+                            <div class="search-container-mini">
+                                <input type="text" id="searchStudent" placeholder="Cerca per nome o email...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div id="studentResults" class="search-results-dropdown hidden"></div>
+                            <div id="selectedStudents" class="selected-chips-container"></div>
+                        </div>
+
                         <div class="form-group">
                             <label>Durata</label>
                             <div class="duration-pills">
@@ -137,6 +172,15 @@
                             <i class="fas fa-calendar-times"></i>
                             <p>Nessuna lezione in programma.</p>
                         </div>
+                    </div>
+
+                    <div class="divider"></div>
+                    <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
+                        <i class="fas fa-history" style="background: #f5f5f5; color: #666; width: 35px; height: 35px; font-size: 1.1rem;"></i>
+                        <h3 style="color: #666; font-size: 1.1rem;">Lezioni Concluse</h3>
+                    </div>
+                    <div id="pastLessonsList" class="lessons-scroll-area" style="max-height: 300px; margin-top: 15px;">
+                        <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>
                     </div>
                 </div>
 
@@ -173,6 +217,30 @@
         </div>
     </div>
     
+    <div id="ratingModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success" style="background: #FFF8E1; color: #FFC107;"><i class="fas fa-star"></i></div>
+            <h3>Valuta la lezione</h3>
+            <p>Com'è andata la tua ripetizione? Il tuo voto aiuterà il tutor a migliorare.</p>
+            <p style="font-size: 0.8rem; color: #888; font-style: italic; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                <i class="fas fa-user-secret"></i> <strong>Privacy:</strong> Il tutor vedrà solo la media totale dei suoi voti. Non saprà chi ha inviato questa specifica valutazione.
+            </p>
+            
+            <div class="star-rating">
+                <input type="radio" name="stars" id="star5" value="5"><label for="star5"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star4" value="4"><label for="star4"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star3" value="3"><label for="star3"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star2" value="2"><label for="star2"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star1" value="1"><label for="star1"><i class="fas fa-star"></i></label>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnCancelRating" class="btn-modal secondary">Annulla</button>
+                <button id="btnSubmitRating" class="btn-modal primary" style="background: #ffc107; color: #333;">Invia Voto</button>
+            </div>
+        </div>
+    </div>
+
 <div id="editModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="card-header-simple" style="border-bottom:none; padding-bottom:0;">

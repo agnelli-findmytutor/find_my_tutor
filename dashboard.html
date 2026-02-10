@@ -10,84 +10,126 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
-<body>
+<body class="dashboard-body">
 
     <div class="animated-bg">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
 
-<header>
-    <div class="logo">
-        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-        <span>FindMyTutor</span>
-    </div>
-    <nav>
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="progetto.html">Il nostro progetto</a></li>
-            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
-        </ul>
-    </nav>
-    <div class="header-actions">
-        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
-        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-    </div>
-</header>
+    <div class="dashboard-layout">
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>FindMyTutor</span>
+            </div>
 
-    <main class="dashboard-wrapper">
-        <div class="dashboard-card reveal">
-            
-            <div class="profile-header">
-                
-                <span id="profileRoleBadge" class="role-badge">...</span>
-
-                <div class="profile-img-container">
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
                     <img src="https://via.placeholder.com/150" alt="Profilo" id="userAvatar">
+                    <span id="profileRoleBadge" class="role-status-dot"></span>
                 </div>
-                
-                <h1 id="userName">Caricamento...</h1>
-                <p id="userEmail" class="email-badge">...</p>
+                <h2 id="userName">Caricamento...</h2>
+                <p id="userEmail">...</p>
             </div>
 
-            <hr class="divider">
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i class="fas fa-home"></i> Home Sito</a>
+                <a href="#" class="nav-item active" id="navDashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="prenota.html" class="nav-item"><i class="fas fa-calendar-day"></i> Agenda Studente</a>
+                <a href="appuntamenti.html" id="btnAgendaTutor" class="nav-item hidden"><i class="fas fa-chalkboard-teacher"></i> Agenda Tutor</a>
+                <a href="#" id="navPcto" class="nav-item hidden"><i class="fas fa-medal"></i> PCTO</a>
+                <div class="nav-spacer"></div>
+                <button id="logoutBtn" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Disconnetti</button>
+            </nav>
+        </aside>
 
-            <div class="dashboard-stats">
-                <div class="stat-item">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <h3>0</h3>
-                    <p>Lezioni Prenotate</p>
+        <!-- MAIN CONTENT -->
+        <main class="dashboard-main">
+            <header class="content-header">
+                <div class="welcome-text">
+                    <h1>Bentornato, <span id="welcomeName">...</span>!</h1>
+                    <p>Ecco il riepilogo delle tue attività.</p>
                 </div>
-                <div class="stat-item">
-                    <i class="fas fa-star"></i>
-                    <h3>--</h3>
-                    <p>Valutazione</p>
+                <div class="header-actions">
+                    <button id="btnDowngrade" class="btn-outline-warning hidden">
+                        <i class="fas fa-user-minus"></i> Torna Studente
+                    </button>
+                    <button id="deleteBtn" class="btn-icon-danger" title="Elimina Account">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </div>
+            </header>
+
+            <!-- SEZIONE PANORAMICA (DEFAULT) -->
+            <div id="tab-overview" class="dashboard-tab-content">
+            <section class="activity-overview">
+                <div class="section-title-main">
+                    <h2><i class="fas fa-stream"></i> Attività e Feedback</h2>
+                </div>
+            <div class="dashboard-grid">
+                <!-- LEZIONI STUDENTE -->
+                <section class="grid-card">
+                    <div class="card-title">
+                        <i class="fas fa-book-reader"></i>
+                        <h3>Lezioni da Frequentare (Studente)</h3>
+                    </div>
+                    <div id="studentLessonsList" class="lesson-mini-grid">
+                        <p class="empty-msg">Nessuna lezione prenotata.</p>
+                    </div>
+                </section>
+
+                <!-- LEZIONI TUTOR -->
+                <section id="tutorLessonsSection" class="grid-card hidden">
+                    <div class="card-title">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <h3>Lezioni da Svolgere (Tutor)</h3>
+                    </div>
+                    <div id="tutorLessonsList" class="lesson-mini-grid">
+                        <p class="empty-msg">Nessuna lezione in programma.</p>
+                    </div>
+                </section>
+
+                <!-- VALUTAZIONE TUTOR -->
+                <section id="tutorRatingSection" class="grid-card rating-card hidden">
+                    <div class="card-title">
+                        <i class="fas fa-star"></i>
+                        <h3>Feedback e Valutazioni</h3>
+                    </div>
+                    <div class="rating-display">
+                        <div id="tutorStars" class="stars"></div>
+                        <p id="ratingText">Media recensioni</p>
+                    </div>
+                </section>
+            </div>
+            </section>
             </div>
 
-            <div class="dashboard-actions">
-                <a href="appuntamenti.html" id="btnAgendaTutor" class="action-btn agenda hidden">
-                    <i class="far fa-calendar-alt"></i> Agenda Tutor
-                </a>
-                
-                <button id="btnDowngrade" class="action-btn warning hidden">
-                    <i class="fas fa-user-graduate"></i> Torna solo Studente
-                </button>
-
-                <a href="prenota.html" class="action-btn secondary">
-                    <i class="fas fa-search"></i> Cerca Lezione
-                </a>
-
-                <button id="logoutBtn" class="action-btn logout">
-                    <i class="fas fa-sign-out-alt"></i> Disconnetti
-                </button>
-                
-                <button id="deleteBtn" class="action-btn delete">
-                    <i class="fas fa-trash-alt"></i> Elimina Account
-                </button>
+            <!-- NUOVA SEZIONE PCTO (SOLO TUTOR) -->
+            <div id="tab-pcto" class="dashboard-tab-content hidden">
+                <section class="pcto-section">
+                    <div class="section-title-main">
+                        <h2><i class="fas fa-medal"></i> Ore PCTO Accumulate</h2>
+                        <p>Le ore vengono conteggiate automaticamente al termine di ogni lezione.</p>
+                    </div>
+                    
+                    <div class="pcto-display-card">
+                        <div class="pcto-main-stat">
+                            <span id="pctoHours" class="pcto-number">0</span>
+                            <span class="pcto-unit">Ore Totali</span>
+                        </div>
+                        
+                        <div id="pctoExtraMinutes" class="pcto-extra-box hidden">
+                            <div class="extra-badge">+30 min</div>
+                            <p>Hai una mezza ora in attesa di essere completata.</p>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
 <div id="downgradeModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning">
@@ -102,12 +144,42 @@
             </p>
             <div class="modal-actions">
                 <button id="btnCancelDowngrade" class="btn-modal secondary">Annulla</button>
-                <button id="btnConfirmDowngrade" class="btn-modal danger">Conferma e Procedi</button>
+                <button id="btnConfirmDowngrade" class="btn-modal danger">Procedi</button>
             </div>
         </div>
     </div>
-    <div id="downgradeModal" class="modal-overlay hidden">
-       </div>
+
+    <div id="downgradeStep2Modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h3>Sei proprio sicuro?</h3>
+            <p>
+                Questa è l'ultima conferma. Perdendo il ruolo di Tutor non potrai più gestire le tue lezioni attuali.
+            </p>
+            <div class="modal-actions">
+                <button id="btnCancelDowngrade2" class="btn-modal secondary">Torna Indietro</button>
+                <button id="btnFinalConfirmDowngrade" class="btn-modal danger">Sì, Torna Studente</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAccountModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon warning" style="background: #ffebee; color: #d32f2f;">
+                <i class="fas fa-user-times"></i>
+            </div>
+            <h3 style="color: #d32f2f;">Elimina Account</h3>
+            <p>
+                Stai per eliminare definitivamente il tuo profilo. Questa azione è <strong>irreversibile</strong> e comporterà la perdita di tutti i tuoi dati e prenotazioni.
+            </p>
+            <div class="modal-actions">
+                <button id="btnCancelDelete" class="btn-modal secondary">Annulla</button>
+                <button id="btnConfirmDeleteAccount" class="btn-modal danger" style="background: #d32f2f;">Elimina Definitivamente</button>
+            </div>
+        </div>
+    </div>
 
     <div id="successModal" class="modal-overlay hidden">
         <div class="modal-card">

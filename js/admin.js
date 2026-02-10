@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadBookings(); 
     loadAllAppointments(); 
     loadCancelledLessons();
+    loadBanHistory(); // Carica lo storico dei ban
 
     // --- SETUP MODALI ---
     const editModal = document.getElementById('adminEditModal');
@@ -122,6 +123,7 @@ async function loadUsers() {
     tbody.innerHTML = '';
 
     users.forEach(u => {
+        const banBtn = u.role === 'tutor' ? `<button class="btn-action" style="background:#c62828; margin-left:5px;" onclick="openBanModal('${u.id}')" title="Banna Tutor"><i class="fas fa-ban"></i></button>` : '';
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
@@ -140,6 +142,7 @@ async function loadUsers() {
             <td>
                 <button class="btn-action btn-save" onclick="updateUserRole('${u.id}')" title="Salva Ruolo"><i class="fas fa-save"></i></button>
                 <button class="btn-action" style="background:#1565c0;" onclick="openUserProfile('${u.id}')" title="Modifica Dettagli"><i class="fas fa-user-edit"></i></button>
+                ${banBtn}
             </td>
         `;
         tbody.appendChild(row);
@@ -154,6 +157,25 @@ window.addAvailabilitySlot = () => {
 
     if(!start || !end) { alert("Inserisci orario inizio e fine"); return; }
     if(start >= end) { alert("L'ora di fine deve essere dopo l'inizio"); return; }
+
+    // VALIDAZIONE RIGOROSA (Come in diventa_tutor)
+    const getMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const startMin = getMinutes(start);
+    const endMin = getMinutes(end);
+    const diff = endMin - startMin;
+    const [sH, sM] = start.split(':').map(Number);
+    const [eH, eM] = end.split(':').map(Number);
+
+    if (sM % 15 !== 0 || eM % 15 !== 0) {
+        alert("Gli orari devono essere a quarti d'ora (00, 15, 30, 45)."); return;
+    }
+    if (startMin < 885 || endMin > 1080) { // 14:45 - 18:00
+        alert("Orario deve essere tra 14:45 e 18:00."); return;
+    }
+    // Blocchi validi (multipli di 30 min)
+    if (![60, 90, 120, 150, 180].includes(diff)) {
+        alert("Durata non valida (blocchi da 30 min richiesti)."); return;
+    }
 
     const container = document.getElementById('slotsContainer');
     
@@ -359,16 +381,47 @@ window.deleteRequest = async (reqId) => {
 async function loadBookings() {
     const tbody = document.querySelector('#bookingsTable tbody');
     tbody.innerHTML = '<tr><td colspan="4">...</td></tr>';
-    const { data: bookings } = await sb.from('room_bookings').select('*, profiles(email)').order('created_at', { ascending: false });
+    
+    // 1. Scarica le prenotazioni
+    const { data: bookings, error } = await sb.from('room_bookings').select('*').order('created_at', { ascending: false });
+    
+    if(error) { console.error(error); tbody.innerHTML = '<tr><td colspan="4">Errore caricamento.</td></tr>'; return; }
+    
     tbody.innerHTML = '';
-    if(!bookings || bookings.length===0) { tbody.innerHTML = '<tr><td colspan="4">Nessuna.</td></tr>'; return;}
+    if(!bookings || bookings.length===0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Nessuna aula prenotata.</td></tr>'; return;}
+
+    // 2. Scarica le email degli utenti coinvolti
+    const userIds = [...new Set(bookings.map(b => b.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id, email').in('id', userIds);
+    const emailMap = {};
+    if(profiles) profiles.forEach(p => emailMap[p.id] = p.email);
+
     bookings.forEach(b => {
-        const email = b.profiles ? b.profiles.email : 'Sconosciuto';
+        const email = emailMap[b.user_id] || 'Utente sconosciuto';
         const row = document.createElement('tr');
         row.innerHTML = `<td><strong>${b.room_name}</strong></td><td>${b.day_label} <br> ${b.time_slot}</td><td>${email}</td><td><button class="btn-action btn-delete" onclick="deleteBooking('${b.id}')">Cancella</button></td>`;
         tbody.appendChild(row);
     });
 }
+
+// --- GESTIONE TABS ---
+window.openTab = (evt, tabName) => {
+    // Nascondi tutti i contenuti
+    const tabContents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].style.display = "none";
+        tabContents[i].classList.remove("active");
+    }
+    // Rimuovi active dai bottoni
+    const tabLinks = document.getElementsByClassName("tab-btn");
+    for (let i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+    }
+    // Mostra tab corrente
+    document.getElementById("tab-" + tabName).style.display = "block";
+    setTimeout(() => document.getElementById("tab-" + tabName).classList.add("active"), 10);
+    evt.currentTarget.className += " active";
+};
 
 window.deleteBooking = async (bookingId) => {
     if(!confirm("Cancellare?")) return;
@@ -502,3 +555,87 @@ window.viewRequestDetails = (id, type) => {
     
     modal.classList.remove('hidden');
 };
+
+// --- BANNA TUTOR ---
+window.openBanModal = (id) => {
+    selectedId = id;
+    // Crea il modale dinamicamente se non esiste
+    if(!document.getElementById('adminBanModal')) {
+        const m = document.createElement('div');
+        m.id = 'adminBanModal';
+        m.className = 'modal-overlay hidden';
+        m.innerHTML = `
+            <div class="modal-card">
+                <div class="modal-icon warning" style="background:#FFEBEE; color:#c62828;"><i class="fas fa-ban"></i></div>
+                <h3 style="color:#c62828;">Banna Tutor</h3>
+                <p>Il tutor verrà degradato a Studente. Inserisci il motivo:</p>
+                <textarea id="banReason" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;" placeholder="Motivo del ban..."></textarea>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" onclick="document.getElementById('adminBanModal').classList.add('hidden')">Annulla</button>
+                    <button class="btn-modal danger" onclick="confirmBan()">Conferma Ban</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(m);
+    }
+    document.getElementById('banReason').value = '';
+    document.getElementById('adminBanModal').classList.remove('hidden');
+};
+
+window.confirmBan = async () => {
+    const reason = document.getElementById('banReason').value;
+    if(!reason) { alert("Inserisci un motivo."); return; }
+    
+    // 1. Aggiorna ruolo a Studente
+    const { error: roleErr } = await sb.from('profiles').update({ role: 'studente' }).eq('id', selectedId);
+    if(roleErr) { alert("Errore aggiornamento ruolo: " + roleErr.message); return; }
+    
+    // 2. Salva il log del ban per la notifica
+    const { error: logErr } = await sb.from('banned_tutors_log').insert([{ user_id: selectedId, reason: reason }]);
+    if(logErr) console.error("Errore log ban:", logErr);
+    
+    document.getElementById('adminBanModal').classList.add('hidden');
+    alert("Tutor bannato con successo.");
+    loadUsers();
+    loadBanHistory(); // Aggiorna la lista
+};
+
+// --- STORICO BAN ---
+async function loadBanHistory() {
+    const tbody = document.querySelector('#banHistoryTable tbody');
+    if(!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="4">Caricamento...</td></tr>';
+    
+    // 1. Scarica i log (senza join per evitare errori FK)
+    const { data: logs, error } = await sb
+        .from('banned_tutors_log')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if(error) { console.error("Errore ban history:", error); tbody.innerHTML = '<tr><td colspan="4">Errore caricamento.</td></tr>'; return; }
+
+    tbody.innerHTML = '';
+    if(!logs || logs.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Nessun ban registrato.</td></tr>'; return; }
+
+    // 2. Recupera i profili manualmente usando gli ID trovati
+    const userIds = logs.map(l => l.user_id);
+    const { data: profiles } = await sb.from('profiles').select('id, email, full_name').in('id', userIds);
+    
+    const profileMap = {};
+    if(profiles) profiles.forEach(p => profileMap[p.id] = p);
+
+    logs.forEach(log => {
+        const date = new Date(log.created_at).toLocaleDateString() + ' ' + new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const profile = profileMap[log.user_id] || {};
+        const email = profile.email || 'Utente non trovato';
+        const name = profile.full_name || 'N/A';
+        
+        const status = log.seen ? '<span style="color:#2e7d32; font-weight:bold; background:#e8f5e9; padding:2px 6px; border-radius:4px;">Visto</span>' : '<span style="color:#e65100; font-weight:bold; background:#fff3e0; padding:2px 6px; border-radius:4px;">Non letto</span>';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><small>${date}</small></td><td><strong>${name}</strong><br><small>${email}</small></td><td>${log.reason}</td><td>${status}</td>`;
+        tbody.appendChild(row);
+    });
+}

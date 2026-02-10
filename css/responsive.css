@@ -1,0 +1,354 @@
+/* ==========================================================================
+   MOBILE OPTIMIZATION - "PERFECT MOBILE"
+   Target: Smartphones (< 768px)
+   Strategy: 2-Column Grids where possible to reduce scroll length
+   ========================================================================== */
+
+@media screen and (max-width: 768px) {
+
+    /* --- 1. TYPOGRAPHY & SPACING --- */
+    html {
+        font-size: 14px; /* Slightly smaller base font */
+    }
+
+    h1 { font-size: 1.8rem !important; line-height: 1.2 !important; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.2rem !important; }
+    p { font-size: 0.95rem !important; line-height: 1.5 !important; }
+
+    /* Reduce massive paddings */
+    section, 
+    .agenda-wrapper, 
+    .dashboard-wrapper, 
+    .application-wrapper,
+    .hero,
+    .stats-dashboard,
+    .courses-info-section,
+    .group-courses-section,
+    .become-tutor-section {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+        padding-top: 60px !important;
+        padding-bottom: 40px !important;
+    }
+
+    /* --- 2. HEADER & NAVIGATION --- */
+    header {
+        padding: 10px 20px !important;
+        background: rgba(255, 255, 255, 0.98) !important; /* Solid white for readability */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        height: 60px;
+    }
+
+    .logo span {
+        font-size: 1.1rem;
+        color: #333 !important; /* Force dark text */
+    }
+
+    .logo-icon {
+        font-size: 1.3rem;
+    }
+
+    .menu-toggle {
+        color: #333 !important;
+        font-size: 1.5rem;
+        display: block !important;
+    }
+
+    /* Ensure sidebar is correct */
+    .nav-links {
+        width: 80% !important;
+        max-width: 300px;
+        padding-top: 80px;
+        background: white !important;
+    }
+
+    /* --- 3. HOME PAGE (index.html) --- */
+    
+    /* Hero */
+    .hero {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        min-height: auto !important;
+        padding-top: 100px !important;
+    }
+    
+    .hero-content { margin-bottom: 30px; }
+    .hero-btns { justify-content: center; }
+    
+    .hero-visual {
+        width: 100%;
+        height: 250px;
+        transform: scale(0.9);
+        margin-top: -20px;
+    }
+
+    /* Search Bar */
+    .search-wrapper { margin: 0 15px; }
+    .search-box {
+        flex-direction: column;
+        padding: 10px;
+        border-radius: 15px;
+    }
+    .divider { display: none; }
+    .search-btn { width: 100%; margin-top: 10px; padding: 12px; }
+
+    /* FEATURES GRID - FORCE 2 COLUMNS */
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+
+    .feature-card {
+        padding: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .card-icon-bg {
+        width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;
+    }
+    
+    .feature-card h3 { font-size: 1rem !important; margin-bottom: 5px; }
+    .feature-card p { 
+        font-size: 0.8rem !important; 
+        margin-bottom: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Limit text lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* STATS - FORCE 2 COLUMNS */
+    .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    /* Make the 3rd item span full width to look good */
+    .stat-box-modern:last-child {
+        grid-column: span 2;
+    }
+    
+    .stat-box-modern { padding: 15px !important; }
+    .stat-icon-wrapper { width: 50px; height: 50px; font-size: 1.3rem; margin-bottom: 10px; }
+    .stat-data h3 { font-size: 2rem !important; }
+
+    /* INFO GRID - FORCE 2 COLUMNS */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .info-card { padding: 15px !important; }
+    .card-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .icon-circle { width: 40px; height: 40px; font-size: 1.1rem; }
+    .card-header h4 { font-size: 0.95rem !important; }
+    .info-card p { font-size: 0.8rem !important; line-height: 1.3 !important; }
+
+    /* --- 4. PRENOTA (prenota.html) --- */
+    
+    .split-layout {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+
+    /* Keep Inputs 2 Columns */
+    .row-group {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+
+    .card-box { padding: 20px !important; }
+
+    /* Lesson List Items */
+    .lesson-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+    
+    .lesson-actions {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+        border-left: none;
+        border-top: 1px solid #eee;
+        padding-left: 0;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    .btn-mini { flex: 1; margin: 0 5px; }
+
+    /* --- 5. DIVENTA TUTOR (diventa_tutor.html) --- */
+    
+    /* Keep Email/Phone 2 Columns */
+    .form-row-split {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .modern-form { padding: 0 15px 20px !important; }
+    .form-header { padding: 20px !important; }
+    
+    /* Availability Slots */
+    #slotsContainer .avail-chip {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+
+    /* --- 6. APPUNTAMENTI (appuntamenti.html) --- */
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+
+    /* Notice Cards - 2 Columns */
+    .copy-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .copy-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .card-icon { margin-bottom: 5px; }
+    .btn-copy { width: 100%; background: #f9f9f9; margin-top: 5px; }
+
+    /* Calendar Lessons - 2 Columns (Compact Mode) */
+    #appointmentsList {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .day-header {
+        grid-column: span 2; /* Date header spans full width */
+        margin-bottom: 5px !important;
+        margin-top: 15px !important;
+    }
+
+    .lesson-card {
+        flex-direction: column;
+        padding: 10px !important;
+        border-left-width: 3px !important;
+    }
+    
+    /* Hide internal flex structure to stack it */
+    .lesson-card > div {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .lesson-card h4 { font-size: 0.85rem !important; margin-bottom: 3px; }
+    .lesson-card p { font-size: 0.75rem !important; margin: 0 !important; }
+    
+    /* Adjust the right side (time/status) */
+    .lesson-card > div > div:last-child {
+        margin-left: 0 !important;
+        margin-top: 8px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #eee;
+        padding-top: 5px;
+    }
+    
+    .lesson-card .btn-mini {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* --- 7. PROGETTO (progetto.html) --- */
+    
+    .timeline-section::after {
+        left: 20px !important;
+    }
+    
+    .timeline-item {
+        width: 100% !important;
+        padding-left: 50px !important;
+        padding-right: 0 !important;
+        left: 0 !important;
+        margin-bottom: 20px !important;
+    }
+    
+    /* Reset alternating sides */
+    .right { left: 0 !important; }
+    
+    /* Dots */
+    .timeline-item::after {
+        left: 10px !important;
+        right: auto !important;
+        transform: none !important;
+    }
+    
+    .timeline-content {
+        padding: 15px !important;
+    }
+    
+    .dual-story {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .story-separator { display: none; }
+
+    /* --- 8. FOOTER --- */
+    .footer-grid {
+        grid-template-columns: 1fr 1fr !important; /* 2 Colonne per risparmiare altezza */
+        text-align: left !important;
+        gap: 20px !important;
+        padding-bottom: 20px;
+    }
+    
+    /* Brand occupa tutta la larghezza in alto */
+    .footer-col.brand-col {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 20px;
+    }
+
+    .footer-col h4::after {
+        left: 0 !important;
+        transform: none !important;
+    }
+    
+    .contact-link { margin: 0; width: 100%; padding: 8px !important; }
+    .contact-link .icon-box { width: 30px; height: 30px; font-size: 0.9rem; }
+    .contact-link span { font-size: 0.75rem; }
+    
+    .social-area { align-items: flex-start !important; margin-top: 10px; }
+    
+    .footer-bottom {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+
+/* --- EXTRA SMALL DEVICES (iPhone SE, Fold) --- */
+@media screen and (max-width: 360px) {
+    /* Revert to 1 column if screen is too narrow for 2 columns */
+    .grid-container, 
+    .stats-row, 
+    .info-grid, 
+    .copy-grid, 
+    #appointmentsList,
+    .row-group,
+    .form-row-split {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .stat-box-modern:last-child { grid-column: auto; }
+}

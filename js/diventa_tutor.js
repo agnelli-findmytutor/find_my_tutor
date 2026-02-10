@@ -164,6 +164,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const endMin = getMinutes(end);
             const diff = endMin - startMin;
 
+            // NUOVO: Validazione Step 15 minuti (00, 15, 30, 45)
+            const [sH, sM] = start.split(':').map(Number);
+            const [eH, eM] = end.split(':').map(Number);
+            if (sM % 15 !== 0 || eM % 15 !== 0) {
+                showAlert("Orario non allineato", "Gli orari devono essere a quarti d'ora (00, 15, 30, 45).");
+                return;
+            }
+
             // 14:45 = 885 min, 18:00 = 1080 min
             if (startMin < 885 || endMin > 1080) {
                 showAlert("Orario non consentito", "L'orario deve essere compreso tra le 14:45 e le 18:00.");

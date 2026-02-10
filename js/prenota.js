@@ -14,7 +14,15 @@ const DAY_MAP = {
 let allTutors = []; 
 let currentLessons = []; 
 let idToModify = null; // ID della lezione selezionata
+let tutorIdToRate = null; // ID del tutor da recensire
 let currentTutorAvailability = []; 
+let isGroupMode = false;
+let allStudents = [];
+let selectedStudents = [];
+
+// --- HELPER TIME FUNCTIONS ---
+const timeToMin = (t) => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const minToTime = (m) => { const h = Math.floor(m/60); const mn = m%60; return `${h.toString().padStart(2,'0')}:${mn.toString().padStart(2,'0')}`; };
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -37,6 +45,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deleteModal = document.getElementById('deleteModal');
     const successModal = document.getElementById('successModal');
     const warningModal = document.getElementById('warningModal');
+
+    // --- LOGICA GRUPPO ---
+    const btnToggleGroup = document.getElementById('btnToggleGroup');
+    const groupSection = document.getElementById('groupSection');
+    const bookingCard = document.querySelector('.booking-card');
+    const searchInput = document.getElementById('searchStudent');
+    const resultsDiv = document.getElementById('studentResults');
+    const chipsContainer = document.getElementById('selectedStudents');
+
+    btnToggleGroup.onclick = async () => {
+        isGroupMode = !isGroupMode;
+        btnToggleGroup.classList.toggle('active');
+        groupSection.classList.toggle('hidden');
+        bookingCard.classList.toggle('group-mode');
+        
+        if(isGroupMode && allStudents.length === 0) {
+            const { data } = await sbClient.from('profiles').select('id, full_name, email');
+            allStudents = data.filter(s => s.id !== user.id); // Escludi se stessi
+        }
+    };
+
+    searchInput.oninput = () => {
+        const val = searchInput.value.toLowerCase();
+        if(val.length < 2) { resultsDiv.classList.add('hidden'); return; }
+        
+        const filtered = allStudents.filter(s => 
+            (s.full_name?.toLowerCase().includes(val) || s.email.toLowerCase().includes(val)) &&
+            !selectedStudents.find(sel => sel.id === s.id)
+        ).slice(0, 5);
+
+        if(filtered.length > 0) {
+            resultsDiv.innerHTML = filtered.map(s => `
+                <div class="search-item" onclick="addStudentToGroup('${s.id}', '${s.full_name || s.email}')">
+                    ${s.full_name || 'Studente'} <br><small>${s.email}</small>
+                </div>
+            `).join('');
+            resultsDiv.classList.remove('hidden');
+        } else {
+            resultsDiv.classList.add('hidden');
+        }
+    };
+
+    window.addStudentToGroup = (id, name) => {
+        if(selectedStudents.length >= 5) { alert("Massimo 5 compagni aggiuntivi."); return; }
+        selectedStudents.push({ id, name });
+        renderChips();
+        searchInput.value = '';
+        resultsDiv.classList.add('hidden');
+    };
+
+    window.removeStudent = (id) => {
+        selectedStudents = selectedStudents.filter(s => s.id !== id);
+        renderChips();
+    };
+
+    function renderChips() {
+        chipsContainer.innerHTML = selectedStudents.map(s => `
+            <div class="student-chip">
+                ${s.name} <i class="fas fa-times" onclick="removeStudent('${s.id}')"></i>
+            </div>
+        `).join('');
+    }
 
     // --- 1. CHECK UTENTE ---
     const { data: { user } } = await sbClient.auth.getUser();
@@ -101,6 +171,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             openDeleteModal(id);
             return;
         }
+
+        // Cerca se è stato cliccato un bottone RECENSISCI
+        const btnRate = e.target.closest('.btn-action-rate');
+        if (btnRate) {
+            idToModify = btnRate.getAttribute('data-id');
+            tutorIdToRate = btnRate.getAttribute('data-tutor');
+            document.getElementById('ratingModal').classList.remove('hidden');
+        }
     });
 
     // --- LOGICA APERTURA MODALI ---
@@ -161,20 +239,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadTutors();
 
     async function fetchLessons() {
-        myLessonsList.innerHTML = '<p style="text-align:center">Caricamento...</p>';
+        const upcomingList = document.getElementById('myLessonsList');
+        const pastList = document.getElementById('pastLessonsList');
+        upcomingList.innerHTML = '<p style="text-align:center">Caricamento...</p>';
+        if(pastList) pastList.innerHTML = '';
+
         try {
+            // Calcola data limite (30 giorni fa)
+            const limitDate = new Date();
+            limitDate.setDate(limitDate.getDate() - 30);
+            const limitStr = limitDate.toISOString().split('T')[0];
+
+            // Recupera lezioni
             const { data } = await sbClient.from('appointments').select('*').eq('user_id', user.id).order('date', {ascending:true});
-            currentLessons = data || [];
-            myLessonsList.innerHTML = '';
             
-            if(currentLessons.length === 0) {
-                myLessonsList.innerHTML = '<div class="empty-state"><p>Nessuna lezione prenotata.</p></div>';
-                return;
-            }
+            // Recupera ID delle lezioni già recensite per questo utente
+            const { data: ratedData } = await sbClient.from('tutor_ratings').select('appointment_id');
+            const ratedIds = new Set(ratedData ? ratedData.map(r => r.appointment_id) : []);
+
+            // Filtra: Nascondi le cancellate più vecchie di 30 giorni
+            currentLessons = (data || []).filter(l => {
+                if (l.status === 'Cancellata' && l.date < limitStr) return false;
+                return true;
+            });
+
+            upcomingList.innerHTML = '';
+            if(pastList) pastList.innerHTML = '';
+
+            let hasUpcoming = false;
+            let hasPast = false;
 
             currentLessons.forEach(l => {
                 const d = new Date(l.date).toLocaleDateString('it-IT');
+                const today = new Date().toISOString().split('T')[0];
                 const isCancelled = l.status === 'Cancellata';
+                const isPast = !isCancelled && l.date < today;
                 
                 let roomInfo = '';
                 if (!isCancelled) {
@@ -190,23 +289,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                        </div>`
                     : '';
 
-                // NOTA: Qui usiamo classi "btn-action-edit" e attributi data-id invece di onclick
-                const buttonsDisplay = isCancelled 
-                    ? `<div style="text-align:right; font-size:0.8rem; color:#d32f2f; font-weight:bold; margin-top:10px;">Lezione Annullata</div>`
-                    : `<div class="lesson-actions">
+                // Logica Bottoni: Modifica/Annulla se futura, Recensisci se passata o conclusa
+                let buttonsDisplay = '';
+                let statusText = l.status;
+                let statusStyle = isCancelled ? 'background:#d32f2f; color:white;' : 'background:#e8f5e9; color:green;';
+
+                if (isCancelled) {
+                    buttonsDisplay = `<div style="text-align:right; font-size:0.8rem; color:#d32f2f; font-weight:bold; margin-top:10px;">Lezione Annullata</div>`;
+                } else if (isPast) {
+                    statusText = "Conclusa";
+                    statusStyle = "background:#f5f5f5; color:#666;";
+                    const alreadyRated = ratedIds.has(l.id);
+                    buttonsDisplay = alreadyRated 
+                        ? `<div style="text-align:right; color:#2e7d32; font-size:0.8rem; font-weight:bold; margin-top:10px;"><i class="fas fa-check-circle"></i> Recensita</div>`
+                        : `<div class="lesson-actions"><button class="btn-mini btn-action-rate" style="background:#fff8e1; color:#ffa000; width:120px;" data-id="${l.id}" data-tutor="${l.tutor_id}"><i class="fas fa-star"></i> Recensisci</button></div>`;
+                } else {
+                    buttonsDisplay = `<div class="lesson-actions">
                         <button class="btn-mini edit btn-action-edit" data-id="${l.id}"><i class="fas fa-pen"></i> Modifica</button>
                         <button class="btn-mini delete btn-action-delete" data-id="${l.id}"><i class="fas fa-trash"></i> Annulla</button>
-                       </div>`;
+                    </div>`;
+                }
 
                 const item = document.createElement('div');
                 item.className = 'lesson-item';
                 if(isCancelled) item.style.cssText = "border-left: 4px solid #d32f2f; background: #fff5f5;";
+                if(isPast) item.style.cssText = "border-left: 4px solid #999; background: #fafafa; opacity: 0.8;";
 
                 item.innerHTML = `
                     <div style="flex:1">
                         <div class="lesson-header">
-                            <h4 style="${isCancelled ? 'text-decoration:line-through; color:#999;' : ''}">${l.subject}</h4>
-                            <span class="status-badge" style="${isCancelled ? 'background:#d32f2f; color:white;' : 'background:#e8f5e9; color:green;'}">${l.status}</span>
+                            <h4 style="${(isCancelled || isPast) ? 'color:#999;' : ''} ${isCancelled ? 'text-decoration:line-through;' : ''}">${l.subject}</h4>
+                            <span class="status-badge" style="${statusStyle}">${statusText}</span>
                         </div>
                         <div class="lesson-detail"><i class="fas fa-user-graduate"></i> ${l.tutor_name_cache || 'Tutor'}</div>
                         <div class="lesson-detail"><i class="far fa-calendar"></i> ${d} - ${l.time_slot}</div>
@@ -218,8 +331,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     ${buttonsDisplay}
                 `;
-                myLessonsList.appendChild(item);
+                
+                if (isPast) {
+                    pastList.appendChild(item);
+                    hasPast = true;
+                } else {
+                    upcomingList.appendChild(item);
+                    hasUpcoming = true;
+                }
             });
+
+            if(!hasUpcoming) {
+                upcomingList.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>Nessuna lezione in programma.</p></div>';
+            }
+            if(!hasPast && pastList) {
+                pastList.innerHTML = '<p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>';
+            }
+
         } catch(e) { console.error(e); }
     }
 
@@ -258,13 +386,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', async () => {
             if(idToModify) {
-                await sbClient.from('appointments').delete().eq('id', idToModify);
+                // MODIFICA: Invece di delete(), facciamo update() per mantenerla nello storico
+                await sbClient.from('appointments').update({ 
+                    status: 'Cancellata', 
+                    cancellation_reason: 'Cancellata dallo studente' 
+                }).eq('id', idToModify);
+                
                 closeModal(deleteModal);
                 fetchLessons();
-                showSuccess("Cancellata", "Lezione eliminata.");
+                showSuccess("Cancellata", "La lezione è stata annullata.");
             }
         });
     }
+
+    // --- GESTIONE INVIO RECENSIONE ---
+    document.getElementById('btnCancelRating').onclick = () => document.getElementById('ratingModal').classList.add('hidden');
+    
+    document.getElementById('btnSubmitRating').onclick = async () => {
+        const selectedStar = document.querySelector('input[name="stars"]:checked');
+        if(!selectedStar) { alert("Seleziona un numero di stelle!"); return; }
+        
+        const ratingValue = parseInt(selectedStar.value);
+        const btn = document.getElementById('btnSubmitRating');
+        btn.disabled = true;
+        btn.innerText = "Invio...";
+
+        try {
+            const { error } = await sbClient.from('tutor_ratings').insert([{
+                tutor_id: tutorIdToRate,
+                appointment_id: idToModify,
+                rating: ratingValue
+            }]);
+            if(error) throw error;
+            document.getElementById('ratingModal').classList.add('hidden');
+            showSuccess("Grazie!", "La tua recensione anonima è stata salvata.");
+            fetchLessons();
+        } catch(e) { alert("Errore: " + e.message); }
+        finally { btn.disabled = false; btn.innerText = "Invia Voto"; }
+    };
 
     // Chiusura Modali
     const btnCancelEdit = document.getElementById('btnCancelEdit');
@@ -344,30 +503,124 @@ document.addEventListener('DOMContentLoaded', async () => {
         dateInput.min = new Date().toISOString().split('T')[0];
     });
 
-    dateInput.addEventListener('change', () => {
-        const selectedDate = new Date(dateInput.value);
-        const dayOfWeek = selectedDate.getDay();
-        const validSlots = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
+    dateInput.addEventListener('change', async () => {
+        const dateVal = dateInput.value;
+        if(!dateVal) return;
 
-        if (validSlots.length > 0) {
-            dateError.style.display = 'none';
-            timeSelect.disabled = false;
-            timeSelect.style.opacity = "1";
-            timeSelect.style.cursor = "pointer";
-            timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
-            validSlots.forEach(slot => {
-                const opt = document.createElement('option');
-                opt.value = slot.range;
-                opt.textContent = slot.range;
-                timeSelect.appendChild(opt);
-            });
-            timeSelect.style.backgroundColor = "#e8f5e9";
-        } else {
+        const selectedDate = new Date(dateVal);
+        const dayOfWeek = selectedDate.getDay();
+        
+        // 1. Trova i range di disponibilità per questo giorno
+        const validRanges = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
+
+        if (validRanges.length === 0) {
             dateError.style.display = 'block';
             timeSelect.innerHTML = '<option value="">-- Data non valida --</option>';
             timeSelect.disabled = true;
             timeSelect.style.backgroundColor = "#ffebee";
-            timeSelect.value = "";
+            return;
+        }
+        
+        dateError.style.display = 'none';
+        timeSelect.innerHTML = '<option value="">Caricamento...</option>';
+        timeSelect.disabled = true;
+
+        // 2. Recupera lezioni esistenti del tutor per quel giorno (per calcolare i buchi)
+        const tutorId = selectTutor.value;
+        const { data: existingApps, error } = await sbClient
+            .from('appointments')
+            .select('time_slot, duration')
+            .eq('tutor_id', tutorId)
+            .eq('date', dateVal)
+            .neq('status', 'Cancellata');
+            
+        if(error) { console.error(error); return; }
+
+        // 3. Mappa Occupazione (Mattoncini da 30 min)
+        const occupiedSet = new Set();
+        existingApps.forEach(app => {
+            const start = timeToMin(app.time_slot);
+            const dur = parseInt(app.duration); 
+            // Occupa i blocchi
+            for(let i=0; i < dur; i+=30) {
+                occupiedSet.add(start + i);
+            }
+        });
+
+        // 4. Calcola Slot Disponibili (Logica Mattoncini)
+        const availableOptions = [];
+        
+        validRanges.forEach(slot => {
+            const [sStr, eStr] = slot.range.split('-');
+            const startRange = timeToMin(sStr.trim());
+            const endRange = timeToMin(eStr.trim());
+
+            // Itera ogni 30 min partendo dall'inizio del turno del tutor
+            for(let t = startRange; t < endRange; t += 30) {
+                // Un orario è prenotabile se ALMENO 60 min (2 blocchi) sono liberi
+                // Blocco 1: t (Start)
+                // Blocco 2: t+30
+                
+                // Verifica disponibilità blocchi e limiti range
+                if (!occupiedSet.has(t) && !occupiedSet.has(t+30) && (t + 60 <= endRange)) {
+                    
+                    // Calcola se è disponibile anche per 90 min (3 blocchi)
+                    let maxDur = 60;
+                    if (!occupiedSet.has(t+60) && (t + 90 <= endRange)) {
+                        maxDur = 90;
+                    }
+                    
+                    availableOptions.push({
+                        time: minToTime(t),
+                        maxDur: maxDur
+                    });
+                }
+            }
+        });
+
+        // 5. Renderizza Select
+        timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
+        if(availableOptions.length > 0) {
+            // Ordina per orario
+            availableOptions.sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
+            
+            availableOptions.forEach(optData => {
+                const opt = document.createElement('option');
+                opt.value = optData.time;
+                opt.textContent = optData.time;
+                opt.setAttribute('data-max-duration', optData.maxDur);
+                timeSelect.appendChild(opt);
+            });
+            
+            timeSelect.disabled = false;
+            timeSelect.style.backgroundColor = "#e8f5e9";
+            timeSelect.style.opacity = "1";
+            timeSelect.style.cursor = "pointer";
+        } else {
+            timeSelect.innerHTML = '<option value="">Tutto occupato</option>';
+            timeSelect.style.backgroundColor = "#ffebee";
+        }
+    });
+
+    // LISTENER PER GESTIRE DURATA (Disabilita 90min se non c'è spazio)
+    timeSelect.addEventListener('change', () => {
+        const selectedOpt = timeSelect.options[timeSelect.selectedIndex];
+        if(!selectedOpt || !selectedOpt.value) return;
+
+        const maxDur = selectedOpt.getAttribute('data-max-duration');
+        
+        const radio90 = document.getElementById('d90');
+        const radio60 = document.getElementById('d60');
+        
+        if (maxDur === '60') {
+            radio90.disabled = true;
+            radio90.parentElement.style.opacity = "0.5";
+            radio90.parentElement.title = "Non disponibile per questo orario (spazio insufficiente)";
+            radio60.checked = true;
+        } else {
+            radio90.disabled = false;
+            radio90.parentElement.style.opacity = "1";
+            radio90.parentElement.title = "";
         }
     });
 
