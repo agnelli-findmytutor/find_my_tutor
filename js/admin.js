@@ -160,10 +160,13 @@ window.addAvailabilitySlot = () => {
     chip.style = "background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; padding:5px 10px; border-radius:15px; font-size:0.85rem; display:flex; align-items:center; gap:5px;";
     
     // Testo: Lunedì 14:00 - 16:00
-    chip.innerHTML = `
-        <span><b>${day}</b> ${start} - ${end}</span>
-        <i class="fas fa-times" onclick="this.parentElement.remove(); updateAvailString();" style="cursor:pointer; margin-left:5px; color:#c62828;"></i>
-    `;
+    chip.innerHTML = `<span><b>${day}</b> ${start} - ${end}</span>`;
+    
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-times';
+    icon.style = "cursor:pointer; margin-left:5px; color:#c62828;";
+    icon.onclick = () => { chip.remove(); updateAvailString(); };
+    chip.appendChild(icon);
     
     container.appendChild(chip);
     updateAvailString(); // Aggiorna input finale
@@ -212,7 +215,13 @@ window.openUserProfile = (id) => {
             const chip = document.createElement('div');
             chip.className = 'avail-chip';
             chip.style = "background:#e0e0e0; color:#333; border:1px solid #ccc; padding:5px 10px; border-radius:15px; font-size:0.85rem; display:flex; align-items:center; gap:5px;";
-            chip.innerHTML = `<span>${p.trim()}</span> <i class="fas fa-times" onclick="this.parentElement.remove(); updateAvailString();" style="cursor:pointer; margin-left:5px;"></i>`;
+            
+            chip.innerHTML = `<span>${p.trim()}</span>`;
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-times';
+            icon.style = "cursor:pointer; margin-left:5px;";
+            icon.onclick = () => { chip.remove(); updateAvailString(); };
+            chip.appendChild(icon);
             container.appendChild(chip);
         });
     }

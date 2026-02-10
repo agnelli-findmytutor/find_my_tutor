@@ -28,6 +28,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalMessage = document.getElementById('modalMessage');
     const btnModalClose = document.getElementById('btnModalClose');
 
+    // Modale Alert
+    const alertModal = document.getElementById('alertModal');
+    const alertModalTitle = document.getElementById('alertModalTitle');
+    const alertModalMessage = document.getElementById('alertModalMessage');
+    const btnAlertModalClose = document.getElementById('btnAlertModalClose');
+
+
     // --- ELEMENTI DISPONIBILITÀ (ORARI) ---
     const btnAddSlot = document.getElementById('btnAddSlot');
     const slotsContainer = document.getElementById('slotsContainer');
@@ -35,17 +42,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     let existingRequestId = null;
 
-    // --- FUNZIONE MODALE ---
+    // --- FUNZIONI MODALI ---
     function showModal(title, msg) {
         if(modalTitle) modalTitle.textContent = title;
         if(modalMessage) modalMessage.textContent = msg;
         if(modal) modal.classList.remove('hidden');
     }
 
+    function showAlert(title, msg) {
+        if(alertModalTitle) alertModalTitle.textContent = title;
+        if(alertModalMessage) alertModalMessage.textContent = msg;
+        if(alertModal) alertModal.classList.remove('hidden');
+    }
+
     if (btnModalClose) {
         btnModalClose.addEventListener('click', () => {
             if(modal) modal.classList.add('hidden');
             window.location.reload();
+        });
+    }
+
+    if (btnAlertModalClose) {
+        btnAlertModalClose.addEventListener('click', () => {
+            if(alertModal) alertModal.classList.add('hidden');
         });
     }
 
@@ -118,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (err) {
         console.error("Errore controllo richieste:", err);
+        showAlert("Errore di Caricamento", "Impossibile verificare lo stato della tua candidatura. Riprova più tardi.");
     }
 
     // --- 3. LOGICA DISPONIBILITÀ (IL CUORE DEL SISTEMA) ---
@@ -129,8 +149,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             const start = document.getElementById('tempStart').value;
             const end = document.getElementById('tempEnd').value;
 
-            if(!start || !end) { alert("Inserisci orario inizio e fine."); return; }
-            if(start >= end) { alert("L'ora di fine deve essere dopo l'inizio."); return; }
+            if(!start || !end) { 
+                showAlert("Campo Mancante", "Per favore, inserisci un orario di inizio e uno di fine."); 
+                return; 
+            }
+            if(start >= end) { 
+                showAlert("Orario non valido", "L'orario di fine deve essere successivo a quello di inizio."); 
+                return; 
+            }
+            
+            // Calcolo minuti per validazione precisa
+            const getMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+            const startMin = getMinutes(start);
+            const endMin = getMinutes(end);
+            const diff = endMin - startMin;
+
+            // 14:45 = 885 min, 18:00 = 1080 min
+            if (startMin < 885 || endMin > 1080) {
+                showAlert("Orario non consentito", "L'orario deve essere compreso tra le 14:45 e le 18:00.");
+                return;
+            }
+            // Blocchi consentiti: 60 (1h), 90 (1.5h), 120 (2h), 150 (2.5h), 180 (3h)
+            if (![60, 90, 120, 150, 180].includes(diff)) {
+                showAlert("Durata non valida", "La disponibilità deve essere a blocchi di 1h, 1h 30m, 2h, 2h 30m o 3h.");
+                return;
+            }
 
             // Crea testo: "Lunedì 14:00-16:00"
             const slotText = `${day} ${start}-${end}`;
@@ -210,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // CONTROLLO FONDAMENTALE: Verifica che ci siano orari
             const availValue = document.getElementById('availability').value;
             if(!availValue || availValue.trim() === "") {
-                alert("Per favore aggiungi almeno una disponibilità oraria col tasto viola +");
+                showAlert("Disponibilità Mancante", "Per favore, aggiungi almeno una fascia oraria disponibile usando il tasto +.");
                 return;
             }
 
@@ -227,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 showModal("Candidatura Inviata! 🚀", "Grazie per esserti proposto. Valuteremo la tua richiesta al più presto.");
             } catch (err) {
-                alert("Errore: " + err.message);
+                showAlert("Errore di Invio", "Si è verificato un problema durante l'invio. " + err.message);
                 setLoading(btnSubmitNew, false, 'Invia Candidatura <i class="fas fa-arrow-right"></i>');
             }
         });
@@ -241,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const availValue = document.getElementById('availability').value;
             if(!availValue || availValue.trim() === "") {
-                alert("Inserisci almeno una disponibilità.");
+                showAlert("Disponibilità Mancante", "Per favore, inserisci almeno una fascia oraria.");
                 return;
             }
 
@@ -251,7 +294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 showModal("Informazioni Aggiornate", "I dati sono stati modificati con successo.");
             } catch (err) {
-                alert("Errore: " + err.message);
+                showAlert("Errore di Aggiornamento", "Si è verificato un problema. " + err.message);
                 setLoading(btnUpdate, false, '<i class="fas fa-sync-alt"></i> Aggiorna');
             }
         });
@@ -269,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 showModal("Candidatura Ritirata", "La tua richiesta è stata cancellata.");
             } catch (err) {
-                alert("Errore: " + err.message);
+                showAlert("Errore", "Impossibile ritirare la candidatura. " + err.message);
                 setLoading(btnWithdraw, false, '<i class="fas fa-trash-alt"></i> Ritira');
             }
         });
@@ -285,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 window.location.reload(); 
             } catch (err) {
-                alert("Errore: " + err.message);
+                showAlert("Errore", "Si è verificato un problema. " + err.message);
                 btnTryAgain.innerHTML = '<i class="fas fa-redo"></i> Riprova e Invia Nuova Candidatura';
                 btnTryAgain.disabled = false;
             }

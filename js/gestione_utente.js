@@ -27,59 +27,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         return linkHtmlString;
     };
 
-    // 1. RECUPERA UTENTE
-    const { data: { user } } = await sbClient.auth.getUser();
-
-    if (user) {
-        console.log("Utente loggato:", user.email);
+    // FUNZIONE UI: Aggiorna Header e Menu (Riutilizzabile)
+    const updateInterface = (userRole, avatarUrl) => {
         
-        let userRole = 'studente';
-        try {
-            const { data: profile } = await sbClient.from('profiles').select('role').eq('id', user.id).single();
-            if (profile && profile.role) userRole = profile.role;
-        } catch (e) { /* fallback */ }
-
-        const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
-
-        // --- A. GESTIONE HEADER ---
+        // --- A. GESTIONE HEADER (Profilo vs Accedi) ---
+        // Cerchiamo il bottone login O il profilo già esistente (se la funzione viene richiamata)
         const loginBtn = document.getElementById('loginBtn') || document.querySelector('.header-actions .cta-btn');
+        const existingProfile = document.querySelector('.user-profile-header');
 
-        if (loginBtn) {
-            let dashboardLink = "dashboard.html"; 
-            let badgeHtml = `<span class="badge-student">Studente</span>`;
-            
-            if (userRole === 'tutor') {
-                badgeHtml = `<span class="badge-tutor">Studente Tutor</span>`;
-            } else if (userRole === 'admin') {
-                badgeHtml = `<span class="badge-admin" style="background:#f3e5f5; color:#4a148c; border:1px solid #e1bee7; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.7rem;">ADMIN</span>`;
-            }
+        // Definiamo il badge in base al ruolo
+        let badgeHtml = `<span class="badge-student">Studente</span>`;
+        if (userRole === 'tutor') {
+            badgeHtml = `<span class="badge-tutor">Studente Tutor</span>`;
+        } else if (userRole === 'admin') {
+            badgeHtml = `<span class="badge-admin" style="background:#f3e5f5; color:#4a148c; border:1px solid #e1bee7; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.7rem;">ADMIN</span>`;
+        }
 
+        // Se c'è ancora il bottone "Accedi", lo sostituiamo con il profilo
+        if (loginBtn && !existingProfile) {
             loginBtn.outerHTML = `
                 <div class="user-profile-header">
                     ${badgeHtml}
-                    <a href="${dashboardLink}" class="profile-link">
+                    <a href="dashboard.html" class="profile-link">
                         <img src="${avatarUrl}" alt="Profilo" class="profile-pic-header">
                     </a>
                 </div>
             `;
+        } 
+        // Se il profilo esiste già (es. aggiornamento da cache a rete), aggiorniamo solo i dati se necessario
+        else if (existingProfile) {
+            const currentBadge = existingProfile.querySelector('span');
+            if(currentBadge) currentBadge.outerHTML = badgeHtml;
+            const currentImg = existingProfile.querySelector('img');
+            if(currentImg) currentImg.src = avatarUrl;
         }
 
         // --- B. GESTIONE MENU ---
         const navLinks = document.querySelector('.nav-links');
-
         if (navLinks) {
-            
             // 1. Link "Prenota Lezione" (CORRETTO: Rimosso style inline)
             if (!document.querySelector('.link-prenota')) {
                 const liPrenota = document.createElement('li');
-                // Ho tolto style="..." così eredita lo stile standard del CSS
                 let linkHTML = '<a href="prenota.html" class="link-prenota">Agenda Studente</a>';
                 liPrenota.innerHTML = checkActive(linkHTML);
                 
                 const refElement = navLinks.children[2]; 
                 navLinks.insertBefore(liPrenota, refElement || null);
             }
-
+            
             // 2. Link "Agenda Tutor"
             if ((userRole === 'tutor' || userRole === 'admin') && !document.querySelector('.link-agenda')) {
                 const liAgenda = document.createElement('li');
@@ -108,6 +103,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                     navLinks.appendChild(liAdmin);
                 }
             }
+        }
+    };
+
+    // --- 1. CONTROLLO VELOCE (CACHE LOCALE) ---
+    // Questo elimina il "flicker" mostrando l'interfaccia loggata immediatamente
+    const cachedRole = localStorage.getItem('fmt_role');
+    const cachedAvatar = localStorage.getItem('fmt_avatar');
+
+    if (cachedRole) {
+        updateInterface(cachedRole, cachedAvatar || 'https://via.placeholder.com/150');
+    }
+
+    // --- 2. CONTROLLO REALE (SUPABASE NETWORK) ---
+    // Verifica che il token sia ancora valido e aggiorna i dati se cambiati
+    const { data: { user } } = await sbClient.auth.getUser();
+
+    if (user) {
+        console.log("Utente loggato (Network):", user.email);
+        
+        let userRole = 'studente';
+        try {
+            const { data: profile } = await sbClient.from('profiles').select('role').eq('id', user.id).single();
+            if (profile && profile.role) userRole = profile.role;
+        } catch (e) { /* fallback */ }
+
+        const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
+
+        // Aggiorniamo la cache per la prossima volta
+        localStorage.setItem('fmt_role', userRole);
+        localStorage.setItem('fmt_avatar', avatarUrl);
+
+        // Aggiorniamo l'interfaccia (nel caso la cache fosse vecchia o vuota)
+        updateInterface(userRole, avatarUrl);
+
+    } else {
+        // Se Supabase dice che non siamo loggati, ma avevamo mostrato l'interfaccia (cache), dobbiamo pulire
+        if (cachedRole) {
+            localStorage.removeItem('fmt_role');
+            localStorage.removeItem('fmt_avatar');
+            window.location.reload(); // Ricarica per mostrare lo stato pulito "Accedi"
         }
     }
 });

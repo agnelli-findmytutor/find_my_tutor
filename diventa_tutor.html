@@ -21,22 +21,23 @@
         <div class="blob blob-2"></div>
     </div>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-            <span>FindMyTutor</span>
-        </div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="progetto.html">Il nostro progetto</a></li>
-            </ul>
-        </nav>
-        <div class="header-actions">
-            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
-            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-        </div>
-    </header>
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span>FindMyTutor</span>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="progetto.html">Il nostro progetto</a></li>
+            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+        </ul>
+    </nav>
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+    </div>
+</header>
 
     <main class="application-wrapper fade-wrapper">
         
@@ -152,6 +153,8 @@
     
     <div style="background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
         
+        <small class="form-hint" style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 10px; text-align: center;">Seleziona fasce orarie dal <b>Lunedì al Venerdì</b>, tra le <b>14:45 e le 18:00</b>.</small>
+
         <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
             
             <div style="flex: 2;">
@@ -162,18 +165,17 @@
                     <option value="Mercoledì">Mercoledì</option>
                     <option value="Giovedì">Giovedì</option>
                     <option value="Venerdì">Venerdì</option>
-                    <option value="Sabato">Sabato</option>
                 </select>
             </div>
 
             <div style="flex: 1;">
                 <span style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Inizio</span>
-                <input type="time" id="tempStart" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;">
+                <input type="time" id="tempStart" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;" min="14:45" max="18:00" required>
             </div>
 
             <div style="flex: 1;">
                 <span style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Fine</span>
-                <input type="time" id="tempEnd" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;">
+                <input type="time" id="tempEnd" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;" min="14:45" max="18:00" required>
             </div>
 
             <button type="button" id="btnAddSlot" style="
@@ -242,6 +244,19 @@
             </p>
             <button id="btnModalClose" class="btn-modal success-btn">
                 Ottimo, ho capito
+            </button>
+        </div>
+    </div>
+
+    <div id="alertModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon error">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 id="alertModalTitle">Attenzione</h3>
+            <p id="alertModalMessage">...</p>
+            <button id="btnAlertModalClose" class="btn-modal error-btn">
+                Ho capito
             </button>
         </div>
     </div>

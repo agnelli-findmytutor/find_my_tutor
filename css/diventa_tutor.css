@@ -517,3 +517,36 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
 }
+
+/* --- MODALE ERRORE --- */
+.modal-icon.error {
+    background: #FFEBEE; /* Rosso chiarissimo */
+    color: #D32F2F;      /* Rosso Agnelli */
+    font-size: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+    width: 70px;
+    height: 70px;
+}
+
+.btn-modal.error-btn {
+    width: 100%;
+    background: #D32F2F; /* Rosso Agnelli */
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-modal.error-btn:hover {
+    background: #B71C1C; /* Rosso scuro */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.2);
+}
