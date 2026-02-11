@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- ELEMENTI DOM ---
     const filterYear = document.getElementById('filterYear');
+    const filterSchoolType = document.getElementById('filterSchoolType');
     const filterSubject = document.getElementById('filterSubject');
     const selectTutor = document.getElementById('selectTutor');
     const bookingForm = document.getElementById('bookingForm');
@@ -106,6 +107,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ${s.name} <i class="fas fa-times" onclick="removeStudent('${s.id}')"></i>
             </div>
         `).join('');
+    }
+
+    // --- LOGICA MOSTRA/NASCONDI SEZIONI ---
+    const btnTogglePast = document.getElementById('btnTogglePast');
+    const pastList = document.getElementById('pastLessonsList');
+    if(btnTogglePast && pastList) {
+        btnTogglePast.onclick = () => {
+            const isHidden = pastList.classList.toggle('hidden');
+            btnTogglePast.innerHTML = isHidden ? '<i class="fas fa-eye"></i> Mostra' : '<i class="fas fa-eye-slash"></i> Nascondi';
+        };
+    }
+
+    const btnToggleCancelled = document.getElementById('btnToggleCancelled');
+    const cancelledList = document.getElementById('cancelledLessonsList');
+    if(btnToggleCancelled && cancelledList) {
+        btnToggleCancelled.onclick = () => {
+            const isHidden = cancelledList.classList.toggle('hidden');
+            btnToggleCancelled.innerHTML = isHidden ? '<i class="fas fa-eye"></i> Mostra' : '<i class="fas fa-eye-slash"></i> Nascondi';
+        };
     }
 
     // --- 1. CHECK UTENTE ---
@@ -241,8 +261,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchLessons() {
         const upcomingList = document.getElementById('myLessonsList');
         const pastList = document.getElementById('pastLessonsList');
+        const cancelledList = document.getElementById('cancelledLessonsList');
         upcomingList.innerHTML = '<p style="text-align:center">Caricamento...</p>';
         if(pastList) pastList.innerHTML = '';
+        if(cancelledList) cancelledList.innerHTML = '';
 
         try {
             // Calcola data limite (30 giorni fa)
@@ -265,9 +287,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             upcomingList.innerHTML = '';
             if(pastList) pastList.innerHTML = '';
+            if(cancelledList) cancelledList.innerHTML = '';
 
             let hasUpcoming = false;
             let hasPast = false;
+            let hasCancelled = false;
 
             currentLessons.forEach(l => {
                 const d = new Date(l.date).toLocaleDateString('it-IT');
@@ -332,8 +356,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${buttonsDisplay}
                 `;
                 
-                if (isPast) {
-                    pastList.appendChild(item);
+                if (isCancelled) {
+                    if (cancelledList) cancelledList.appendChild(item);
+                    hasCancelled = true;
+                } else if (isPast) {
+                    if (pastList) pastList.appendChild(item);
                     hasPast = true;
                 } else {
                     upcomingList.appendChild(item);
@@ -346,6 +373,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if(!hasPast && pastList) {
                 pastList.innerHTML = '<p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>';
+            }
+            if(!hasCancelled && cancelledList) {
+                cancelledList.innerHTML = '<p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione cancellata.</p>';
             }
 
         } catch(e) { console.error(e); }
@@ -441,19 +471,71 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 5. LOGICA PRENOTAZIONE (FILTRI E ORARI) ---
 
+    function updateSubjects() {
+        const y = filterYear.value;
+        const type = filterSchoolType.value;
+        filterSubject.innerHTML = '<option value="">Seleziona...</option>';
+        filterSubject.disabled = true;
+        selectTutor.innerHTML = '<option value="">Seleziona prima la materia...</option>';
+        selectTutor.disabled = true;
+        resetDateAndTime();
+
+        if (!y || !type) return;
+
+        const subjectSet = new Set();
+        allTutors.forEach(t => {
+            const classes = t.class_info ? t.class_info.split(' | ') : [];
+            const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
+            
+            classes.forEach((c, idx) => {
+                const lowC = c.toLowerCase();
+                const matchesYear = lowC.startsWith(y);
+                const matchesType = type === "Liceo" ? lowC.includes("liceo") : !lowC.includes("liceo");
+                
+                if (matchesYear && matchesType && subjectsList[idx]) {
+                    subjectsList[idx].split(',').forEach(s => {
+                        const cleanSub = s.trim();
+                        if (cleanSub) subjectSet.add(cleanSub);
+                    });
+                }
+            });
+        });
+
+        if (subjectSet.size > 0) {
+            filterSubject.disabled = false;
+            Array.from(subjectSet).sort().forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                filterSubject.appendChild(opt);
+            });
+        } else {
+            filterSubject.innerHTML = '<option value="">Nessuna materia disponibile</option>';
+        }
+    }
+
     function filterTutors() {
         const y = filterYear.value;
-        const s = filterSubject.value.toLowerCase().trim();
+        const s = filterSubject.value;
+        const type = filterSchoolType.value;
         selectTutor.innerHTML = '<option value="">Seleziona...</option>';
         selectTutor.disabled = true;
         resetDateAndTime();
 
-        if(!y || s.length < 2) return;
+        if(!y || !s || !type) return;
 
         const filtered = allTutors.filter(t => {
-            const c = t.class_info ? t.class_info.toString() : "";
-            const sub = t.subjects ? t.subjects.toLowerCase() : "";
-            return c.startsWith(y) && sub.includes(s);
+            const classes = t.class_info ? t.class_info.split(' | ') : [];
+            const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
+            
+            return classes.some((c, idx) => {
+                const lowC = c.toLowerCase();
+                const sub = subjectsList[idx] ? subjectsList[idx].toLowerCase() : "";
+                const matchesYear = lowC.startsWith(y);
+                const matchesType = type === "Liceo" ? lowC.includes("liceo") : !lowC.includes("liceo");
+                const matchesSubject = sub.includes(s.toLowerCase());
+                return matchesYear && matchesType && matchesSubject;
+            });
         });
 
         if(filtered.length > 0) {
@@ -461,8 +543,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t.id;
-                let name = t.full_name || "Tutor";
-                opt.textContent = `${name} (${t.class_info || 'ND'})`;
+                // Mostra il nome completo. Se manca, usa la prima parte dell'email come fallback.
+                opt.textContent = t.full_name || t.email.split('@')[0];
                 opt.setAttribute('data-avail', t.availability || ""); 
                 selectTutor.appendChild(opt);
             });
@@ -472,8 +554,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             selectTutor.appendChild(opt);
         }
     }
-    filterYear.addEventListener('change', filterTutors);
-    filterSubject.addEventListener('input', filterTutors);
+    filterYear.addEventListener('change', updateSubjects);
+    filterSchoolType.addEventListener('change', updateSubjects);
+    filterSubject.addEventListener('change', filterTutors);
 
     selectTutor.addEventListener('change', () => {
         resetDateAndTime();

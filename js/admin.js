@@ -343,6 +343,7 @@ window.processRequest = async (reqId, email, action) => {
                     .from('profiles')
                     .update({ 
                         role: 'tutor', // Diventa Tutor
+                        full_name: requestData.full_name, // Copia il nome nel profilo pubblico
                         class_info: requestData.class_info, // Copia Classe
                         subjects: requestData.subjects,     // Copia Materie
                         availability: requestData.availability // Copia ORARI (Fondamentale!)

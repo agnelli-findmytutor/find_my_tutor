@@ -39,21 +39,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnAddSlot = document.getElementById('btnAddSlot');
     const slotsContainer = document.getElementById('slotsContainer');
     const availHiddenInput = document.getElementById('availability'); // Input nascosto fondamentale
+
+    // --- ELEMENTI COMPETENZE (CLASSI E MATERIE) ---
+    const btnAddCompetency = document.getElementById('btnAddCompetency');
+    const competenciesContainer = document.getElementById('competenciesContainer');
+
+    const SUBJECTS_MAP = {
+        'ITT': {
+            'Informatica': ["Informatica", "Sistemi e Reti", "TPSIT", "Telecomunicazioni"],
+            'Meccanica': ["Meccanica", "Disegno", "Tecnologie Meccaniche"],
+            'Elettronica': ["Elettronica", "Elettrotecnica", "Sistemi Automatici"],
+            'Energia': ["Fisica Tecnica", "Impianti"],
+            'Generali': ["Matematica", "Fisica", "Inglese", "Italiano", "Storia", "Chimica", "Diritto"]
+        },
+        'Liceo': ["Matematica", "Fisica", "Latino", "Greco", "Filosofia", "Storia dell'Arte", "Scienze", "Inglese", "Italiano", "Storia"]
+    };
+
+    function renderSubjectList() {
+        const school = document.getElementById('tempSchool').value;
+        const container = document.getElementById('subjectCheckboxesGrid');
+        if(!container) return;
+        
+        container.innerHTML = '';
+        
+        if (school === 'ITT') {
+            container.style.gridTemplateColumns = "repeat(auto-fit, minmax(150px, 1fr))";
+            for (const [category, subjects] of Object.entries(SUBJECTS_MAP.ITT)) {
+                const col = document.createElement('div');
+                col.style = "display: flex; flex-direction: column; gap: 5px;";
+                col.innerHTML = `<h5 style="font-size:0.75rem; color:#4a148c; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:2px; text-transform:uppercase; letter-spacing:0.5px;">${category}</h5>`;
+                subjects.forEach(s => {
+                    const label = document.createElement('label');
+                    label.style = "display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #444;";
+                    label.innerHTML = `<input type="checkbox" name="tempSub" value="${s}" style="cursor: pointer;"> ${s}`;
+                    col.appendChild(label);
+                });
+                container.appendChild(col);
+            }
+        } else {
+            container.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
+            SUBJECTS_MAP.Liceo.forEach(s => {
+                const label = document.createElement('label');
+                label.style = "display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #444;";
+                label.innerHTML = `<input type="checkbox" name="tempSub" value="${s}" style="cursor: pointer;"> ${s}`;
+                container.appendChild(label);
+            });
+        }
+    }
+
+    const tempSchool = document.getElementById('tempSchool');
+    if(tempSchool) {
+        tempSchool.addEventListener('change', renderSubjectList);
+        renderSubjectList();
+    }
     
     let existingRequestId = null;
-
-    // --- FUNZIONI MODALI ---
-    function showModal(title, msg) {
-        if(modalTitle) modalTitle.textContent = title;
-        if(modalMessage) modalMessage.textContent = msg;
-        if(modal) modal.classList.remove('hidden');
-    }
-
-    function showAlert(title, msg) {
-        if(alertModalTitle) alertModalTitle.textContent = title;
-        if(alertModalMessage) alertModalMessage.textContent = msg;
-        if(alertModal) alertModal.classList.remove('hidden');
-    }
 
     if (btnModalClose) {
         btnModalClose.addEventListener('click', () => {
@@ -79,9 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if(mainFormContainer) mainFormContainer.classList.remove('hidden');
     if(loginWarning) loginWarning.classList.add('hidden');
-
-    const emailInput = document.getElementById('email');
-    if(emailInput && !emailInput.value) emailInput.value = user.email;
 
     // 2. CERCA RICHIESTE ESISTENTI (E RIPOPOLA I CAMPI)
     try {
@@ -115,11 +152,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('fullName').value = request.full_name;
                 document.getElementById('email').value = request.email;
                 document.getElementById('phone').value = request.phone;
-                document.getElementById('classInfo').value = request.class_info;
-                document.getElementById('subjects').value = request.subjects;
+                
+                const classInfoHidden = document.getElementById('classInfo');
+                const subjectsHidden = document.getElementById('subjects');
+                if(classInfoHidden) classInfoHidden.value = request.class_info || '';
+                if(subjectsHidden) subjectsHidden.value = request.subjects || '';
                 
                 // Popola input nascosto
                 document.getElementById('availability').value = request.availability;
+
+                // --- VISUALIZZA LE COMPETENZE SALVATE ---
+                if (request.class_info && request.subjects) {
+                    const classes = request.class_info.split(' | ');
+                    const subjects = request.subjects.split(' | ');
+                    if(competenciesContainer) competenciesContainer.innerHTML = '';
+                    classes.forEach((c, idx) => {
+                        if(subjects[idx]) createCompetencyChip(`${c} (${subjects[idx]})`);
+                    });
+                }
 
                 // --- VISUALIZZA I BLOCCHETTI ORARI SALVATI ---
                 if (request.availability && request.availability.trim() !== "") {
@@ -198,6 +248,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // --- LOGICA COMPETENZE (CLASSI E MATERIE) ---
+    if(btnAddCompetency) {
+        btnAddCompetency.addEventListener('click', () => {
+            const school = document.getElementById('tempSchool').value;
+            const year = document.getElementById('tempYear').value;
+            
+            const selectedSubs = Array.from(document.querySelectorAll('input[name="tempSub"]:checked'))
+                                     .map(cb => cb.value);
+
+            if(selectedSubs.length === 0) { 
+                showAlert("Materie Mancanti", "Seleziona almeno una materia dalla lista prima di aggiungere."); 
+                return; 
+            }
+
+            const compText = `${year} ${school} (${selectedSubs.join(', ')})`;
+            createCompetencyChip(compText);
+            updateCompetencyStrings();
+            document.querySelectorAll('input[name="tempSub"]:checked').forEach(cb => cb.checked = false);
+        });
+    }
+
+    function createCompetencyChip(text) {
+        if(!text || !competenciesContainer) return;
+        const chip = document.createElement('div');
+        chip.className = 'avail-chip';
+        chip.style = "background:#e3f2fd; color:#1565c0; border:1px solid #bbdefb; padding:5px 12px; border-radius:20px; font-size:0.85rem; display:inline-flex; align-items:center; gap:8px; font-weight:600; margin-bottom:5px; margin-right:5px;";
+        
+        chip.innerHTML = `
+            <span>${text}</span>
+            <i class="fas fa-times" style="cursor:pointer; color:#c62828; font-size:1rem;"></i>
+        `;
+
+        chip.querySelector('.fa-times').addEventListener('click', () => {
+            chip.remove();
+            updateCompetencyStrings();
+        });
+
+        competenciesContainer.appendChild(chip);
+    }
+
+    function updateCompetencyStrings() {
+        const chips = document.querySelectorAll('#competenciesContainer .avail-chip span');
+        let classParts = [];
+        let subjectParts = [];
+        
+        chips.forEach(c => {
+            const text = c.innerText;
+            const match = text.match(/^(\d+) ([A-Za-z]+) \((.*)\)$/);
+            if(match) {
+                classParts.push(`${match[1]} ${match[2]}`);
+                subjectParts.push(match[3]);
+            }
+        });
+        
+        const classInfoHidden = document.getElementById('classInfo');
+        const subjectsHidden = document.getElementById('subjects');
+        if(classInfoHidden) classInfoHidden.value = classParts.join(' | ');
+        if(subjectsHidden) subjectsHidden.value = subjectParts.join(' | ');
+    }
+
     // Crea il blocchetto visivo (Con fix grafico X)
     function createAvailChip(text) {
         if(!text) return;
@@ -258,10 +368,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             if(existingRequestId) return; 
 
+            // Validazione campi obbligatori (Avviso interno)
+            const phone = document.getElementById('phone').value;
+            if(!phone || phone.trim() === "") {
+                showAlert("Dati Mancanti", "Per favore, inserisci il tuo numero di telefono per essere ricontattato.");
+                return;
+            }
+
             // CONTROLLO FONDAMENTALE: Verifica che ci siano orari
             const availValue = document.getElementById('availability').value;
             if(!availValue || availValue.trim() === "") {
                 showAlert("Disponibilità Mancante", "Per favore, aggiungi almeno una fascia oraria disponibile usando il tasto +.");
+                return;
+            }
+
+            // Controllo competenze
+            const classValue = document.getElementById('classInfo').value;
+            if(!classValue || classValue.trim() === "") {
+                showAlert("Competenze Mancanti", "Per favore, aggiungi almeno una classe e le relative materie.");
                 return;
             }
 
@@ -293,6 +417,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const availValue = document.getElementById('availability').value;
             if(!availValue || availValue.trim() === "") {
                 showAlert("Disponibilità Mancante", "Per favore, inserisci almeno una fascia oraria.");
+                return;
+            }
+
+            const classValue = document.getElementById('classInfo').value;
+            if(!classValue || classValue.trim() === "") {
+                showAlert("Competenze Mancanti", "Per favore, aggiungi almeno una classe.");
                 return;
             }
 

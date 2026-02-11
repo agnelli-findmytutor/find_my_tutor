@@ -85,17 +85,29 @@
                         
                         <div class="row-group">
                             <div class="form-group">
-                                <label>Anno Tutor</label>
+                                <label>Il tuo Anno</label>
                                 <select id="filterYear" required>
                                     <option value="" disabled selected>Seleziona...</option>
+                                    <option value="1">1° Anno</option>
+                                    <option value="2">2° Anno</option>
                                     <option value="3">3° Anno</option>
                                     <option value="4">4° Anno</option>
                                     <option value="5">5° Anno</option>
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label>Scuola</label>
+                                <select id="filterSchoolType" required>
+                                    <option value="" disabled selected>Seleziona...</option>
+                                    <option value="ITT">ITT</option>
+                                    <option value="Liceo">Liceo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>Materia</label>
-                                <input type="text" id="filterSubject" placeholder="Es. Matematica" required>
+                                <select id="filterSubject" disabled required>
+                                    <option value="">Seleziona prima l'anno...</option>
+                                </select>
                             </div>
                         </div>
 
@@ -178,9 +190,24 @@
                     <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
                         <i class="fas fa-history" style="background: #f5f5f5; color: #666; width: 35px; height: 35px; font-size: 1.1rem;"></i>
                         <h3 style="color: #666; font-size: 1.1rem;">Lezioni Concluse</h3>
+                        <button id="btnTogglePast" class="btn-mini" style="margin-left: auto; width: auto; background: #eee; color: #666;">
+                            <i class="fas fa-eye"></i> Mostra
+                        </button>
                     </div>
-                    <div id="pastLessonsList" class="lessons-scroll-area" style="max-height: 300px; margin-top: 15px;">
+                    <div id="pastLessonsList" class="lessons-scroll-area hidden" style="max-height: 300px; margin-top: 15px;">
                         <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>
+                    </div>
+
+                    <div class="divider"></div>
+                    <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
+                        <i class="fas fa-ban" style="background: #fff5f5; color: #d32f2f; width: 35px; height: 35px; font-size: 1.1rem;"></i>
+                        <h3 style="color: #d32f2f; font-size: 1.1rem;">Lezioni Cancellate</h3>
+                        <button id="btnToggleCancelled" class="btn-mini" style="margin-left: auto; width: auto; background: #ffebee; color: #d32f2f;">
+                            <i class="fas fa-eye"></i> Mostra
+                        </button>
+                    </div>
+                    <div id="cancelledLessonsList" class="lessons-scroll-area hidden" style="max-height: 300px; margin-top: 15px;">
+                        <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione cancellata.</p>
                     </div>
                 </div>
 

@@ -137,15 +137,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Aggiorniamo l'interfaccia (nel caso la cache fosse vecchia o vuota)
         updateInterface(userRole, avatarUrl);
 
-        // --- AUTO-FILL EMAIL (Solo su diventa_tutor.html) ---
+        // --- AUTO-FILL IDENTITY (Solo su diventa_tutor.html) ---
         if (window.location.pathname.includes('diventa_tutor.html')) {
-            // Cerca l'input email (per ID 'email' o genericamente per tipo)
-            const emailInput = document.getElementById('email') || document.querySelector('input[type="email"]');
+            const emailInput = document.getElementById('email');
             if (emailInput) {
                 emailInput.value = user.email;
-                emailInput.readOnly = true; // Rende il campo non modificabile
-                emailInput.style.backgroundColor = "#e9ecef"; // Sfondo grigio per indicare che è bloccato
+                emailInput.readOnly = true;
+                emailInput.style.backgroundColor = "#e9ecef";
                 emailInput.style.cursor = "not-allowed";
+            }
+
+            const nameInput = document.getElementById('fullName');
+            if (nameInput) {
+                nameInput.value = user.user_metadata.full_name || "";
+                nameInput.readOnly = true;
+                nameInput.style.backgroundColor = "#e9ecef";
+                nameInput.style.cursor = "not-allowed";
             }
         }
 
