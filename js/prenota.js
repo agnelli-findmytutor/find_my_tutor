@@ -423,9 +423,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isGroup = l.is_group;
 
                 let roomInfo = '';
+                const groupLabel = isGroup ? `<span style="background:#1565C0; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-bottom:5px; display:inline-block;">LEZIONE DI GRUPPO</span>` : '';
                 if (!isCancelled) {
                     roomInfo = l.room_name 
-                    ? `<div class="lesson-detail" style="color:#1565c0; font-weight:600; margin-top:5px;"><i class="fas fa-map-marker-alt"></i> Aula: ${l.room_name}</div>`
+                    ? `<div class="lesson-detail" style="color:#1565c0; font-weight:600; margin-top:5px;"><i class="fas fa-door-open"></i> Aula: ${l.room_name}</div>`
                     : `<div class="lesson-detail" style="color:#999; font-style:italic; margin-top:5px;"><i class="fas fa-door-closed"></i> Aula da definire</div>`;
                 }
 
@@ -465,6 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 item.innerHTML = `
                     <div style="flex:1">
+                        ${groupLabel}
                         <div class="lesson-header">
                             <h4 style="${(isCancelled || isPast) ? 'color:#999;' : ''} ${isCancelled ? 'text-decoration:line-through;' : ''}">${l.subject}</h4>
                             <span class="status-badge" style="${statusStyle}">${statusText}</span>
@@ -473,6 +475,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="lesson-detail"><i class="far fa-calendar"></i> ${d} - ${l.time_slot}</div>
                         
                         ${roomInfo}
+                        ${isGroup && l.group_members ? (
+                            l.group_members.startsWith("Organizzato da ") 
+                            ? (() => {
+                                const parts = l.group_members.replace("Organizzato da ", "").split(" | Altri: ");
+                                return `<div class="lesson-detail" style="color:#1565C0;"><i class="fas fa-crown"></i> <strong>Organizzatore:</strong> ${parts[0]}</div>
+                                        ${parts[1] ? `<div class="lesson-detail" style="color:#666; font-size:0.8rem;"><i class="fas fa-users"></i> <strong>Altri:</strong> ${parts[1]}</div>` : ''}`;
+                              })()
+                            : `<div class="lesson-detail" style="color:#1565C0;"><i class="fas fa-crown"></i> <strong>Organizzatore:</strong> Tu</div>
+                               <div class="lesson-detail" style="color:#666; font-size:0.8rem;"><i class="fas fa-users"></i> <strong>Altri:</strong> ${l.group_members}</div>`
+                        ) : ''}
                         ${cancelReasonDisplay}
 
                         ${l.notes && !isCancelled ? `<div class="lesson-detail" style="font-style:italic; margin-top:5px; color:#666;"><i class="far fa-comment"></i> ${l.notes}</div>` : ''}
@@ -540,15 +552,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', async () => {
             if(idToModify) {
-                // MODIFICA: Invece di delete(), facciamo update() per mantenerla nello storico
-                await sbClient.from('appointments').update({ 
-                    status: 'Cancellata', 
-                    cancellation_reason: 'Cancellata dallo studente' 
-                }).eq('id', idToModify);
+                const { error } = await sbClient.rpc('cancel_group_lesson', {
+                    p_lesson_id: idToModify,
+                    p_reason: 'Cancellata dallo studente'
+                });
                 
-                closeModal(deleteModal);
-                fetchLessons();
-                showSuccess("Cancellata", "La lezione è stata annullata.");
+                if (error) {
+                    alert("Errore: " + error.message);
+                } else {
+                    closeModal(deleteModal);
+                    fetchLessons();
+                    showSuccess("Cancellata", "La lezione è stata annullata per tutti i partecipanti.");
+                }
             }
         });
     }
@@ -857,56 +872,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
-            
-            const appointmentsPayload = [];
+            const organizerName = user.user_metadata.full_name || user.email;
 
-            // 1. Utente Principale (Prenotante)
-            const otherNames = selectedStudents.map(s => s.name).join(', ');
-            appointmentsPayload.push({
-                user_id: user.id, 
-                tutor_id: tid, 
-                student_name: user.user_metadata.full_name || user.email,
-                student_email: user.email, 
-                subject: sub, 
-                date: date, 
-                time_slot: time,
-                duration: dur, 
-                status: 'Confermato', 
-                tutor_name_cache: tName, 
-                notes: notes,
-                is_group: isGroupMode,
-                group_members: isGroupMode ? (selectedStudents.length > 0 ? otherNames : null) : null
-            });
-
-            // 2. Compagni di Gruppo (Creiamo una lezione anche per loro)
             if (isGroupMode && selectedStudents.length > 0) {
-                const organizerName = user.user_metadata.full_name || user.email;
-                
-                selectedStudents.forEach(student => {
-                    // Cerchiamo l'email dello studente se disponibile
+                // LOGICA GRUPPO: Usiamo la RPC per superare i limiti RLS
+                const participantsData = selectedStudents.map(student => {
                     const sObj = allStudents.find(x => x.id === student.id);
-                    const sEmail = sObj ? sObj.email : "";
-
-                    appointmentsPayload.push({
-                        user_id: student.id,
-                        tutor_id: tid,
-                        student_name: student.name,
-                        student_email: sEmail,
-                        subject: sub,
-                        date: date,
-                        time_slot: time,
-                        duration: dur,
-                        status: 'Confermato',
-                        tutor_name_cache: tName,
-                        notes: notes,
-                        is_group: true,
-                        group_members: `Organizzato da ${organizerName}`
-                    });
+                    const otherParticipants = selectedStudents.filter(s => s.id !== student.id).map(s => s.name);
+                    const othersSuffix = otherParticipants.length > 0 ? ` | Altri: ${otherParticipants.join(', ')}` : '';
+                    
+                    return {
+                        id: student.id,
+                        name: student.name,
+                        email: sObj ? sObj.email : "",
+                        group_members: `Organizzato da ${organizerName}${othersSuffix}`
+                    };
                 });
-            }
 
-            const { error } = await sbClient.from('appointments').insert(appointmentsPayload);
-            if(error) throw error;
+                const { error } = await sbClient.rpc('book_group_lesson', {
+                    p_tutor_id: tid,
+                    p_subject: sub,
+                    p_date: date,
+                    p_time_slot: time,
+                    p_duration: dur,
+                    p_notes: notes,
+                    p_tutor_name: tName,
+                    p_organizer_name: organizerName,
+                    p_organizer_email: user.email,
+                    p_participants: participantsData
+                });
+                if(error) throw error;
+            } else {
+                // LOGICA SINGOLA: Insert normale (funziona con RLS standard)
+                const { error } = await sbClient.from('appointments').insert([{
+                    user_id: user.id, 
+                    tutor_id: tid, 
+                    student_name: organizerName,
+                    student_email: user.email, 
+                    subject: sub, 
+                    date: date, 
+                    time_slot: time,
+                    duration: dur, 
+                    status: 'Confermato', 
+                    tutor_name_cache: tName, 
+                    notes: notes,
+                    is_group: false,
+                    group_members: null
+                }]);
+                if(error) throw error;
+            }
+            
             showSuccess("Prenotata!", "Lezione confermata.");
             bookingForm.reset();
             resetDateAndTime();

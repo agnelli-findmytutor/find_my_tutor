@@ -88,9 +88,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnExecCancel').addEventListener('click', async () => {
         const reason = document.getElementById('adminCancelReason').value;
         if(!reason) { alert("Motivo obbligatorio."); return; }
-        const { error } = await sb.from('appointments').update({ status: 'Cancellata', cancellation_reason: reason }).eq('id', selectedId);
+        const { error } = await sb.rpc('cancel_group_lesson', { 
+            p_lesson_id: selectedId, 
+            p_reason: reason 
+        });
         if(error) alert(error.message);
-        else { cancelModal.classList.add('hidden'); loadAllAppointments(); loadCancelledLessons(); alert("Annullata."); }
+        else { cancelModal.classList.add('hidden'); loadAllAppointments(); loadCancelledLessons(); alert("Lezione annullata per tutto il gruppo."); }
     });
 
     document.getElementById('btnExecPerm').addEventListener('click', async () => {
@@ -474,8 +477,10 @@ async function loadAllAppointments() {
     list.innerHTML = '<p style="text-align:center;">Caricamento...</p>';
     const { data, error } = await sb.from('appointments').select('*').neq('status', 'Cancellata').order('date', { ascending: false });
     if(error) { list.innerHTML = "Errore."; return; }
-    currentLessons = data; 
-    renderLessons(list, data, false);
+    
+    const grouped = groupAdminLessons(data);
+    currentLessons = grouped; 
+    renderLessons(list, grouped, false);
 }
 
 async function loadCancelledLessons() {
@@ -483,8 +488,40 @@ async function loadCancelledLessons() {
     list.innerHTML = '<p style="text-align:center;">Caricamento...</p>';
     const { data, error } = await sb.from('appointments').select('*').eq('status', 'Cancellata').order('date', { ascending: false });
     if(error) { list.innerHTML = "Errore."; return; }
-    allCancelledLessons = data || [];
-    renderLessons(list, data, true);
+    
+    const grouped = groupAdminLessons(data || []);
+    allCancelledLessons = grouped;
+    renderLessons(list, grouped, true);
+}
+
+function groupAdminLessons(lessons) {
+    const map = new Map();
+    const result = [];
+    lessons.forEach(app => {
+        const key = `${app.tutor_id}_${app.date}_${app.time_slot}_${app.status}`;
+        if (app.is_group) {
+            if (map.has(key)) {
+                const existing = map.get(key);
+                if (!existing.all_students.includes(app.student_name)) {
+                    existing.all_students.push(app.student_name);
+                }
+                if (app.group_members && app.group_members.startsWith("Organizzato da ")) {
+                    existing.organizer_name = app.group_members.replace("Organizzato da ", "").split(" | ")[0];
+                }
+            } else {
+                const copy = { ...app };
+                copy.all_students = [app.student_name];
+                copy.organizer_name = (app.group_members && app.group_members.startsWith("Organizzato da ")) 
+                    ? app.group_members.replace("Organizzato da ", "").split(" | ")[0] 
+                    : app.student_name;
+                map.set(key, copy);
+                result.push(copy);
+            }
+        } else {
+            result.push(app);
+        }
+    });
+    return result;
 }
 
 function renderLessons(container, data, isReg) {
@@ -500,6 +537,10 @@ function renderLessons(container, data, isReg) {
         const reason = isCan ? `<div style="margin-top:5px; color:#b71c1c; background:#ffcdd2; padding:5px; border-radius:4px; font-size:0.85rem;"><strong>Motivo:</strong> ${app.cancellation_reason}</div>` : '';
         const tutor = isReg ? `<div style="color:#d32f2f; font-weight:bold;">Tutor: ${app.tutor_name_cache}</div>` : `<strong>Tutor:</strong> ${app.tutor_name_cache || app.tutor_id}`;
 
+        const studentDisplay = app.is_group 
+            ? `<strong>Org:</strong> ${app.organizer_name} <br> <strong>Gruppo:</strong> ${app.all_students.filter(n => n !== app.organizer_name).join(', ') || 'Solo org'}`
+            : `<strong>Studente:</strong> ${app.student_name}`;
+
         const div = document.createElement('div');
         div.className = 'lesson-card';
         div.style = `${style} padding:15px; margin-bottom:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);`;
@@ -508,7 +549,7 @@ function renderLessons(container, data, isReg) {
                 <div style="flex:1;">
                     <h4 style="margin:0; color:#333;">${app.subject} ${badge}</h4>
                     ${isReg ? tutor : `<p style="margin:5px 0; font-size:0.9rem; color:#666;">${tutor}</p>`}
-                    <p style="margin:0; font-size:0.9rem; color:#555;"><strong>Studente:</strong> ${app.student_name} <br> ${d} - ${app.time_slot}</p>
+                    <p style="margin:0; font-size:0.9rem; color:#555;">${studentDisplay} <br> ${d} - ${app.time_slot}</p>
                     ${reason}
                 </div>
                 <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">

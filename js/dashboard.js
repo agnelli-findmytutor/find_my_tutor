@@ -47,11 +47,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isGroup = l.is_group;
                 const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : '';
                 
+                const groupInfo = isGroup && l.group_members 
+                    ? (() => {
+                        if (l.group_members.startsWith("Organizzato da ")) {
+                            const org = l.group_members.replace("Organizzato da ", "").split(" | ")[0];
+                            return `<p style="font-size:0.75rem; color:#1565C0; margin-top:2px;"><i class="fas fa-crown"></i> Org: ${org}</p>`;
+                        }
+                        return `<p style="font-size:0.75rem; color:#1565C0; margin-top:2px;"><i class="fas fa-crown"></i> Org: Tu</p>`;
+                      })()
+                    : '';
+                
                 container.innerHTML += `
                     <div class="mini-lesson-card" style="${style}">
                         <div class="info">
                             <h4>${l.subject}</h4>
                             <p>Tutor: ${l.tutor_name_cache}</p>
+                            ${groupInfo}
                         </div>
                         <div class="time-tag">${l.date.split('-').reverse().join('/')}</div>
                     </div>`;
@@ -71,16 +82,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             .limit(3);
 
         if (lessons && lessons.length > 0) {
-            container.innerHTML = '';
+            // Raggruppa per la dashboard tutor (Logica migliorata)
+            const grouped = [];
+            const map = new Map();
             lessons.forEach(l => {
+                const key = `${l.date}_${l.time_slot}`;
+                if (l.is_group) {
+                    if (map.has(key)) {
+                        const existing = map.get(key);
+                        if (!existing.all_students.includes(l.student_name)) {
+                            existing.all_students.push(l.student_name);
+                        }
+                        if (l.group_members && l.group_members.startsWith("Organizzato da ")) {
+                            existing.organizer_name = l.group_members.replace("Organizzato da ", "").split(" | ")[0];
+                        }
+                    } else {
+                        const copy = { ...l };
+                        copy.all_students = [l.student_name];
+                        copy.organizer_name = (l.group_members && l.group_members.startsWith("Organizzato da ")) 
+                            ? l.group_members.replace("Organizzato da ", "").split(" | ")[0] 
+                            : l.student_name;
+                        map.set(key, copy);
+                        grouped.push(copy);
+                    }
+                } else {
+                    grouped.push(l);
+                }
+            });
+
+            container.innerHTML = '';
+            grouped.slice(0, 3).forEach(l => {
                 const isGroup = l.is_group;
                 const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #4a148c;';
+                
+                const studentText = isGroup 
+                    ? `Org: ${l.organizer_name} (+${l.all_students.length - 1})`
+                    : `Studente: ${l.student_name}`;
 
                 container.innerHTML += `
                     <div class="mini-lesson-card" style="${style}">
                         <div class="info">
                             <h4>${l.subject}</h4>
-                            <p>Studente: ${l.student_name}</p>
+                            <p>${studentText}</p>
                         </div>
                         <div class="time-tag" style="background: #f3e5f5; color: #4a148c;">${l.time_slot}</div>
                     </div>`;

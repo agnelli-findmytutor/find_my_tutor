@@ -249,10 +249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnExecCancel.innerText = "Processing...";
         btnExecCancel.disabled = true;
         try {
-            const { error } = await sbClient.from('appointments').update({ status: 'Cancellata', cancellation_reason: reason }).eq('id', lessonIdToCancel);
+            const { error } = await sbClient.rpc('cancel_group_lesson', {
+                p_lesson_id: lessonIdToCancel,
+                p_reason: reason
+            });
             if(error) throw error;
             closeModal(cancelLessonModal);
-            showSuccess("Lezione Cancellata", "Status aggiornato.");
+            showSuccess("Lezione Cancellata", "Status aggiornato per tutto il gruppo.");
             fetchAppointments(); 
         } catch(err) { alert("Errore: " + err.message); } 
         finally { btnExecCancel.innerText = originalText; btnExecCancel.disabled = false; lessonIdToCancel = null; }
@@ -285,7 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <p><i class="far fa-calendar-alt"></i> ${booking.day_label}</p>
                         <p><i class="far fa-clock"></i> ${booking.time_slot}</p>
                     </div>
-                    <button class="btn-delete-booking" onclick="window.openDeleteModal(${booking.id})"><i class="fas fa-trash-alt"></i></button>
+                    <button class="btn-delete-booking" onclick="window.openDeleteModal('${booking.id}')"><i class="fas fa-trash-alt"></i></button>
                 `;
                 roomBookingsList.appendChild(card);
             });
@@ -314,16 +317,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         limitDate.setDate(todayObj.getDate() - 30);
         const limitStr = limitDate.toISOString().split('T')[0];
         
+        // Raggruppamento lezioni di gruppo per il Tutor (Logica migliorata senza duplicati)
+        const groupedMap = new Map();
+        const processedApps = [];
+
+        appointments.forEach(app => {
+            if (app.is_group) {
+                const key = `${app.date}_${app.time_slot}_${app.status}`;
+                if (groupedMap.has(key)) {
+                    const existing = groupedMap.get(key);
+                    if (!existing.all_students.includes(app.student_name)) {
+                        existing.all_students.push(app.student_name);
+                    }
+                    // Se questa riga specifica l'organizzatore, salviamolo
+                    if (app.group_members && app.group_members.startsWith("Organizzato da ")) {
+                        existing.organizer_name = app.group_members.replace("Organizzato da ", "").split(" | ")[0];
+                    }
+                } else {
+                    const copy = { ...app };
+                    copy.all_students = [app.student_name];
+                    copy.organizer_name = (app.group_members && app.group_members.startsWith("Organizzato da ")) 
+                        ? app.group_members.replace("Organizzato da ", "").split(" | ")[0] 
+                        : app.student_name;
+                    groupedMap.set(key, copy);
+                    processedApps.push(copy);
+                }
+            } else {
+                processedApps.push(app);
+            }
+        });
+
         const upcoming = [];
         const past = [];
         const cancelled = [];
 
-        appointments.forEach(app => {
+        processedApps.forEach(app => {
             if (app.status === 'Cancellata') {
-                // Mostra solo se la data della lezione è recente (ultimi 30gg) o futura
-                if (app.date >= limitStr) {
-                    cancelled.push(app);
-                }
+                if (app.date >= limitStr) cancelled.push(app);
             } else if (app.date >= today) {
                 upcoming.push(app);
             } else {
@@ -422,9 +452,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ? `<span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px;">GRUPPO</span>` 
                     : '';
                 
-                const groupMembers = (app.is_group && app.group_members) 
-                    ? `<p style="font-size:0.8rem; color:#1565C0; margin-top:2px;">+ ${app.group_members}</p>` 
-                    : '';
+                const studentInfo = isGroup 
+                    ? `<p class="student-name" style="color:#1565C0;"><i class="fas fa-crown"></i> <strong>Org:</strong> ${app.organizer_name}</p>
+                       <p style="font-size:0.8rem; color:#666; margin-top:2px;"><i class="fas fa-users"></i> <strong>Altri:</strong> ${app.all_students.filter(n => n !== app.organizer_name).join(', ') || 'Nessuno'}</p>`
+                    : `<p class="student-name"><i class="fas fa-user-graduate"></i> ${app.student_name}</p>`;
 
                 html += `<div class="lesson-card ${statusClass}" style="${cardStyle}">
                         <div class="card-content">
@@ -432,8 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <div class="time-display">${app.time_slot}</div>
                                 <div class="info-display">
                                     <h4>${app.subject || 'Materia'} ${roomBadge} ${groupBadge}</h4>
-                                    <p class="student-name"><i class="fas fa-user-graduate"></i> ${app.student_name}</p>
-                                    ${groupMembers}
+                                    ${studentInfo}
                                     ${notesHtml}
                                 </div>
                             </div>
