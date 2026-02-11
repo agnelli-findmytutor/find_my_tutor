@@ -123,10 +123,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Utente loggato (Network):", user.email);
         
         let userRole = 'studente';
-        try {
-            const { data: profile } = await sbClient.from('profiles').select('role').eq('id', user.id).single();
-            if (profile && profile.role) userRole = profile.role;
-        } catch (e) { /* fallback */ }
+
+        // Controlliamo se il profilo esiste già
+        let { data: profile, error: profileError } = await sbClient
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        // SICUREZZA EXTRA: Se il ruolo nel DB è diverso da quello in cache, 
+        // aggiorna immediatamente e ricarica se necessario
+        if (profile && profile.role !== cachedRole) {
+            localStorage.setItem('fmt_role', profile.role);
+            console.log("Sincronizzazione ruolo effettuata.");
+            // Se l'utente si era "finto" admin in cache, ricarichiamo per nascondere i link
+            if (cachedRole === 'admin') window.location.reload();
+        }
+
+        // Se il profilo non esiste, lo creiamo automaticamente
+        if (!profile && !profileError) {
+            const { data: newProfile, error: insertError } = await sbClient
+                .from('profiles')
+                .insert([{ 
+                    id: user.id, 
+                    email: user.email, 
+                    full_name: user.user_metadata.full_name || "",
+                    role: 'studente' 
+                }])
+                .select()
+                .single();
+            
+            if (!insertError) profile = newProfile;
+        }
+
+        if (profile && profile.role) userRole = profile.role;
 
         const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
 

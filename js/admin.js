@@ -1,3 +1,8 @@
+// PROTEZIONE DI LIVELLO 1: Nasconde immediatamente l'interfaccia.
+// Impedisce il "flash" del contenuto prima del controllo del ruolo.
+// Se l'utente non è admin, la pagina rimarrà bianca fino al reindirizzamento.
+document.documentElement.style.display = 'none';
+
 // --- CONFIGURAZIONE ---
 const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8'; 
@@ -14,15 +19,29 @@ let selectedId = null;
 document.addEventListener('DOMContentLoaded', async () => {
     
     // 1. CHECK SICUREZZA
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) { window.location.href = "login.html"; return; }
-
-    const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).single();
-    if (!profile || profile.role !== 'admin') {
-        alert("ACCESSO NEGATO.");
-        window.location.href = "dashboard.html";
+    const { data: { user }, error: authError } = await sb.auth.getUser();
+    
+    // Se non c'è sessione, reindirizza immediatamente
+    if (authError || !user) {
+        window.location.replace("login.html");
         return;
     }
+
+    // Verifica il ruolo direttamente sul database (Senza usare cache)
+    const { data: profile, error: profileError } = await sb.from('profiles').select('role').eq('id', user.id).single();
+    
+    if (profileError || !profile || profile.role !== 'admin') {
+        console.warn("Tentativo di accesso non autorizzato rilevato per l'utente:", user.email);
+        // Pulizia aggressiva: se hanno provato a manomettere il localStorage, lo svuotiamo
+        localStorage.removeItem('fmt_role');
+        localStorage.removeItem('fmt_avatar');
+        // Reindirizzamento forzato
+        window.location.replace("dashboard.html");
+        return;
+    }
+
+    // SOLO SE L'UTENTE È ADMIN: rendiamo visibile la pagina
+    document.documentElement.style.display = 'block';
 
     // 2. LOAD DATA
     loadStats();
