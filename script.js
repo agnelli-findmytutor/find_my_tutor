@@ -1,82 +1,116 @@
 // ============================================================
-// 🛡️ ANTI-CHEAT & SECURITY MONITOR
-// Intercetta tentativi di hacking dalla console o azioni non autorizzate
+// 🚨 ULTIMATE SECURITY MONITOR v2 (Threatening Edition)
+// Intercetta TUTTE le risposte dal server con stile minaccioso
 // ============================================================
 (function() {
-    // Se Supabase non è caricato, non fare nulla
-    if (typeof window.supabase === 'undefined') return console.warn("Supabase not loaded, anti-cheat disabled");
-
-    const originalCreateClient = window.supabase.createClient;
     
-    // Sovrascriviamo la funzione createClient per iniettare il controllo
-    window.supabase.createClient = function(...args) {
-        const client = originalCreateClient.apply(this, args);
-        
-        // Funzione che "avvolge" i costruttori di query (select, update, etc.)
-        const proxyBuilder = (builder) => {
-            return new Proxy(builder, {
-                get(target, prop) {
-                    // Intercettiamo il 'then' (quando la query viene eseguita)
-                    if (prop === 'then') {
-                        return function(onFulfilled, onRejected) {
-                            return target.then(response => {
-                                // 🚨 CONTROLLO SICUREZZA QUI 🚨
-                                if (response && response.error) {
-                                    checkSecurityViolation(response.error);
-                                }
-                                if (onFulfilled) return onFulfilled(response);
-                                return response;
-                            }, onRejected);
-                        }
-                    }
-                    
-                    // Continua la catena (es. .eq().select()...) mantenendo il proxy
-                    const value = target[prop];
-                    if (typeof value === 'function') {
-                        return function(...args) {
-                            const result = value.apply(this, args);
-                            if (result && typeof result.then === 'function') {
-                                return proxyBuilder(result);
-                            }
-                            return result;
-                        }
-                    }
-                    return value;
-                }
-            });
-        };
+    // 1. Definiamo il Modale "MINACCIOSO"
+    function showSecurityLockdown(errorMsg) {
+        if (document.getElementById('security-lockdown')) return;
 
-        // Proxy sul client principale (intercetta .from() e .rpc())
-        return new Proxy(client, {
-            get(target, prop) {
-                const value = target[prop];
-                if (typeof value === 'function' && (prop === 'from' || prop === 'rpc')) {
-                    return function(...args) {
-                        return proxyBuilder(value.apply(this, args));
-                    }
+        console.clear(); 
+        
+        const modal = document.createElement('div');
+        modal.id = 'security-lockdown';
+        // Stile per lo sfondo: Nero, con bagliore rosso ai bordi e righe tipo vecchio monitor (scanlines)
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000;
+            background-image: repeating-linear-gradient(0deg, rgba(255,0,0,0.05) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+            box-shadow: inset 0 0 150px #500;
+            z-index: 2147483647;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Courier New', Courier, monospace; /* Font monospaziato */
+            text-transform: uppercase;
+            user-select: none; /* Impedisce di selezionare il testo */
+            cursor: not-allowed;
+        `;
+        
+        // Costruiamo l'HTML interno
+        modal.innerHTML = `
+            <div style="
+                border: 4px solid red;
+                padding: 40px;
+                background: rgba(20, 0, 0, 0.9);
+                box-shadow: 0 0 50px red, inset 0 0 20px red;
+                text-align: center;
+                max-width: 90%;
+                animation: pulseBorder 2s infinite;
+            ">
+                 <div style="font-size: 6rem; color: red; margin-bottom: 20px; text-shadow: 0 0 20px red;">
+                    <span style="display:inline-block; transform: scale(1.5);">⊘</span>
+                </div>
+
+                <h1 style="
+                    font-size: 3.5rem; margin: 0; color: #ff0000; 
+                    text-shadow: 0 0 10px red, 0 0 30px red, 0 0 50px red;
+                    letter-spacing: 4px; font-weight: 900;
+                ">VIOLAZIONE DI SICUREZZA</h1>
+                
+                <h2 style="font-size: 1.5rem; color: #ffcccc; margin-top: 20px; letter-spacing: 2px;">
+                    PROTOCOLLO DI DIFESA ATTIVO, PORCO DIO MARCO GODO PROVA ANCORA A VIOLARE IL PORCODIO DI SITO.
+                </h2>
+                <p style="color: red; font-size: 1.2rem;">IL TUO INDIRIZZO IP E' STATO REGISTRATO E SEGNALATO.</p>
+                
+                <div style="margin-top: 40px; border-top: 2px dashed red; border-bottom: 2px dashed red; padding: 20px; background: #0a0000; text-align: left;">
+                    <p style="font-size: 1rem; margin: 5px 0; color: #ff3333;">> SYSTEM_ALERT: Intrusion attempt detected.</p>
+                    <p style="font-size: 1rem; margin: 5px 0; color: #ff3333;">> ERROR_CODE: [ <strong style="color: white;">${errorMsg.code || 'UNKNOWN'}</strong> ]</p>
+                    <p style="font-size: 1rem; margin: 5px 0; color: #ff3333;">> PAYLOAD_MESSAGE: "${errorMsg.message || 'Unauthorized DB Access'}"</p>
+                    <p style="font-size: 1rem; margin: 5px 0; color: red; animation: blink 1s infinite;">> STATUS: LOCKDOWN INITIATED_</p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" style="
+                margin-top: 60px; padding: 15px 40px; font-size: 1.2rem; 
+                background: #b71c1c; color: black; border: none; font-weight: 900; 
+                cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+                box-shadow: 0 0 20px red; transition: 0.3s;
+                font-family: 'Courier New', monospace;
+            " onmouseover="this.style.background='red';this.style.color='white'" onmouseout="this.style.background='#b71c1c';this.style.color='black'">
+                [ SONO FORCIO (MI ARRENDO) ]
+            </button>
+
+            <style>
+                @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+                @keyframes pulseBorder { 0% { box-shadow: 0 0 30px red, inset 0 0 10px red; } 50% { box-shadow: 0 0 60px red, inset 0 0 30px red; } 100% { box-shadow: 0 0 30px red, inset 0 0 10px red; } }
+            </style>
+        `;
+
+        document.body.appendChild(modal);
+        
+        // Tentativo di riprodurre un suono di errore grave (basso e distorto)
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square'; // Suono più aspro
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1.5);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
+    // 2. OVERRIDE DEL FETCH (Resta invariato, è il motore che funziona)
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        const clone = response.clone();
+        try {
+            if (!response.ok) {
+                const body = await clone.json();
+                if (body && (body.code === 'P0001' || body.code === '42501')) {
+                    showSecurityLockdown(body);
+                    return new Promise(() => {}); 
                 }
-                return value;
             }
-        });
+        } catch (err) {}
+        return response;
     };
 
-    function checkSecurityViolation(error) {
-        // Codice 42501: RLS Policy Violation (Permesso Negato dal DB)
-        // Codice P0001: Raise Exception (Il nostro Trigger Anti-Hacker)
-        if (error.code === '42501' || (error.code === 'P0001' && error.message.includes('Cucciolo provaci di nuovo e vedrai che te la mettiamo nel culo'))) {
-            console.clear(); // Pulisce la console per confondere l'hacker
-            showHackerModal(error.message);
-        }
-    }
-
-    function showHackerModal(msg) {
-        if(document.getElementById('hackerModal')) return;
-        const modal = document.createElement('div');
-        modal.id = 'hackerModal';
-        modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); animation: fadeIn 0.2s;";
-        modal.innerHTML = `<div style="background: #fff; padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; border-bottom: 8px solid #D32F2F; box-shadow: 0 0 80px rgba(211, 47, 47, 0.6); transform: scale(1.1);"><div style="font-size: 5rem; color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-user-secret"></i></div><h1 style="color: #D32F2F; font-family: 'Poppins', sans-serif; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; font-size: 1.8rem;">Proviamo a fare i furbi, eh?</h1><p style="font-size: 1.1rem; color: #333; margin-bottom: 20px; font-weight: 500;">Il sistema ha rilevato un tentativo di modifica non autorizzata o un comando illegale dalla console.</p><div style="background: #ffebee; color: #b71c1c; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin-bottom: 25px; border: 1px solid #ffcdd2;"><strong>Security Alert:</strong> ${msg || 'Access Denied'}</div><button onclick="location.reload()" style="background: #D32F2F; color: white; border: none; padding: 15px 40px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);"><i class="fas fa-sync-alt"></i> Ricarica Pagina</button></div>`;
-        document.body.appendChild(modal);
-    }
+    console.log("%cSYSTEM INTEGRITY MONITOR: ACTIVE", "color: red; background: black; font-weight: bold;");
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
