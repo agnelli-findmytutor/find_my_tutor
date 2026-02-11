@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- LOGICA APERTURA MODALI ---
 
-    function openEditModal(id) {
+    async function openEditModal(id) {
         // Usa == invece di === per permettere confronto stringa/numero
         const lesson = currentLessons.find(l => l.id == id);
         if(!lesson) return;
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Popola il form
         document.getElementById('editLessonId').value = lesson.id;
         document.getElementById('editDate').value = lesson.date;
-        document.getElementById('editTime').value = lesson.time_slot;
+        document.getElementById('editTutorId').value = lesson.tutor_id;
         document.getElementById('editNotes').value = lesson.notes || '';
         
         // Gestione durata
@@ -231,7 +231,126 @@ document.addEventListener('DOMContentLoaded', async () => {
         const subjInput = document.getElementById('editSubject');
         if(subjInput) subjInput.value = lesson.subject || '';
 
+        // Calcola gli orari disponibili per la data corrente
+        await updateEditTimeSlots();
+        
+        // Seleziona l'orario attuale della lezione se presente tra le opzioni
+        const timeSelect = document.getElementById('editTime');
+        const currentStartTime = lesson.time_slot.split('-')[0].trim();
+        timeSelect.value = currentStartTime;
+
         editModal.classList.remove('hidden');
+    }
+
+    // Nuova funzione per calcolare gli orari nel modale di modifica
+    async function updateEditTimeSlots() {
+        const dateVal = document.getElementById('editDate').value;
+        const timeSelect = document.getElementById('editTime');
+        const tutorId = document.getElementById('editTutorId').value;
+        const currentAppId = document.getElementById('editLessonId').value;
+
+        if(!dateVal || !tutorId) return;
+
+        const selectedDate = new Date(dateVal);
+        const dayOfWeek = selectedDate.getDay();
+        
+        // Recupera il tutor per avere la sua stringa di disponibilità
+        const tutor = allTutors.find(t => t.id === tutorId);
+        if(!tutor || !tutor.availability) return;
+
+        const tutorAvail = [];
+        tutor.availability.split(',').forEach(part => {
+            part = part.trim();
+            const spaceIndex = part.indexOf(' ');
+            if (spaceIndex === -1) return;
+            const dayName = part.substring(0, spaceIndex).trim().toLowerCase();
+            const timeRange = part.substring(spaceIndex + 1).trim();
+            if (DAY_MAP.hasOwnProperty(dayName)) {
+                tutorAvail.push({ dayIndex: DAY_MAP[dayName], range: timeRange });
+            }
+        });
+
+        const validRanges = tutorAvail.filter(item => item.dayIndex === dayOfWeek);
+
+        if (validRanges.length === 0) {
+            timeSelect.innerHTML = '<option value="">-- Tutor non disponibile --</option>';
+            timeSelect.disabled = true;
+            return;
+        }
+
+        timeSelect.innerHTML = '<option value="">Caricamento...</option>';
+        
+        // Recupera lezioni esistenti escludendo quella attuale (per permettere di mantenere lo stesso slot)
+        const { data: existingApps } = await sbClient
+            .from('appointments')
+            .select('id, time_slot, duration')
+            .eq('tutor_id', tutorId)
+            .eq('date', dateVal)
+            .neq('status', 'Cancellata')
+            .neq('id', currentAppId); 
+
+        const occupiedSet = new Set();
+        (existingApps || []).forEach(app => {
+            const start = timeToMin(app.time_slot);
+            const dur = parseInt(app.duration); 
+            for(let i=0; i < dur; i+=30) occupiedSet.add(start + i);
+        });
+
+        const availableOptions = [];
+        validRanges.forEach(slot => {
+            const [sStr, eStr] = slot.range.split('-');
+            const startRange = timeToMin(sStr.trim());
+            const endRange = timeToMin(eStr.trim());
+
+            for(let t = startRange; t < endRange; t += 30) {
+                if (!occupiedSet.has(t) && !occupiedSet.has(t+30) && (t + 60 <= endRange)) {
+                    let maxDur = 60;
+                    if (!occupiedSet.has(t+60) && (t + 90 <= endRange)) maxDur = 90;
+                    availableOptions.push({ time: minToTime(t), maxDur: maxDur });
+                }
+            }
+        });
+
+        timeSelect.innerHTML = '<option value="">-- Scegli Orario --</option>';
+        if(availableOptions.length > 0) {
+            availableOptions.sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
+            availableOptions.forEach(optData => {
+                const opt = document.createElement('option');
+                opt.value = optData.time;
+                opt.textContent = optData.time;
+                opt.setAttribute('data-max-duration', optData.maxDur);
+                timeSelect.appendChild(opt);
+            });
+            timeSelect.disabled = false;
+        } else {
+            timeSelect.innerHTML = '<option value="">Tutto occupato</option>';
+        }
+    }
+
+    // Listener per il cambio data nel modale di modifica
+    const editDateInput = document.getElementById('editDate');
+    if(editDateInput) {
+        editDateInput.addEventListener('change', updateEditTimeSlots);
+    }
+
+    // Listener per gestire la durata nel modale di modifica
+    const editTimeSelect = document.getElementById('editTime');
+    if(editTimeSelect) {
+        editTimeSelect.addEventListener('change', () => {
+            const selectedOpt = editTimeSelect.options[editTimeSelect.selectedIndex];
+            if(!selectedOpt || !selectedOpt.value) return;
+            const maxDur = selectedOpt.getAttribute('data-max-duration');
+            const durSelect = document.getElementById('editDuration');
+            
+            // Se lo spazio è solo di 60 min, nascondi o disabilita l'opzione 90 min
+            const opt90 = durSelect.querySelector('option[value="90 min"]');
+            if (maxDur === '60') {
+                if(opt90) opt90.disabled = true;
+                durSelect.value = "60 min";
+            } else {
+                if(opt90) opt90.disabled = false;
+            }
+        });
     }
 
     function openDeleteModal(id) {

@@ -207,20 +207,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Funzione effettiva di cancellazione
     async function deleteAccount() {
         try {
-            // Elimina il profilo dal database
-            const { error } = await sb.from('profiles').delete().eq('id', user.id);
-            
+            // Chiamiamo la funzione SQL personalizzata per eliminare l'utente da Authentication e Profiles
+            const { error } = await sb.rpc('delete_self');
             if (error) throw error;
-
-            // Logout e pulizia
-            await sb.auth.signOut();
             localStorage.clear();
             
             alert("Account eliminato correttamente.");
             window.location.href = "index.html";
         } catch (error) {
             console.error("Errore cancellazione:", error);
-            alert("Si è verificato un errore durante l'eliminazione dell'account. Riprova.");
+            // Mostra l'errore reale per il debug
+            alert("Errore durante l'eliminazione: " + (error.message || "Riprova più tardi."));
             // Chiudi il modale anche in caso di errore per evitare blocco UI
             document.getElementById('deleteAccountModal').classList.add('hidden');
         }
