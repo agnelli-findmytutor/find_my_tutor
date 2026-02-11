@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
     
+    
     <style>
         /* Stili Specifici Admin */
         .admin-wrapper { max-width: 1200px; margin: 120px auto; padding: 20px; }
@@ -134,6 +135,7 @@
         <button class="tab-btn" onclick="openTab(event, 'requests')"><i class="fas fa-user-plus"></i> Candidature</button>
         <button class="tab-btn" onclick="openTab(event, 'users')"><i class="fas fa-users"></i> Utenti</button>
         <button class="tab-btn" onclick="openTab(event, 'rooms')"><i class="fas fa-door-open"></i> Aule</button>
+        <button class="tab-btn" onclick="openTab(event, 'settings')"><i class="fas fa-cogs"></i> Impostazioni</button>
     </div>
 
     <div id="tab-lessons" class="tab-content active">
@@ -250,6 +252,34 @@
     </div>
     </div>
 
+    <div id="tab-settings" class="tab-content">
+        <div class="card-box">
+            <div class="card-header">
+                <i class="fas fa-tools"></i>
+                <h3>Manutenzione e Sicurezza</h3>
+            </div>
+            
+            <div style="background:#fff8e1; padding:25px; border-radius:12px; border:1px solid #ffe0b2; display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 20px;">
+                <div style="display:flex; align-items:center; gap:20px;">
+                    <div style="background:#ff9800; color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0;">
+                        <i class="fas fa-traffic-light"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0 0 5px 0; color:#e65100; font-size:1.2rem;">Modalità Manutenzione</h4>
+                        <p style="margin:0; font-size:0.95rem; color:#bf360c; max-width: 500px;">
+                            Quando attiva, <strong>blocca l'accesso</strong> a tutti gli studenti e tutor. Solo gli amministratori possono accedere al sito. Utile per aggiornamenti o emergenze.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <button id="btnToggleMaint" class="btn-action" style="padding: 15px 30px; font-size: 1rem; border-radius:50px; transition:0.3s; cursor:pointer; border:none; font-weight:bold; color:white; display:flex; align-items:center; gap:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                        <i class="fas fa-spinner fa-spin"></i> <span>Caricamento...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <div id="adminEditModal" class="modal-overlay hidden">
@@ -344,9 +374,12 @@
         </form>
     </div>
 </div>
+    
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 <script src="js/gestione_utente.js"></script>
 <script src="js/admin.js"></script>
+<script src="js/global_maintenance.js"></script>
 </body>
 </html>

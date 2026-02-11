@@ -1,3 +1,84 @@
+// ============================================================
+// 🛡️ ANTI-CHEAT & SECURITY MONITOR
+// Intercetta tentativi di hacking dalla console o azioni non autorizzate
+// ============================================================
+(function() {
+    // Se Supabase non è caricato, non fare nulla
+    if (typeof window.supabase === 'undefined') return console.warn("Supabase not loaded, anti-cheat disabled");
+
+    const originalCreateClient = window.supabase.createClient;
+    
+    // Sovrascriviamo la funzione createClient per iniettare il controllo
+    window.supabase.createClient = function(...args) {
+        const client = originalCreateClient.apply(this, args);
+        
+        // Funzione che "avvolge" i costruttori di query (select, update, etc.)
+        const proxyBuilder = (builder) => {
+            return new Proxy(builder, {
+                get(target, prop) {
+                    // Intercettiamo il 'then' (quando la query viene eseguita)
+                    if (prop === 'then') {
+                        return function(onFulfilled, onRejected) {
+                            return target.then(response => {
+                                // 🚨 CONTROLLO SICUREZZA QUI 🚨
+                                if (response && response.error) {
+                                    checkSecurityViolation(response.error);
+                                }
+                                if (onFulfilled) return onFulfilled(response);
+                                return response;
+                            }, onRejected);
+                        }
+                    }
+                    
+                    // Continua la catena (es. .eq().select()...) mantenendo il proxy
+                    const value = target[prop];
+                    if (typeof value === 'function') {
+                        return function(...args) {
+                            const result = value.apply(this, args);
+                            if (result && typeof result.then === 'function') {
+                                return proxyBuilder(result);
+                            }
+                            return result;
+                        }
+                    }
+                    return value;
+                }
+            });
+        };
+
+        // Proxy sul client principale (intercetta .from() e .rpc())
+        return new Proxy(client, {
+            get(target, prop) {
+                const value = target[prop];
+                if (typeof value === 'function' && (prop === 'from' || prop === 'rpc')) {
+                    return function(...args) {
+                        return proxyBuilder(value.apply(this, args));
+                    }
+                }
+                return value;
+            }
+        });
+    };
+
+    function checkSecurityViolation(error) {
+        // Codice 42501: RLS Policy Violation (Permesso Negato dal DB)
+        // Codice P0001: Raise Exception (Il nostro Trigger Anti-Hacker)
+        if (error.code === '42501' || (error.code === 'P0001' && error.message.includes('Cucciolo provaci di nuovo e vedrai che te la mettiamo nel culo'))) {
+            console.clear(); // Pulisce la console per confondere l'hacker
+            showHackerModal(error.message);
+        }
+    }
+
+    function showHackerModal(msg) {
+        if(document.getElementById('hackerModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'hackerModal';
+        modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); animation: fadeIn 0.2s;";
+        modal.innerHTML = `<div style="background: #fff; padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; border-bottom: 8px solid #D32F2F; box-shadow: 0 0 80px rgba(211, 47, 47, 0.6); transform: scale(1.1);"><div style="font-size: 5rem; color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-user-secret"></i></div><h1 style="color: #D32F2F; font-family: 'Poppins', sans-serif; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; font-size: 1.8rem;">Proviamo a fare i furbi, eh?</h1><p style="font-size: 1.1rem; color: #333; margin-bottom: 20px; font-weight: 500;">Il sistema ha rilevato un tentativo di modifica non autorizzata o un comando illegale dalla console.</p><div style="background: #ffebee; color: #b71c1c; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin-bottom: 25px; border: 1px solid #ffcdd2;"><strong>Security Alert:</strong> ${msg || 'Access Denied'}</div><button onclick="location.reload()" style="background: #D32F2F; color: white; border: none; padding: 15px 40px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);"><i class="fas fa-sync-alt"></i> Ricarica Pagina</button></div>`;
+        document.body.appendChild(modal);
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================================

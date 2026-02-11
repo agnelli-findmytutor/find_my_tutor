@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadCancelledLessons();
     loadBanHistory(); // Carica lo storico dei ban
     loadActiveBans();  // Carica i ban attivi
+    initMaintenanceControl(); // Inizializza il controllo manutenzione
 
     // --- SETUP MODALI ---
     const editModal = document.getElementById('adminEditModal');
@@ -122,6 +123,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- FUNZIONI DI CARICAMENTO ---
+
+// --- GESTIONE MANUTENZIONE ---
+async function initMaintenanceControl() {
+    // Inizializza stato leggendo dal DB
+    const { data: setting } = await sb.from('system_settings').select('value').eq('key', 'maintenance_mode').single();
+    updateMaintButton(setting ? setting.value : false);
+    
+    // Event Listener sul bottone (che ora è statico nell'HTML)
+    const btnToggle = document.getElementById('btnToggleMaint');
+    if(btnToggle) btnToggle.onclick = toggleMaintenance;
+}
+
+function updateMaintButton(isActive) {
+    const btn = document.getElementById('btnToggleMaint');
+    const span = btn.querySelector('span');
+    if(isActive) {
+        btn.style.background = "#D32F2F"; // Rosso (Attivo/Pericolo)
+        span.innerText = "MANUTENZIONE ATTIVA (Sito Bloccato)";
+        btn.title = "Clicca per disattivare e riaprire il sito";
+    } else {
+        btn.style.background = "#2E7D32"; // Verde (Sito Online)
+        span.innerText = "Sito Online (Manutenzione OFF)";
+        btn.title = "Clicca per attivare la manutenzione";
+    }
+    btn.dataset.status = isActive;
+}
+
+async function toggleMaintenance() {
+    const btn = document.getElementById('btnToggleMaint');
+    const currentStatus = btn.dataset.status === 'true';
+    const newStatus = !currentStatus;
+
+    const msg = newStatus 
+        ? "ATTENZIONE: Stai per attivare la MANUTENZIONE.\nTutti gli utenti non-admin verranno bloccati.\nConfermi?" 
+        : "Vuoi DISATTIVARE la manutenzione e riaprire il sito?";
+
+    if(!confirm(msg)) return;
+
+    const { error } = await sb.from('system_settings').update({ value: newStatus }).eq('key', 'maintenance_mode');
+    if(error) alert("Errore: " + error.message);
+    else {
+        updateMaintButton(newStatus);
+        alert(newStatus ? "Sito in manutenzione." : "Sito riaperto.");
+    }
+}
 
 async function loadStats() {
     const { count: uCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
