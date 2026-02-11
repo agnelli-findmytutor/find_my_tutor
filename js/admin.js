@@ -281,8 +281,23 @@ window.openUserProfile = (id) => {
 window.updateUserRole = async (userId) => {
     const newRole = document.getElementById(`role-${userId}`).value;
     if(!confirm(`Cambiare ruolo in "${newRole}"?`)) return;
+    
     const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', userId);
-    if (error) alert("Errore: " + error.message); else { alert("Ruolo aggiornato!"); loadUsers(); }
+    
+    if (error) {
+        alert("Errore: " + error.message);
+    } else {
+        alert("Ruolo aggiornato con successo!");
+        
+        // Se l'admin ha cambiato il PROPRIO ruolo, dobbiamo aggiornare la cache e ricaricare
+        const { data: { user } } = await sb.auth.getUser();
+        if (user && user.id === userId) {
+            localStorage.setItem('fmt_role', newRole);
+            window.location.reload();
+        } else {
+            loadUsers();
+        }
+    }
 };
 
 // --- CANDIDATURE ---

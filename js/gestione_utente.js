@@ -136,12 +136,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             .eq('id', user.id)
             .maybeSingle();
 
-        // SICUREZZA EXTRA: Se il ruolo nel DB è diverso da quello in cache, 
-        // aggiorna immediatamente e ricarica se necessario
+        // SINCRONIZZAZIONE RUOLO: Se il ruolo nel DB è diverso da quello in cache (o se la cache è vuota)
+        // Questo rileva se hai cambiato il ruolo manualmente da Supabase o dal pannello Admin
         if (profile && profile.role !== cachedRole) {
             localStorage.setItem('fmt_role', profile.role);
-            // Se l'utente si era "finto" admin in cache, ricarichiamo per nascondere i link
-            if (cachedRole === 'admin') window.location.reload();
+            localStorage.setItem('fmt_avatar', user.user_metadata.avatar_url || 'https://via.placeholder.com/150');
+            
+            // Forza il ricaricamento per attivare i nuovi permessi e mostrare i menu corretti
+            window.location.reload();
+            return; // Interrompiamo l'esecuzione per attendere il ricaricamento
         }
 
         // Se il profilo non esiste, lo creiamo automaticamente
