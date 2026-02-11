@@ -403,6 +403,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             dayApps.forEach(app => {
                 const isCancelled = app.status === 'Cancellata';
                 const statusClass = isCancelled ? 'cancelled' : 'active';
+                const isGroup = app.is_group;
+                
+                let cardStyle = '';
+                if (isGroup && !isCancelled) cardStyle = 'border-left: 4px solid #1565C0; background: #E3F2FD;';
                 
                 const roomBadge = !isCancelled && app.room_name 
                     ? `<span class="room-badge"><i class="fas fa-door-open"></i> ${app.room_name}</span>` 
@@ -422,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ? `<p style="font-size:0.8rem; color:#1565C0; margin-top:2px;">+ ${app.group_members}</p>` 
                     : '';
 
-                html += `<div class="lesson-card ${statusClass}">
+                html += `<div class="lesson-card ${statusClass}" style="${cardStyle}">
                         <div class="card-content">
                             <div class="card-main">
                                 <div class="time-display">${app.time_slot}</div>

@@ -44,8 +44,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (lessons && lessons.length > 0) {
             container.innerHTML = '';
             lessons.forEach(l => {
+                const isGroup = l.is_group;
+                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : '';
+                
                 container.innerHTML += `
-                    <div class="mini-lesson-card">
+                    <div class="mini-lesson-card" style="${style}">
                         <div class="info">
                             <h4>${l.subject}</h4>
                             <p>Tutor: ${l.tutor_name_cache}</p>
@@ -70,8 +73,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (lessons && lessons.length > 0) {
             container.innerHTML = '';
             lessons.forEach(l => {
+                const isGroup = l.is_group;
+                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #4a148c;';
+
                 container.innerHTML += `
-                    <div class="mini-lesson-card" style="border-left: 4px solid #4a148c;">
+                    <div class="mini-lesson-card" style="${style}">
                         <div class="info">
                             <h4>${l.subject}</h4>
                             <p>Studente: ${l.student_name}</p>

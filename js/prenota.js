@@ -419,6 +419,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isCancelled = l.status === 'Cancellata';
                 const isPast = !isCancelled && l.date < today;
                 
+                // Stile Gruppo
+                const isGroup = l.is_group;
+
                 let roomInfo = '';
                 if (!isCancelled) {
                     roomInfo = l.room_name 
@@ -457,6 +460,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const item = document.createElement('div');
                 item.className = 'lesson-item';
                 if(isCancelled) item.style.cssText = "border-left: 4px solid #d32f2f; background: #fff5f5;";
+                else if(isGroup && !isPast) item.style.cssText = "border-left: 4px solid #1565C0; background: #E3F2FD;";
                 if(isPast) item.style.cssText = "border-left: 4px solid #999; background: #fafafa; opacity: 0.8;";
 
                 item.innerHTML = `
@@ -853,11 +857,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
-            const { error } = await sbClient.from('appointments').insert([{
-                user_id: user.id, tutor_id: tid, student_name: user.user_metadata.full_name || user.email,
-                student_email: user.email, subject: sub, date: date, time_slot: time,
-                duration: dur, status: 'Confermato', tutor_name_cache: tName, notes: notes
-            }]);
+            
+            const appointmentsPayload = [];
+
+            // 1. Utente Principale (Prenotante)
+            const otherNames = selectedStudents.map(s => s.name).join(', ');
+            appointmentsPayload.push({
+                user_id: user.id, 
+                tutor_id: tid, 
+                student_name: user.user_metadata.full_name || user.email,
+                student_email: user.email, 
+                subject: sub, 
+                date: date, 
+                time_slot: time,
+                duration: dur, 
+                status: 'Confermato', 
+                tutor_name_cache: tName, 
+                notes: notes,
+                is_group: isGroupMode,
+                group_members: isGroupMode ? (selectedStudents.length > 0 ? otherNames : null) : null
+            });
+
+            // 2. Compagni di Gruppo (Creiamo una lezione anche per loro)
+            if (isGroupMode && selectedStudents.length > 0) {
+                const organizerName = user.user_metadata.full_name || user.email;
+                
+                selectedStudents.forEach(student => {
+                    // Cerchiamo l'email dello studente se disponibile
+                    const sObj = allStudents.find(x => x.id === student.id);
+                    const sEmail = sObj ? sObj.email : "";
+
+                    appointmentsPayload.push({
+                        user_id: student.id,
+                        tutor_id: tid,
+                        student_name: student.name,
+                        student_email: sEmail,
+                        subject: sub,
+                        date: date,
+                        time_slot: time,
+                        duration: dur,
+                        status: 'Confermato',
+                        tutor_name_cache: tName,
+                        notes: notes,
+                        is_group: true,
+                        group_members: `Organizzato da ${organizerName}`
+                    });
+                });
+            }
+
+            const { error } = await sbClient.from('appointments').insert(appointmentsPayload);
             if(error) throw error;
             showSuccess("Prenotata!", "Lezione confermata.");
             bookingForm.reset();
