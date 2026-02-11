@@ -1,3 +1,4 @@
+(function() {
 // CONFIGURAZIONE
 const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8'; 
@@ -870,3 +871,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Avvio
     fetchLessons();
 });
+})();

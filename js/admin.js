@@ -1,3 +1,4 @@
+(function() {
 // PROTEZIONE DI LIVELLO 1: Nasconde immediatamente l'interfaccia.
 // Impedisce il "flash" del contenuto prima del controllo del ruolo.
 // Se l'utente non è admin, la pagina rimarrà bianca fino al reindirizzamento.
@@ -14,6 +15,7 @@ let allCancelledLessons = [];
 let allUsers = []; 
 let allPendingRequests = [];
 let allHistoryRequests = [];
+let activeBannedIds = new Set(); // Traccia gli ID degli utenti sospesi
 let selectedId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: profile, error: profileError } = await sb.from('profiles').select('role').eq('id', user.id).single();
     
     if (profileError || !profile || profile.role !== 'admin') {
-        console.warn("Tentativo di accesso non autorizzato rilevato per l'utente:", user.email);
         // Pulizia aggressiva: se hanno provato a manomettere il localStorage, lo svuotiamo
         localStorage.removeItem('fmt_role');
         localStorage.removeItem('fmt_avatar');
@@ -52,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAllAppointments(); 
     loadCancelledLessons();
     loadBanHistory(); // Carica lo storico dei ban
+    loadActiveBans();  // Carica i ban attivi
 
     // --- SETUP MODALI ---
     const editModal = document.getElementById('adminEditModal');
@@ -142,11 +144,14 @@ async function loadUsers() {
     tbody.innerHTML = '';
 
     users.forEach(u => {
-        const banBtn = u.role === 'tutor' ? `<button class="btn-action" style="background:#c62828; margin-left:5px;" onclick="openBanModal('${u.id}')" title="Banna Tutor"><i class="fas fa-ban"></i></button>` : '';
+        const isBanned = activeBannedIds.has(u.id);
+        const bannedBadge = isBanned ? `<span style="background:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px; border:1px solid #ffcdd2;"><i class="fas fa-user-slash"></i> SOSPESO</span>` : '';
+        
+        const banBtn = `<button class="btn-action" style="background:#c62828; margin-left:5px;" onclick="openBanModal('${u.id}', '${u.role}')" title="Banna Utente"><i class="fas fa-ban"></i></button>`;
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <strong>${u.email}</strong><br>
+                <strong>${u.email}</strong> ${bannedBadge}<br>
                 <small>${u.full_name || 'Nessun nome'}</small><br>
                 <small style="color:#666;">Classe: ${u.class_info || 'N.D.'}</small>
             </td>
@@ -281,7 +286,7 @@ window.updateUserRole = async (userId) => {
 };
 
 // --- CANDIDATURE ---
-async function loadTutorRequests() {
+window.loadTutorRequests = async function() {
     const tbody = document.querySelector('#requestsTable tbody');
     tbody.innerHTML = '<tr><td colspan="4">...</td></tr>';
     const { data: requests, error } = await sb.from('tutor_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
@@ -299,7 +304,7 @@ async function loadTutorRequests() {
 // Per brevità, assicurati che loadRequestsHistory, loadBookings, loadAllAppointments ecc siano presenti.
 // Copia le funzioni "mancanti" dal file precedente se necessario, qui sotto ne rimetto le essenziali:
 
-async function loadRequestsHistory() {
+window.loadRequestsHistory = async function() {
     const tbody = document.querySelector('#requestsHistoryTable tbody');
     if(!tbody) return; 
     tbody.innerHTML = '<tr><td colspan="4">...</td></tr>';
@@ -577,7 +582,7 @@ window.viewRequestDetails = (id, type) => {
 };
 
 // --- BANNA TUTOR ---
-window.openBanModal = (id) => {
+window.openBanModal = (id, role) => {
     selectedId = id;
     // Crea il modale dinamicamente se non esiste
     if(!document.getElementById('adminBanModal')) {
@@ -588,7 +593,16 @@ window.openBanModal = (id) => {
             <div class="modal-card">
                 <div class="modal-icon warning" style="background:#FFEBEE; color:#c62828;"><i class="fas fa-ban"></i></div>
                 <h3 style="color:#c62828;">Banna Tutor</h3>
-                <p>Il tutor verrà degradato a Studente. Inserisci il motivo:</p>
+                <p id="banModalDesc">Seleziona il tipo di restrizione:</p>
+                
+                <select id="banType" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;">
+                    <option value="degrade">Solo Degrada a Studente (Tutor)</option>
+                    <option value="24">Sospendi Account (24 Ore)</option>
+                    <option value="168">Sospendi Account (7 Giorni)</option>
+                    <option value="720">Sospendi Account (30 Giorni)</option>
+                    <option value="permanent">Ban Permanente (Accesso Negato)</option>
+                </select>
+
                 <textarea id="banReason" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;" placeholder="Motivo del ban..."></textarea>
                 <div class="modal-actions">
                     <button class="btn-modal secondary" onclick="document.getElementById('adminBanModal').classList.add('hidden')">Annulla</button>
@@ -598,27 +612,117 @@ window.openBanModal = (id) => {
         `;
         document.body.appendChild(m);
     }
+
+    // Personalizza descrizione in base al ruolo
+    const desc = document.getElementById('banModalDesc');
+    const typeSelect = document.getElementById('banType');
+    if (role !== 'tutor') {
+        typeSelect.options[0].disabled = true;
+        typeSelect.value = "24";
+        desc.innerText = "L'utente verrà sospeso dal sistema. Seleziona la durata:";
+    } else {
+        typeSelect.options[0].disabled = false;
+        typeSelect.value = "degrade";
+        desc.innerText = "Il tutor può essere degradato o sospeso. Seleziona la durata:";
+    }
+
     document.getElementById('banReason').value = '';
     document.getElementById('adminBanModal').classList.remove('hidden');
 };
 
 window.confirmBan = async () => {
     const reason = document.getElementById('banReason').value;
+    const banType = document.getElementById('banType').value;
     if(!reason) { alert("Inserisci un motivo."); return; }
     
-    // 1. Aggiorna ruolo a Studente
-    const { error: roleErr } = await sb.from('profiles').update({ role: 'studente' }).eq('id', selectedId);
-    if(roleErr) { alert("Errore aggiornamento ruolo: " + roleErr.message); return; }
-    
-    // 2. Salva il log del ban per la notifica
-    const { error: logErr } = await sb.from('banned_tutors_log').insert([{ user_id: selectedId, reason: reason }]);
-    if(logErr) console.error("Errore log ban:", logErr);
+    try {
+        // 1. Gestione Ban a livello Authentication (se richiesto)
+        if (banType !== 'degrade') {
+            const hours = banType === 'permanent' ? -1 : parseInt(banType);
+            const { error: authErr } = await sb.rpc('admin_manage_ban', { 
+                target_user_id: selectedId, 
+                ban_hours: hours 
+            });
+            if (authErr) throw authErr;
+        }
+
+        // 2. Se è un tutor, degrada a Studente e logga
+        const user = allUsers.find(u => u.id === selectedId);
+        if (user && user.role === 'tutor') {
+            await sb.from('profiles').update({ role: 'studente' }).eq('id', selectedId);
+            await sb.from('banned_tutors_log').insert([{ user_id: selectedId, reason: reason }]);
+        }
+
+        alert("Operazione completata con successo.");
+    } catch (err) {
+        alert("Errore durante il ban: " + err.message);
+    }
     
     document.getElementById('adminBanModal').classList.add('hidden');
-    alert("Tutor bannato con successo.");
     loadUsers();
     loadBanHistory(); // Aggiorna la lista
 };
+
+// --- REVOCA BAN ---
+window.revokeBan = async (userId) => {
+    if(!confirm("Vuoi revocare la sospensione per questo utente? Potrà accedere immediatamente.")) return;
+    
+    try {
+        // Chiamiamo la funzione esistente con 0 ore per rimuovere il ban
+        const { error } = await sb.rpc('admin_manage_ban', { 
+            target_user_id: userId, 
+            ban_hours: 0 
+        });
+        
+        if (error) throw error;
+        
+        alert("Sospensione revocata con successo.");
+        loadActiveBans();
+        loadUsers();
+    } catch (err) {
+        alert("Errore durante la revoca: " + err.message);
+    }
+};
+
+// --- CARICA BAN ATTIVI ---
+async function loadActiveBans() {
+    const tbody = document.querySelector('#activeBansTable tbody');
+    if(!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="4">Caricamento...</td></tr>';
+
+    try {
+        const { data: bans, error } = await sb.rpc('get_active_bans');
+        if (error) throw error;
+
+        tbody.innerHTML = '';
+        activeBannedIds.clear();
+
+        if (!bans || bans.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Nessun utente attualmente sospeso.</td></tr>';
+            loadUsers(); // Aggiorna i badge nella lista utenti
+            return;
+        }
+
+        bans.forEach(b => {
+            activeBannedIds.add(b.user_id);
+            const until = new Date(b.banned_until).toLocaleDateString() + ' ' + new Date(b.banned_until).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${b.full_name || 'N/A'}</strong><br><small>${b.email}</small></td>
+                <td><span style="color:#c62828; font-weight:bold;">${until}</span></td>
+                <td><small>${b.reason || 'Nessun motivo specificato'}</small></td>
+                <td><button class="btn-action" style="background:#2e7d32;" onclick="revokeBan('${b.user_id}')" title="Revoca Ban"><i class="fas fa-user-check"></i> Revoca</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        loadUsers(); // Aggiorna i badge nella lista utenti
+    } catch (err) {
+        console.error("Errore caricamento ban attivi:", err);
+        tbody.innerHTML = '<tr><td colspan="4">Errore caricamento.</td></tr>';
+    }
+}
 
 // --- STORICO BAN ---
 async function loadBanHistory() {
@@ -659,3 +763,4 @@ async function loadBanHistory() {
         tbody.appendChild(row);
     });
 }
+})();

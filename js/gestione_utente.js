@@ -1,3 +1,10 @@
+(function() {
+    // PROTEZIONE CONSOLE: Impedisce la visualizzazione di log residui
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        console.log("%cAccesso Protetto", "color: red; font-size: 20px; font-weight: bold;");
+        console.log("Il monitoraggio della console è disabilitato per motivi di sicurezza.");
+    }
+
 document.addEventListener('DOMContentLoaded', async () => {
 
     // CONFIGURAZIONE SUPABASE
@@ -120,8 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { user } } = await sbClient.auth.getUser();
 
     if (user) {
-        console.log("Utente loggato (Network):", user.email);
-        
         let userRole = 'studente';
 
         // Controlliamo se il profilo esiste già
@@ -135,7 +140,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // aggiorna immediatamente e ricarica se necessario
         if (profile && profile.role !== cachedRole) {
             localStorage.setItem('fmt_role', profile.role);
-            console.log("Sincronizzazione ruolo effettuata.");
             // Se l'utente si era "finto" admin in cache, ricarichiamo per nascondere i link
             if (cachedRole === 'admin') window.location.reload();
         }
@@ -237,3 +241,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+})();
