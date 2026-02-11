@@ -1,10 +1,4 @@
 (function() {
-    // PROTEZIONE CONSOLE: Impedisce la visualizzazione di log residui
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        console.log("%cAccesso Protetto", "color: red; font-size: 20px; font-weight: bold;");
-        console.log("Il monitoraggio della console è disabilitato per motivi di sicurezza.");
-    }
-
 document.addEventListener('DOMContentLoaded', async () => {
 
     // CONFIGURAZIONE SUPABASE
@@ -136,8 +130,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             .eq('id', user.id)
             .maybeSingle();
 
-        // SINCRONIZZAZIONE RUOLO: Se il ruolo nel DB è diverso da quello in cache (o se la cache è vuota)
-        // Questo rileva se hai cambiato il ruolo manualmente da Supabase o dal pannello Admin
+        // DEBUG: Vediamo cosa legge il sito dal database
+        if (profile) console.log("Ruolo letto da DB:", profile.role);
+
+        // SINCRONIZZAZIONE RUOLO: Aggiorna se c'è discrepanza
         if (profile && profile.role !== cachedRole) {
             localStorage.setItem('fmt_role', profile.role);
             localStorage.setItem('fmt_avatar', user.user_metadata.avatar_url || 'https://via.placeholder.com/150');
