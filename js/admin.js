@@ -589,20 +589,23 @@ function renderLessons(container, data, isReg) {
 
         const div = document.createElement('div');
         div.className = 'lesson-card';
-        div.style = `${style} padding:15px; margin-bottom:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);`;
+        // Stili base spostati nel CSS, manteniamo solo quelli dinamici (colore bordo/sfondo)
+        div.style = style; 
         div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <div style="flex:1;">
+            <div class="lesson-card-inner">
+                <div class="lesson-info">
                     <h4 style="margin:0; color:#333;">${app.subject} ${badge}</h4>
                     ${isReg ? tutor : `<p style="margin:5px 0; font-size:0.9rem; color:#666;">${tutor}</p>`}
                     <p style="margin:0; font-size:0.9rem; color:#555;">${studentDisplay} <br> ${d} - ${app.time_slot}</p>
                     ${reason}
                 </div>
-                <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
-                    <span style="font-weight:bold; font-size:0.8rem; color:${isCan?'red':'green'}">${app.status}</span>
+                <div class="lesson-actions">
+                    <span class="status-badge" style="color:${isCan?'red':'green'}">${app.status}</span>
+                    <div class="lesson-btn-group">
                     <button class="btn-mini" style="background:#E3F2FD; color:#1565c0;" onclick="openEdit('${app.id}')"><i class="fas fa-pen"></i></button>
                     <button class="btn-mini" style="background:#FFF3E0; color:#E65100;" onclick="openCancel('${app.id}')"><i class="fas fa-ban"></i></button>
                     <button class="btn-mini" style="background:#FFEBEE; color:#b71c1c;" onclick="openPermDelete('${app.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             </div>`;
         container.appendChild(div);

@@ -6,7 +6,8 @@
     display: flex; align-items: center; justify-content: center;
     text-align: center; color: white; padding: 0 10%;
     position: relative; 
-    margin-top: 80px; /* Spazio per l'header fisso */
+    margin-top: 0; /* Rimosso margine: lo sfondo deve partire da 0 */
+    padding-top: 100px; /* Padding interno per non nascondere il testo sotto l'header */
 }
 
 .hero-text h1 { font-size: 3.5rem; margin-bottom: 1rem; line-height: 1.2; }
@@ -173,24 +174,3 @@
 .fusion-card { background: linear-gradient(to bottom, white, #FFF5F5); }
 .success-card { background: linear-gradient(to bottom, white, #E0F2F1); border-top-color: #00897B; }
 .success-card .fusion-icon, .success-card .date-badge { color: #00897B; }
-
-/* RESPONSIVE MOBILE */
-@media (max-width: 768px) {
-    .story-hero { margin-top: 70px; height: auto; padding: 4rem 5%; }
-    .hero-text h1 { font-size: 2.2rem; }
-
-    .timeline-section::after { left: 31px; } /* Sposta la linea a sinistra */
-    
-    .timeline-item { 
-        width: 100%; 
-        padding-left: 70px; 
-        padding-right: 25px; 
-    }
-    
-    /* Reset posizionamento mobile */
-    .right { left: 0; }
-    
-    /* Allinea tutti i pallini a sinistra */
-    .timeline-item::after { left: 21px; right: auto; }
-    .right::after { left: 21px; } /* Forza anche quelli di destra a sinistra */
-}

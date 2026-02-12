@@ -21,7 +21,12 @@
 }
 
 /* --- RESET & BASE --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; /* Rimuove il box blu/grigio al tocco su mobile */
+}
 
 body {
     font-family: 'Poppins', sans-serif;
@@ -30,7 +35,12 @@ body {
     overflow-x: hidden;
 }
 
-a { text-decoration: none; transition: 0.3s; }
+a, button, .btn, .cta-btn, .menu-toggle, input[type="submit"], input[type="button"], label { 
+    text-decoration: none; 
+    transition: 0.3s; 
+    user-select: none; /* Impedisce la selezione del testo al click */
+    -webkit-user-select: none;
+}
 ul { list-style: none; }
 
 /* --- HEADER --- */

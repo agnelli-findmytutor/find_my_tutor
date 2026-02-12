@@ -150,6 +150,7 @@
 .duration-pills {
     display: flex;
     gap: 15px;
+    flex-wrap: wrap; /* Permette di andare a capo su schermi piccoli */
 }
 
 .duration-pills input[type="radio"] { display: none; }
@@ -305,15 +306,6 @@
     color: #bbb;
 }
 .empty-state i { font-size: 3.5rem; margin-bottom: 20px; opacity: 0.3; }
-
-/* Responsive */
-@media (max-width: 900px) {
-    .split-layout {
-        grid-template-columns: 1fr; /* Una colonna su mobile */
-        gap: 40px;
-    }
-    .card-box { padding: 25px; }
-}
 
 /* --- MODALI (Stile Coerente) --- */
 .modal-overlay {

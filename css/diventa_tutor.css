@@ -213,24 +213,6 @@
     transform: translateY(0);
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 768px) {
-    .application-container {
-        border-radius: 15px;
-    }
-    .form-header {
-        padding: 30px 20px;
-    }
-    .modern-form {
-        padding: 0 25px 30px;
-    }
-    
-    /* Su mobile le colonne diventano una sotto l'altra */
-    .form-row-split {
-        grid-template-columns: 1fr; 
-        gap: 0;
-    }
-}
 /* --- BANNER DI STATO --- */
 .status-banner {
     background: #FFF8E1; /* Giallo chiaro */
@@ -306,11 +288,6 @@
 /* Utility */
 .hidden { display: none !important; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* Mobile: Pulsanti uno sotto l'altro */
-@media (max-width: 600px) {
-    .btn-group-action { flex-direction: column; }
-}
 /* --- BANNER DI SUCCESSO (Verde) --- */
 .status-banner.success {
     background: #E8F5E9;       /* Verde molto chiaro */
