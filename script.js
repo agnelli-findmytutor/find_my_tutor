@@ -48,7 +48,7 @@
                 ">VIOLAZIONE DI SICUREZZA</h1>
                 
                 <h2 style="font-size: 1.5rem; color: #ffcccc; margin-top: 20px; letter-spacing: 2px;">
-                    PROTOCOLLO DI DIFESA ATTIVO, PORCO DIO MARCO GODO PROVA ANCORA A VIOLARE IL PORCODIO DI SITO.
+                    PROTOCOLLO DI DIFESA ATTIVO.
                 </h2>
                 <p style="color: red; font-size: 1.2rem;">IL TUO INDIRIZZO IP E' STATO REGISTRATO E SEGNALATO.</p>
                 
@@ -67,7 +67,7 @@
                 box-shadow: 0 0 20px red; transition: 0.3s;
                 font-family: 'Courier New', monospace;
             " onmouseover="this.style.background='red';this.style.color='white'" onmouseout="this.style.background='#b71c1c';this.style.color='black'">
-                [ SONO FORCIO (MI ARRENDO) ]
+                [ ok ]
             </button>
 
             <style>
