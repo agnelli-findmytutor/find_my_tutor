@@ -113,4 +113,64 @@ BEFORE UPDATE ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.prevent_role_change();
 
+-- 6. PROTEZIONE IDENTITÀ (NOME E EMAIL IMMODIFICABILI)
+-- Assicura che full_name ed email corrispondano sempre all'account Google (auth.users)
+
+-- A. Trigger per la tabella PROFILES
+CREATE OR REPLACE FUNCTION public.protect_profile_identity()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- L'admin può modificare tutto (es. correzioni manuali)
+  IF public.is_admin() THEN
+    RETURN NEW;
+  END IF;
+
+  -- L'utente normale NON può cambiare nome o email
+  IF (NEW.full_name IS DISTINCT FROM OLD.full_name) OR (NEW.email IS DISTINCT FROM OLD.email) THEN
+      RAISE EXCEPTION 'VIOLAZIONE: Non puoi modificare Nome o Email. Sono gestiti dal tuo account Google.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS check_profile_identity ON public.profiles;
+CREATE TRIGGER check_profile_identity
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.protect_profile_identity();
+
+-- B. Trigger per la tabella TUTOR_REQUESTS
+-- Se un hacker prova a inviare una candidatura con un nome falso, lo sovrascriviamo con quello vero.
+CREATE OR REPLACE FUNCTION public.force_request_identity()
+RETURNS TRIGGER AS $$
+DECLARE
+  real_name text;
+  real_email text;
+BEGIN
+  -- Recupera i dati sicuri da auth.users
+  SELECT raw_user_meta_data->>'full_name', email 
+  INTO real_name, real_email
+  FROM auth.users
+  WHERE id = NEW.user_id;
+
+  -- Sovrascrivi i campi con i dati ufficiali (se trovati)
+  IF real_name IS NOT NULL THEN
+    NEW.full_name := real_name;
+  END IF;
+  
+  IF real_email IS NOT NULL THEN
+    NEW.email := real_email;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS secure_tutor_request_identity ON public.tutor_requests;
+CREATE TRIGGER secure_tutor_request_identity
+BEFORE INSERT OR UPDATE ON public.tutor_requests
+FOR EACH ROW
+EXECUTE FUNCTION public.force_request_identity();
+
 -- FINE SCRIPT

@@ -475,8 +475,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function getFormData() {
         return {
-            full_name: document.getElementById('fullName').value,
-            email: document.getElementById('email').value,
+            // SICUREZZA: Usiamo i dati dell'oggetto user (da Google) invece dei campi input
+            full_name: user.user_metadata.full_name || document.getElementById('fullName').value,
+            email: user.email || document.getElementById('email').value,
             phone: document.getElementById('phone').value,
             class_info: document.getElementById('classInfo').value,
             subjects: document.getElementById('subjects').value,
