@@ -9,6 +9,14 @@ const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8'; 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// --- SICUREZZA: CHECK RAPIDO (Cache Locale) ---
+// Se il browser sa già che non sei admin, ti reindirizza SUBITO senza aspettare il server.
+const cachedRole = localStorage.getItem('fmt_role');
+if (cachedRole && cachedRole !== 'admin') {
+    window.location.replace("dashboard.html");
+    return; // Interrompe l'esecuzione dello script
+}
+
 // --- SICUREZZA: ESCAPE HTML (Previene XSS) ---
 const escapeHtml = (unsafe) => {
     if (typeof unsafe !== 'string') return unsafe;
