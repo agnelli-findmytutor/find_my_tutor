@@ -151,105 +151,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --- FUNZIONI DI CARICAMENTO ---
 
 // --- GESTIONE MANUTENZIONE ---
-async function initMaintenanceControl() {
-    // Inizializza stato leggendo dal DB
-    const { data: setting } = await sb.from('system_settings').select('value').eq('key', 'maintenance_mode').single();
-    updateMaintButton(setting ? setting.value : false);
-    
-    // Event Listener sul bottone (che ora è statico nell'HTML)
-    const btnToggle = document.getElementById('btnToggleMaint');
-    if(btnToggle) btnToggle.onclick = toggleMaintenance;
-}
-
-function updateMaintButton(isActive) {
-    const btn = document.getElementById('btnToggleMaint');
-    const span = btn.querySelector('span');
-    if(isActive) {
-        btn.style.background = "#D32F2F"; // Rosso (Attivo/Pericolo)
-        span.innerText = "MANUTENZIONE ATTIVA (Sito Bloccato)";
-        btn.title = "Clicca per disattivare e riaprire il sito";
-    } else {
-        btn.style.background = "#2E7D32"; // Verde (Sito Online)
-        span.innerText = "Sito Online (Manutenzione OFF)";
-        btn.title = "Clicca per attivare la manutenzione";
-    }
-    btn.dataset.status = isActive;
-}
-
-async function toggleMaintenance() {
-    const btn = document.getElementById('btnToggleMaint');
-    const currentStatus = btn.dataset.status === 'true';
-    const newStatus = !currentStatus;
-
-    const msg = newStatus 
-        ? "ATTENZIONE: Stai per attivare la MANUTENZIONE.\nTutti gli utenti non-admin verranno bloccati.\nConfermi?" 
-        : "Vuoi DISATTIVARE la manutenzione e riaprire il sito?";
-
-    if(!confirm(msg)) return;
-
-    const { error } = await sb.from('system_settings').update({ value: newStatus }).eq('key', 'maintenance_mode');
-    if(error) alert("Errore: " + error.message);
-    else {
-        updateMaintButton(newStatus);
-        alert(newStatus ? "Sito in manutenzione." : "Sito riaperto.");
-    }
-}
-
-async function loadStats() {
-    const { count: uCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
-    document.getElementById('countUsers').innerText = uCount || 0;
-    const { count: tCount } = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'tutor');
-    document.getElementById('countTutors').innerText = tCount || 0;
-    const { count: reqCount } = await sb.from('tutor_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-    document.getElementById('countRequests').innerText = reqCount || 0;
-    const { count: lCount } = await sb.from('appointments').select('*', { count: 'exact', head: true });
-    document.getElementById('countLessons').innerText = lCount || 0;
-    const { count: rCount } = await sb.from('room_bookings').select('*', { count: 'exact', head: true });
-    document.getElementById('countRooms').innerText = rCount || 0;
-}
-
-// UTENTI
-async function loadUsers() {
-    const tbody = document.querySelector('#usersTable tbody');
-    tbody.innerHTML = '<tr><td colspan="4">Caricamento...</td></tr>';
-    const { data: users, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="4">Errore</td></tr>`; return; }
-    
-    allUsers = users; 
-    tbody.innerHTML = '';
-
-    users.forEach(u => {
-        const isBanned = activeBannedIds.has(u.id);
-        const bannedBadge = isBanned ? `<span style="background:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px; border:1px solid #ffcdd2;"><i class="fas fa-user-slash"></i> SOSPESO</span>` : '';
-        
-        const banBtn = `<button class="btn-action" style="background:#c62828; margin-left:5px;" onclick="openBanModal('${u.id}', '${u.role}')" title="Banna Utente"><i class="fas fa-ban"></i></button>`;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <strong>${escapeHtml(u.email)}</strong> ${bannedBadge}<br>
-                <small>${escapeHtml(u.full_name) || 'Nessun nome'}</small><br>
-                <small style="color:#666;">Classe: ${escapeHtml(u.class_info) || 'N.D.'}</small>
-            </td>
-            <td><span class="badge-role role-${u.role}">${u.role}</span></td>
-            <td>
-                <select class="role-select" id="role-${u.id}">
-                    <option value="studente" ${u.role === 'studente' ? 'selected' : ''}>Studente</option>
-                    <option value="tutor" ${u.role === 'tutor' ? 'selected' : ''}>Tutor</option>
-                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                </select>
-            </td>
-            <td>
-                <button class="btn-action btn-save" onclick="updateUserRole('${u.id}')" title="Salva Ruolo"><i class="fas fa-save"></i></button>
-                <button class="btn-action" style="background:#1565c0;" onclick="openUserProfile('${u.id}')" title="Modifica Dettagli"><i class="fas fa-user-edit"></i></button>
-                ${banBtn}
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
 // --- NUOVO: LOGICA DISPONIBILITÀ (Blocchetti) ---
 function setupAdminFunctions() {
+  // --- FUNZIONI SPOSTATE QUI PER SICUREZZA ---
+  
   window.addAvailabilitySlot = () => {
     const day = document.getElementById('tempDay').value;
     const start = document.getElementById('tempStart').value;
@@ -494,7 +399,7 @@ window.deleteRequest = async (reqId) => {
     if(error) alert(error.message); else { alert("Eliminata."); loadRequestsHistory(); }
 };
 
-async function loadBookings() {
+window.loadBookings = async function() {
     const tbody = document.querySelector('#bookingsTable tbody');
     tbody.innerHTML = '<tr><td colspan="4">...</td></tr>';
     
@@ -545,7 +450,7 @@ window.deleteBooking = async (bookingId) => {
     if (error) alert("Errore"); else { alert("Cancellata."); loadBookings(); }
 };
 
-async function loadAllAppointments() {
+window.loadAllAppointments = async function() {
     const list = document.getElementById('adminAppointmentsList');
     list.innerHTML = '<p style="text-align:center;">Caricamento...</p>';
     const { data, error } = await sb.from('appointments').select('*').neq('status', 'Cancellata').order('date', { ascending: false });
@@ -556,7 +461,7 @@ async function loadAllAppointments() {
     renderLessons(list, grouped, false);
 }
 
-async function loadCancelledLessons() {
+window.loadCancelledLessons = async function() {
     const list = document.getElementById('adminCancelledList');
     list.innerHTML = '<p style="text-align:center;">Caricamento...</p>';
     const { data, error } = await sb.from('appointments').select('*').eq('status', 'Cancellata').order('date', { ascending: false });
@@ -817,7 +722,7 @@ window.revokeBan = async (userId) => {
 };
 
 // --- CARICA BAN ATTIVI ---
-async function loadActiveBans() {
+window.loadActiveBans = async function() {
     const tbody = document.querySelector('#activeBansTable tbody');
     if(!tbody) return;
 
@@ -857,7 +762,7 @@ async function loadActiveBans() {
 }
 
 // --- STORICO BAN ---
-async function loadBanHistory() {
+window.loadBanHistory = async function() {
     const tbody = document.querySelector('#banHistoryTable tbody');
     if(!tbody) return;
     
@@ -895,5 +800,102 @@ async function loadBanHistory() {
         tbody.appendChild(row);
     });
 }
+
+// --- FUNZIONI SPOSTATE (STATS, USERS, MAINT) ---
+window.loadStats = async function() {
+    const { count: uCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+    document.getElementById('countUsers').innerText = uCount || 0;
+    const { count: tCount } = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'tutor');
+    document.getElementById('countTutors').innerText = tCount || 0;
+    const { count: reqCount } = await sb.from('tutor_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    document.getElementById('countRequests').innerText = reqCount || 0;
+    const { count: lCount } = await sb.from('appointments').select('*', { count: 'exact', head: true });
+    document.getElementById('countLessons').innerText = lCount || 0;
+    const { count: rCount } = await sb.from('room_bookings').select('*', { count: 'exact', head: true });
+    document.getElementById('countRooms').innerText = rCount || 0;
+};
+
+window.loadUsers = async function() {
+    const tbody = document.querySelector('#usersTable tbody');
+    tbody.innerHTML = '<tr><td colspan="4">Caricamento...</td></tr>';
+    const { data: users, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) { tbody.innerHTML = `<tr><td colspan="4">Errore</td></tr>`; return; }
+    
+    allUsers = users; 
+    tbody.innerHTML = '';
+
+    users.forEach(u => {
+        const isBanned = activeBannedIds.has(u.id);
+        const bannedBadge = isBanned ? `<span style="background:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px; border:1px solid #ffcdd2;"><i class="fas fa-user-slash"></i> SOSPESO</span>` : '';
+        
+        const banBtn = `<button class="btn-action" style="background:#c62828; margin-left:5px;" onclick="openBanModal('${u.id}', '${u.role}')" title="Banna Utente"><i class="fas fa-ban"></i></button>`;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${escapeHtml(u.email)}</strong> ${bannedBadge}<br>
+                <small>${escapeHtml(u.full_name) || 'Nessun nome'}</small><br>
+                <small style="color:#666;">Classe: ${escapeHtml(u.class_info) || 'N.D.'}</small>
+            </td>
+            <td><span class="badge-role role-${u.role}">${u.role}</span></td>
+            <td>
+                <select class="role-select" id="role-${u.id}">
+                    <option value="studente" ${u.role === 'studente' ? 'selected' : ''}>Studente</option>
+                    <option value="tutor" ${u.role === 'tutor' ? 'selected' : ''}>Tutor</option>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn-action btn-save" onclick="updateUserRole('${u.id}')" title="Salva Ruolo"><i class="fas fa-save"></i></button>
+                <button class="btn-action" style="background:#1565c0;" onclick="openUserProfile('${u.id}')" title="Modifica Dettagli"><i class="fas fa-user-edit"></i></button>
+                ${banBtn}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+};
+
+window.initMaintenanceControl = async function() {
+    const { data: setting } = await sb.from('system_settings').select('value').eq('key', 'maintenance_mode').single();
+    updateMaintButton(setting ? setting.value : false);
+    
+    const btnToggle = document.getElementById('btnToggleMaint');
+    if(btnToggle) btnToggle.onclick = window.toggleMaintenance;
+};
+
+function updateMaintButton(isActive) {
+    const btn = document.getElementById('btnToggleMaint');
+    if(!btn) return;
+    const span = btn.querySelector('span');
+    if(isActive) {
+        btn.style.background = "#D32F2F"; 
+        span.innerText = "MANUTENZIONE ATTIVA (Sito Bloccato)";
+        btn.title = "Clicca per disattivare e riaprire il sito";
+    } else {
+        btn.style.background = "#2E7D32"; 
+        span.innerText = "Sito Online (Manutenzione OFF)";
+        btn.title = "Clicca per attivare la manutenzione";
+    }
+    btn.dataset.status = isActive;
+}
+
+window.toggleMaintenance = async function() {
+    const btn = document.getElementById('btnToggleMaint');
+    const currentStatus = btn.dataset.status === 'true';
+    const newStatus = !currentStatus;
+
+    const msg = newStatus 
+        ? "ATTENZIONE: Stai per attivare la MANUTENZIONE.\nTutti gli utenti non-admin verranno bloccati.\nConfermi?" 
+        : "Vuoi DISATTIVARE la manutenzione e riaprire il sito?";
+
+    if(!confirm(msg)) return;
+
+    const { error } = await sb.from('system_settings').update({ value: newStatus }).eq('key', 'maintenance_mode');
+    if(error) alert("Errore: " + error.message);
+    else {
+        updateMaintButton(newStatus);
+        alert(newStatus ? "Sito in manutenzione." : "Sito riaperto.");
+    }
+};
+
 } // Fine setupAdminFunctions
 })();
