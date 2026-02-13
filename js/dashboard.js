@@ -3,6 +3,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // --- SICUREZZA: ESCAPE HTML ---
+    const escapeHtml = (unsafe) => {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { window.location.href = "login.html"; return; }
 
@@ -51,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ? (() => {
                         if (l.group_members.startsWith("Organizzato da ")) {
                             const org = l.group_members.replace("Organizzato da ", "").split(" | ")[0];
-                            return `<p style="font-size:0.75rem; color:#1565C0; margin-top:2px;"><i class="fas fa-crown"></i> Org: ${org}</p>`;
+                            return `<p style="font-size:0.75rem; color:#1565C0; margin-top:2px;"><i class="fas fa-crown"></i> Org: ${escapeHtml(org)}</p>`;
                         }
                         return `<p style="font-size:0.75rem; color:#1565C0; margin-top:2px;"><i class="fas fa-crown"></i> Org: Tu</p>`;
                       })()
@@ -60,8 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 container.innerHTML += `
                     <div class="mini-lesson-card" style="${style}">
                         <div class="info">
-                            <h4>${l.subject}</h4>
-                            <p>Tutor: ${l.tutor_name_cache}</p>
+                            <h4>${escapeHtml(l.subject)}</h4>
+                            <p>Tutor: ${escapeHtml(l.tutor_name_cache)}</p>
                             ${groupInfo}
                         </div>
                         <div class="time-tag">${l.date.split('-').reverse().join('/')}</div>
@@ -116,13 +127,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #4a148c;';
                 
                 const studentText = isGroup 
-                    ? `Org: ${l.organizer_name} (+${l.all_students.length - 1})`
-                    : `Studente: ${l.student_name}`;
+                    ? `Org: ${escapeHtml(l.organizer_name)} (+${l.all_students.length - 1})`
+                    : `Studente: ${escapeHtml(l.student_name)}`;
 
                 container.innerHTML += `
                     <div class="mini-lesson-card" style="${style}">
                         <div class="info">
-                            <h4>${l.subject}</h4>
+                            <h4>${escapeHtml(l.subject)}</h4>
                             <p>${studentText}</p>
                         </div>
                         <div class="time-tag" style="background: #f3e5f5; color: #4a148c;">${l.time_slot}</div>

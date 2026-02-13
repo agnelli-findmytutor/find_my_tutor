@@ -9,6 +9,17 @@ const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8'; 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// --- SICUREZZA: ESCAPE HTML (Previene XSS) ---
+const escapeHtml = (unsafe) => {
+    if (typeof unsafe !== 'string') return unsafe;
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+};
+
 // Variabili Stato
 let currentLessons = [];
 let allCancelledLessons = [];
@@ -200,9 +211,9 @@ async function loadUsers() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <strong>${u.email}</strong> ${bannedBadge}<br>
-                <small>${u.full_name || 'Nessun nome'}</small><br>
-                <small style="color:#666;">Classe: ${u.class_info || 'N.D.'}</small>
+                <strong>${escapeHtml(u.email)}</strong> ${bannedBadge}<br>
+                <small>${escapeHtml(u.full_name) || 'Nessun nome'}</small><br>
+                <small style="color:#666;">Classe: ${escapeHtml(u.class_info) || 'N.D.'}</small>
             </td>
             <td><span class="badge-role role-${u.role}">${u.role}</span></td>
             <td>
@@ -360,7 +371,7 @@ window.loadTutorRequests = async function() {
     if (!requests || requests.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessuna candidatura.</td></tr>'; return; }
     requests.forEach(req => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td><span class="badge-info">${req.class_info}</span><br><small>${req.subjects}</small></td><td><small>${req.availability}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'pending')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-save" onclick="processRequest(${req.id}, '${req.email}', 'approved')"><i class="fas fa-check"></i></button><button class="btn-action btn-delete" onclick="processRequest(${req.id}, '${req.email}', 'rejected')"><i class="fas fa-times"></i></button></div></td>`;
+        row.innerHTML = `<td><strong>${escapeHtml(req.full_name)}</strong><br><small>${escapeHtml(req.email)}</small></td><td><span class="badge-info">${escapeHtml(req.class_info)}</span><br><small>${escapeHtml(req.subjects)}</small></td><td><small>${escapeHtml(req.availability)}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'pending')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-save" onclick="processRequest(${req.id}, '${req.email}', 'approved')"><i class="fas fa-check"></i></button><button class="btn-action btn-delete" onclick="processRequest(${req.id}, '${req.email}', 'rejected')"><i class="fas fa-times"></i></button></div></td>`;
         tbody.appendChild(row);
     });
 }
@@ -381,7 +392,7 @@ window.loadRequestsHistory = async function() {
         const isApp = req.status === 'approved';
         const badge = isApp ? `<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold;">APPROVATA</span>` : `<span style="background:#ffebee; color:#c62828; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:bold;">RIFIUTATA</span>`;
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${req.full_name}</strong><br><small>${req.email}</small></td><td>${badge}</td><td><small>${new Date(req.created_at).toLocaleDateString()}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'history')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-delete" onclick="deleteRequest(${req.id})"><i class="fas fa-trash"></i></button></div></td>`;
+        row.innerHTML = `<td><strong>${escapeHtml(req.full_name)}</strong><br><small>${escapeHtml(req.email)}</small></td><td>${badge}</td><td><small>${new Date(req.created_at).toLocaleDateString()}</small></td><td><div style="display:flex; gap:5px;"><button class="btn-action" style="background:#0288d1;" onclick="viewRequestDetails(${req.id}, 'history')" title="Vedi Dettagli"><i class="fas fa-eye"></i></button><button class="btn-action btn-delete" onclick="deleteRequest(${req.id})"><i class="fas fa-trash"></i></button></div></td>`;
         tbody.appendChild(row);
     });
 }
@@ -488,7 +499,7 @@ async function loadBookings() {
     bookings.forEach(b => {
         const email = emailMap[b.user_id] || 'Utente sconosciuto';
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${b.room_name}</strong></td><td>${b.day_label} <br> ${b.time_slot}</td><td>${email}</td><td><button class="btn-action btn-delete" onclick="deleteBooking('${b.id}')">Cancella</button></td>`;
+        row.innerHTML = `<td><strong>${escapeHtml(b.room_name)}</strong></td><td>${b.day_label} <br> ${b.time_slot}</td><td>${escapeHtml(email)}</td><td><button class="btn-action btn-delete" onclick="deleteBooking('${b.id}')">Cancella</button></td>`;
         tbody.appendChild(row);
     });
 }
@@ -579,13 +590,13 @@ function renderLessons(container, data, isReg) {
         let style = isCan ? "background:#fff5f5; border-left:5px solid #d32f2f; opacity:0.9;" : "background:white; border-left:5px solid #1565C0;";
         if(isReg) style += " border: 1px solid #d32f2f;";
         
-        const badge = app.room_name ? `<span style="background:#E3F2FD; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:0.8rem;">📍 ${app.room_name}</span>` : `<span style="color:#999; font-size:0.8rem;">(No Aula)</span>`;
-        const reason = isCan ? `<div style="margin-top:5px; color:#b71c1c; background:#ffcdd2; padding:5px; border-radius:4px; font-size:0.85rem;"><strong>Motivo:</strong> ${app.cancellation_reason}</div>` : '';
-        const tutor = isReg ? `<div style="color:#d32f2f; font-weight:bold;">Tutor: ${app.tutor_name_cache}</div>` : `<strong>Tutor:</strong> ${app.tutor_name_cache || app.tutor_id}`;
+        const badge = app.room_name ? `<span style="background:#E3F2FD; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:0.8rem;">📍 ${escapeHtml(app.room_name)}</span>` : `<span style="color:#999; font-size:0.8rem;">(No Aula)</span>`;
+        const reason = isCan ? `<div style="margin-top:5px; color:#b71c1c; background:#ffcdd2; padding:5px; border-radius:4px; font-size:0.85rem;"><strong>Motivo:</strong> ${escapeHtml(app.cancellation_reason)}</div>` : '';
+        const tutor = isReg ? `<div style="color:#d32f2f; font-weight:bold;">Tutor: ${escapeHtml(app.tutor_name_cache)}</div>` : `<strong>Tutor:</strong> ${escapeHtml(app.tutor_name_cache || app.tutor_id)}`;
 
         const studentDisplay = app.is_group 
-            ? `<strong>Org:</strong> ${app.organizer_name} <br> <strong>Gruppo:</strong> ${app.all_students.filter(n => n !== app.organizer_name).join(', ') || 'Solo org'}`
-            : `<strong>Studente:</strong> ${app.student_name}`;
+            ? `<strong>Org:</strong> ${escapeHtml(app.organizer_name)} <br> <strong>Gruppo:</strong> ${app.all_students.filter(n => n !== app.organizer_name).map(escapeHtml).join(', ') || 'Solo org'}`
+            : `<strong>Studente:</strong> ${escapeHtml(app.student_name)}`;
 
         const div = document.createElement('div');
         div.className = 'lesson-card';
@@ -594,7 +605,7 @@ function renderLessons(container, data, isReg) {
         div.innerHTML = `
             <div class="lesson-card-inner">
                 <div class="lesson-info">
-                    <h4 style="margin:0; color:#333;">${app.subject} ${badge}</h4>
+                    <h4 style="margin:0; color:#333;">${escapeHtml(app.subject)} ${badge}</h4>
                     ${isReg ? tutor : `<p style="margin:5px 0; font-size:0.9rem; color:#666;">${tutor}</p>`}
                     <p style="margin:0; font-size:0.9rem; color:#555;">${studentDisplay} <br> ${d} - ${app.time_slot}</p>
                     ${reason}
@@ -674,13 +685,13 @@ window.viewRequestDetails = (id, type) => {
     
     const content = document.getElementById('reqDetailContent');
     content.innerHTML = `
-        <p><strong><i class="fas fa-user"></i> Nome:</strong> ${req.full_name}</p>
-        <p><strong><i class="fas fa-envelope"></i> Email:</strong> ${req.email}</p>
-        <p><strong><i class="fas fa-phone"></i> Telefono:</strong> ${req.phone || 'N/A'}</p>
-        <p><strong><i class="fas fa-school"></i> Classe:</strong> ${req.class_info}</p>
+        <p><strong><i class="fas fa-user"></i> Nome:</strong> ${escapeHtml(req.full_name)}</p>
+        <p><strong><i class="fas fa-envelope"></i> Email:</strong> ${escapeHtml(req.email)}</p>
+        <p><strong><i class="fas fa-phone"></i> Telefono:</strong> ${escapeHtml(req.phone || 'N/A')}</p>
+        <p><strong><i class="fas fa-school"></i> Classe:</strong> ${escapeHtml(req.class_info)}</p>
         <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
-        <p><strong><i class="fas fa-book"></i> Materie:</strong><br><span style="background:#f5f5f5; padding:2px 6px; border-radius:4px;">${req.subjects}</span></p>
-        <p style="margin-top:10px;"><strong><i class="far fa-clock"></i> Disponibilità:</strong><br>${req.availability}</p>
+        <p><strong><i class="fas fa-book"></i> Materie:</strong><br><span style="background:#f5f5f5; padding:2px 6px; border-radius:4px;">${escapeHtml(req.subjects)}</span></p>
+        <p style="margin-top:10px;"><strong><i class="far fa-clock"></i> Disponibilità:</strong><br>${escapeHtml(req.availability)}</p>
     `;
     
     modal.classList.remove('hidden');
@@ -814,9 +825,9 @@ async function loadActiveBans() {
             const until = new Date(b.banned_until).toLocaleDateString() + ' ' + new Date(b.banned_until).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><strong>${b.full_name || 'N/A'}</strong><br><small>${b.email}</small></td>
+                <td><strong>${escapeHtml(b.full_name || 'N/A')}</strong><br><small>${escapeHtml(b.email)}</small></td>
                 <td><span style="color:#c62828; font-weight:bold;">${until}</span></td>
-                <td><small>${b.reason || 'Nessun motivo specificato'}</small></td>
+                <td><small>${escapeHtml(b.reason || 'Nessun motivo specificato')}</small></td>
                 <td><button class="btn-action" style="background:#2e7d32;" onclick="revokeBan('${b.user_id}')" title="Revoca Ban"><i class="fas fa-user-check"></i> Revoca</button></td>
             `;
             tbody.appendChild(row);
@@ -864,7 +875,7 @@ async function loadBanHistory() {
         const status = log.seen ? '<span style="color:#2e7d32; font-weight:bold; background:#e8f5e9; padding:2px 6px; border-radius:4px;">Visto</span>' : '<span style="color:#e65100; font-weight:bold; background:#fff3e0; padding:2px 6px; border-radius:4px;">Non letto</span>';
 
         const row = document.createElement('tr');
-        row.innerHTML = `<td><small>${date}</small></td><td><strong>${name}</strong><br><small>${email}</small></td><td>${log.reason}</td><td>${status}</td>`;
+        row.innerHTML = `<td><small>${date}</small></td><td><strong>${escapeHtml(name)}</strong><br><small>${escapeHtml(email)}</small></td><td>${escapeHtml(log.reason)}</td><td>${status}</td>`;
         tbody.appendChild(row);
     });
 }

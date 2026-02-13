@@ -36,6 +36,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const warningTitle = document.getElementById('warningTitle');
     const warningMessage = document.getElementById('warningMessage');
 
+    // --- SICUREZZA: ESCAPE HTML ---
+    const escapeHtml = (unsafe) => {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     // --- UTILS ---
     function showSuccess(title, msg) {
         if(successTitle) successTitle.textContent = title;
@@ -391,8 +402,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             newCancellations.forEach(l => {
                 html += `
                     <div class="alert-item">
-                        <strong>${l.date} - ${l.time_slot}</strong> con ${l.student_name}<br>
-                        <span style="font-size:0.85rem; color:#b71c1c;">Motivo: ${l.cancellation_reason || 'N/D'}</span>
+                        <strong>${l.date} - ${l.time_slot}</strong> con ${escapeHtml(l.student_name)}<br>
+                        <span style="font-size:0.85rem; color:#b71c1c;">Motivo: ${escapeHtml(l.cancellation_reason || 'N/D')}</span>
                     </div>
                 `;
             });
@@ -439,30 +450,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (isGroup && !isCancelled) cardStyle = 'border-left: 4px solid #1565C0; background: #E3F2FD;';
                 
                 const roomBadge = !isCancelled && app.room_name 
-                    ? `<span class="room-badge"><i class="fas fa-door-open"></i> ${app.room_name}</span>` 
+                    ? `<span class="room-badge"><i class="fas fa-door-open"></i> ${escapeHtml(app.room_name)}</span>` 
                     : '';
                 
                 const deleteButtonArea = !isCancelled 
                     ? `<div class="card-actions"><button onclick="window.openCancelLessonModal('${app.id}')" class="btn-cancel-lesson"><i class="fas fa-times-circle"></i> Cancella</button></div>`
                     : `<div class="card-status-text">LEZIONE ANNULLATA</div>`;
                 
-                const notesHtml = app.notes ? `<div class="lesson-notes"><i class="far fa-comment-dots"></i> ${app.notes}</div>` : '';
+                const notesHtml = app.notes ? `<div class="lesson-notes"><i class="far fa-comment-dots"></i> ${escapeHtml(app.notes)}</div>` : '';
 
                 const groupBadge = app.is_group 
                     ? `<span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px;">GRUPPO</span>` 
                     : '';
                 
                 const studentInfo = isGroup 
-                    ? `<p class="student-name" style="color:#1565C0;"><i class="fas fa-crown"></i> <strong>Org:</strong> ${app.organizer_name}</p>
-                       <p style="font-size:0.8rem; color:#666; margin-top:2px;"><i class="fas fa-users"></i> <strong>Altri:</strong> ${app.all_students.filter(n => n !== app.organizer_name).join(', ') || 'Nessuno'}</p>`
-                    : `<p class="student-name"><i class="fas fa-user-graduate"></i> ${app.student_name}</p>`;
+                    ? `<p class="student-name" style="color:#1565C0;"><i class="fas fa-crown"></i> <strong>Org:</strong> ${escapeHtml(app.organizer_name)}</p>
+                       <p style="font-size:0.8rem; color:#666; margin-top:2px;"><i class="fas fa-users"></i> <strong>Altri:</strong> ${app.all_students.filter(n => n !== app.organizer_name).map(escapeHtml).join(', ') || 'Nessuno'}</p>`
+                    : `<p class="student-name"><i class="fas fa-user-graduate"></i> ${escapeHtml(app.student_name)}</p>`;
 
                 html += `<div class="lesson-card ${statusClass}" style="${cardStyle}">
                         <div class="card-content">
                             <div class="card-main">
                                 <div class="time-display">${app.time_slot}</div>
                                 <div class="info-display">
-                                    <h4>${app.subject || 'Materia'} ${roomBadge} ${groupBadge}</h4>
+                                    <h4>${escapeHtml(app.subject || 'Materia')} ${roomBadge} ${groupBadge}</h4>
                                     ${studentInfo}
                                     ${notesHtml}
                                 </div>
