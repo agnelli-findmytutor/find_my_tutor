@@ -173,4 +173,26 @@ BEFORE INSERT OR UPDATE ON public.tutor_requests
 FOR EACH ROW
 EXECUTE FUNCTION public.force_request_identity();
 
+-- 7. PROTEZIONE DATI SENSIBILI (RLS MANCANTI)
+-- Blocca l'accesso via Network alle tabelle amministrative
+
+ALTER TABLE public.tutor_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.banned_tutors_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tutor_ratings ENABLE ROW LEVEL SECURITY;
+
+-- Policy Tutor Requests (Solo Admin vede tutto, Utente vede solo le sue)
+CREATE POLICY "Admin Manage Requests" ON public.tutor_requests FOR ALL USING (public.is_admin());
+CREATE POLICY "User Create Request" ON public.tutor_requests FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "User View Own Request" ON public.tutor_requests FOR SELECT USING (auth.uid() = user_id);
+
+-- Policy Banned Logs (Solo Admin vede tutto, Utente vede solo il suo ban)
+CREATE POLICY "Admin Manage Bans" ON public.banned_tutors_log FOR ALL USING (public.is_admin());
+CREATE POLICY "User View Own Ban" ON public.banned_tutors_log FOR SELECT USING (auth.uid() = user_id);
+
+-- Policy Ratings (Recensioni)
+CREATE POLICY "Admin Manage Ratings" ON public.tutor_ratings FOR ALL USING (public.is_admin());
+CREATE POLICY "Public View Ratings" ON public.tutor_ratings FOR SELECT USING (true);
+-- Solo chi ha fatto una lezione può recensire (controllo base su auth)
+CREATE POLICY "Student Create Rating" ON public.tutor_ratings FOR INSERT WITH CHECK (auth.uid() = auth.uid());
+
 -- FINE SCRIPT

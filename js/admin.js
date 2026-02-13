@@ -1,8 +1,9 @@
 (function() {
-// PROTEZIONE DI LIVELLO 1: Nasconde immediatamente l'interfaccia.
-// Impedisce il "flash" del contenuto prima del controllo del ruolo.
-// Se l'utente non è admin, la pagina rimarrà bianca fino al reindirizzamento.
-document.documentElement.style.display = 'none';
+// --- PROTEZIONE LIVELLO 0: BLOCCO VISIVO TOTALE ---
+// Creiamo uno stile che forza tutto nascosto immediatamente
+const lockdownStyle = document.createElement('style');
+lockdownStyle.innerHTML = "html, body { display: none !important; }";
+document.head.appendChild(lockdownStyle);
 
 // --- CONFIGURAZIONE ---
 const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
@@ -55,13 +56,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Pulizia aggressiva: se hanno provato a manomettere il localStorage, lo svuotiamo
         localStorage.removeItem('fmt_role');
         localStorage.removeItem('fmt_avatar');
+        
+        // BLINDATURA: Svuota il DOM per impedire l'ispezione degli elementi
+        document.body.innerHTML = "";
         // Reindirizzamento forzato
         window.location.replace("dashboard.html");
         return;
     }
 
     // SOLO SE L'UTENTE È ADMIN: rendiamo visibile la pagina
-    document.documentElement.style.display = 'block';
+    lockdownStyle.remove(); // Rimuove il blocco visivo
+
+    // 3. INIZIALIZZA FUNZIONI E DATI (Solo ora è sicuro)
+    setupAdminFunctions(); // Definisce le funzioni globali
 
     // 2. LOAD DATA
     loadStats();
@@ -242,7 +249,8 @@ async function loadUsers() {
 }
 
 // --- NUOVO: LOGICA DISPONIBILITÀ (Blocchetti) ---
-window.addAvailabilitySlot = () => {
+function setupAdminFunctions() {
+  window.addAvailabilitySlot = () => {
     const day = document.getElementById('tempDay').value;
     const start = document.getElementById('tempStart').value;
     const end = document.getElementById('tempEnd').value;
@@ -887,4 +895,5 @@ async function loadBanHistory() {
         tbody.appendChild(row);
     });
 }
+} // Fine setupAdminFunctions
 })();
