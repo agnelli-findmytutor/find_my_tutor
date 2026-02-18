@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Agenda Studente - FindMyTutor</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="view-transition" content="same-origin">
-    
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/prenota.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/mobile-app.css">
     <style>
         /* Stile Stelle Recensione */
         .star-rating {
@@ -22,16 +25,26 @@
             gap: 10px;
             margin: 20px 0;
         }
-        .star-rating input { display: none; }
+
+        .star-rating input {
+            display: none;
+        }
+
         .star-rating label {
             font-size: 2.5rem;
             color: #ddd;
             cursor: pointer;
             transition: 0.2s;
         }
-        .star-rating label:hover, .star-rating label:hover ~ label, .star-rating input:checked ~ label { color: #ffc107; }
+
+        .star-rating label:hover,
+        .star-rating label:hover~label,
+        .star-rating input:checked~label {
+            color: #ffc107;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="animated-bg">
@@ -39,42 +52,42 @@
         <div class="blob blob-3"></div>
     </div>
 
-   <header>
-    <div class="logo">
-        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-        <span>FindMyTutor</span>
-    </div>
-    <nav>
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="progetto.html">Il nostro progetto</a></li>
-            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
-        </ul>
-    </nav>
-    <div class="header-actions">
-        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
-        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-    </div>
-</header>
+    <header>
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <span>FindMyTutor</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="progetto.html">Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
 
     <main class="dashboard-wrapper fade-wrapper">
-        
+
         <div class="container-agenda reveal">
-            
+
             <div class="page-header">
                 <h1>Agenda Studente</h1>
                 <p>Cerca un tutor, prenota la tua ripetizione e gestisci il tuo calendario.</p>
             </div>
 
             <div class="split-layout">
-                
+
                 <div class="card-box booking-card">
                     <div class="card-header">
                         <i class="fas fa-calendar-plus"></i>
                         <h3>Nuova Prenotazione</h3>
                     </div>
                     <p class="card-subtitle">Seleziona i dettagli per bloccare la tua lezione.</p>
-                    
+
                     <div class="group-toggle-container">
                         <button type="button" id="btnToggleGroup" class="btn-group-toggle">
                             <i class="fas fa-users"></i> Prenotazione di Gruppo
@@ -82,7 +95,7 @@
                     </div>
 
                     <form id="bookingForm">
-                        
+
                         <div class="row-group">
                             <div class="form-group">
                                 <label>Il tuo Anno</label>
@@ -120,24 +133,26 @@
 
                         <div class="divider"></div>
 
-                            <div class="form-group">
-                                <label>3. Seleziona Data</label>
-                                
-                                <div id="tutorAvailDisplay" style="background:#e3f2fd; color:#1565c0; padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;">
-                                    <i class="fas fa-info-circle"></i> <strong>Disponibilità Tutor:</strong><br>
-                                    <span id="availText">--</span>
-                                </div>
+                        <div class="form-group">
+                            <label>3. Seleziona Data</label>
 
-                                <input type="date" id="selectDate" required disabled style="opacity: 0.6;">
-                                <small id="dateError" style="color: #d32f2f; display: none;">⛔ Il tutor non è disponibile in questo giorno.</small>
+                            <div id="tutorAvailDisplay"
+                                style="background:#e3f2fd; color:#1565c0; padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;">
+                                <i class="fas fa-info-circle"></i> <strong>Disponibilità Tutor:</strong><br>
+                                <span id="availText">--</span>
                             </div>
 
-                            <div class="form-group">
-                                <label>4. Seleziona Orario Disponibile</label>
-                                <select id="selectTime" required disabled style="opacity: 0.6; cursor: not-allowed;">
-                                    <option value="">-- Prima seleziona una data valida --</option>
-                                </select>
-                            </div>
+                            <input type="date" id="selectDate" required disabled style="opacity: 0.6;">
+                            <small id="dateError" style="color: #d32f2f; display: none;">⛔ Il tutor non è disponibile in
+                                questo giorno.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>4. Seleziona Orario Disponibile</label>
+                            <select id="selectTime" required disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <option value="">-- Prima seleziona una data valida --</option>
+                            </select>
+                        </div>
 
                         <!-- SEZIONE GRUPPO (Nascosta di default) -->
                         <div id="groupSection" class="group-selection-area hidden">
@@ -155,7 +170,7 @@
                             <div class="duration-pills">
                                 <input type="radio" name="duration" id="d60" value="60" checked>
                                 <label for="d60">1 Ora</label>
-                                
+
                                 <input type="radio" name="duration" id="d90" value="90">
                                 <label for="d90">1h 30m</label>
                             </div>
@@ -164,7 +179,8 @@
 
                         <div class="form-group">
                             <label><i class="far fa-comment-dots"></i> Argomenti Specifici (Opzionale)</label>
-                            <textarea id="lessonNotes" rows="3" placeholder="Es. Vorrei ripassare le equazioni di secondo grado..."></textarea>
+                            <textarea id="lessonNotes" rows="3"
+                                placeholder="Es. Vorrei ripassare le equazioni di secondo grado..."></textarea>
                         </div>
                         <button type="submit" class="btn-confirm-booking">
                             <i class="fas fa-check-circle"></i> Conferma Prenotazione
@@ -178,7 +194,7 @@
                         <h3>Le tue Lezioni</h3>
                     </div>
                     <p class="card-subtitle">Gestisci le lezioni già programmate.</p>
-                    
+
                     <div id="myLessonsList" class="lessons-scroll-area">
                         <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
@@ -188,30 +204,37 @@
 
                     <div class="divider"></div>
                     <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
-                        <i class="fas fa-history" style="background: #f5f5f5; color: #666; width: 35px; height: 35px; font-size: 1.1rem;"></i>
+                        <i class="fas fa-history"
+                            style="background: #f5f5f5; color: #666; width: 35px; height: 35px; font-size: 1.1rem;"></i>
                         <h3 style="color: #666; font-size: 1.1rem;">Lezioni Concluse</h3>
-                        <button id="btnTogglePast" class="btn-mini" style="margin-left: auto; width: auto; background: #eee; color: #666;">
+                        <button id="btnTogglePast" class="btn-mini"
+                            style="margin-left: auto; width: auto; background: #eee; color: #666;">
                             <i class="fas fa-eye"></i> Mostra
                         </button>
                     </div>
-                    <div id="pastLessonsList" class="lessons-scroll-area hidden" style="max-height: 300px; margin-top: 15px;">
+                    <div id="pastLessonsList" class="lessons-scroll-area hidden"
+                        style="max-height: 300px; margin-top: 15px;">
                         <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>
                     </div>
 
                     <div class="divider"></div>
                     <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
-                        <i class="fas fa-ban" style="background: #fff5f5; color: #d32f2f; width: 35px; height: 35px; font-size: 1.1rem;"></i>
+                        <i class="fas fa-ban"
+                            style="background: #fff5f5; color: #d32f2f; width: 35px; height: 35px; font-size: 1.1rem;"></i>
                         <h3 style="color: #d32f2f; font-size: 1.1rem;">Lezioni Cancellate</h3>
-                        <button id="btnToggleCancelled" class="btn-mini" style="margin-left: auto; width: auto; background: #ffebee; color: #d32f2f;">
+                        <button id="btnToggleCancelled" class="btn-mini"
+                            style="margin-left: auto; width: auto; background: #ffebee; color: #d32f2f;">
                             <i class="fas fa-eye"></i> Mostra
                         </button>
                     </div>
-                    <div id="cancelledLessonsList" class="lessons-scroll-area hidden" style="max-height: 300px; margin-top: 15px;">
+                    <div id="cancelledLessonsList" class="lessons-scroll-area hidden"
+                        style="max-height: 300px; margin-top: 15px;">
                         <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione cancellata.</p>
                     </div>
                 </div>
 
-            </div> </div>
+            </div>
+        </div>
     </main>
 
     <div id="successModal" class="modal-overlay hidden">
@@ -240,53 +263,65 @@
             <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
             <h3>Attenzione</h3>
             <p id="warningMessage">Messaggio di avviso.</p>
-            <button id="btnWarningClose" class="btn-modal secondary" style="background:#FF9800; color:white;">Ho capito</button>
+            <button id="btnWarningClose" class="btn-modal secondary" style="background:#FF9800; color:white;">Ho
+                capito</button>
         </div>
     </div>
-    
+
     <div id="ratingModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-icon success" style="background: #FFF8E1; color: #FFC107;"><i class="fas fa-star"></i></div>
+            <div class="modal-icon success" style="background: #FFF8E1; color: #FFC107;"><i class="fas fa-star"></i>
+            </div>
             <h3>Valuta la lezione</h3>
             <p>Com'è andata la tua ripetizione? Il tuo voto aiuterà il tutor a migliorare.</p>
-            <p style="font-size: 0.8rem; color: #888; font-style: italic; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                <i class="fas fa-user-secret"></i> <strong>Privacy:</strong> Il tutor vedrà solo la media totale dei suoi voti. Non saprà chi ha inviato questa specifica valutazione.
+            <p
+                style="font-size: 0.8rem; color: #888; font-style: italic; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                <i class="fas fa-user-secret"></i> <strong>Privacy:</strong> Il tutor vedrà solo la media totale dei
+                suoi voti. Non saprà chi ha inviato questa specifica valutazione.
             </p>
-            
+
             <div class="star-rating">
-                <input type="radio" name="stars" id="star5" value="5"><label for="star5"><i class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star4" value="4"><label for="star4"><i class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star3" value="3"><label for="star3"><i class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star2" value="2"><label for="star2"><i class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star1" value="1"><label for="star1"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star5" value="5"><label for="star5"><i
+                        class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star4" value="4"><label for="star4"><i
+                        class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star3" value="3"><label for="star3"><i
+                        class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star2" value="2"><label for="star2"><i
+                        class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star1" value="1"><label for="star1"><i
+                        class="fas fa-star"></i></label>
             </div>
 
             <div class="modal-actions">
                 <button id="btnCancelRating" class="btn-modal secondary">Annulla</button>
-                <button id="btnSubmitRating" class="btn-modal primary" style="background: #ffc107; color: #333;">Invia Voto</button>
+                <button id="btnSubmitRating" class="btn-modal primary" style="background: #ffc107; color: #333;">Invia
+                    Voto</button>
             </div>
         </div>
     </div>
 
-<div id="editModal" class="modal-overlay hidden">
+    <div id="editModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="card-header-simple" style="border-bottom:none; padding-bottom:0;">
                 <h3 style="margin:0; color:var(--text-dark);">Modifica Lezione</h3>
             </div>
-            
+
             <form id="editForm" style="margin-top:20px; text-align:left;">
                 <input type="hidden" id="editLessonId">
-                <input type="hidden" id="editTutorId"> <div class="row-group">
+                <input type="hidden" id="editTutorId">
+                <div class="row-group">
                     <div class="form-group">
                         <label>Nuova Data</label>
                         <input type="date" id="editDate" required>
                     </div>
-                        <div class="form-group">
-                <label>Nuovo Orario</label>
-                <select id="editTime" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: white;">
-                    <option value="">-- Seleziona prima la data --</option>
-                </select>
-            </div>
+                    <div class="form-group">
+                        <label>Nuovo Orario</label>
+                        <select id="editTime" required
+                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: white;">
+                            <option value="">-- Seleziona prima la data --</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -304,7 +339,8 @@
 
                 <div class="form-group">
                     <label>Argomenti</label>
-                    <textarea id="editNotes" rows="2" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+                    <textarea id="editNotes" rows="2"
+                        style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
                 </div>
 
                 <div class="modal-actions">
@@ -320,5 +356,7 @@
     <script src="js/gestione_utente.js"></script>
     <script src="js/prenota.js"></script>
     <script src="js/global_maintenance.js"></script>
+    <script src="js/mobile-nav.js"></script>
 </body>
+
 </html>

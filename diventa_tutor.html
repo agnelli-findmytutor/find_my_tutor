@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Candidatura Tutor - FindMyTutor</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <meta name="view-transition" content="same-origin">
-    
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/diventa_tutor.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/mobile-app.css">
 </head>
+
 <body>
 
     <div class="animated-bg">
@@ -21,28 +24,28 @@
         <div class="blob blob-2"></div>
     </div>
 
-<header>
-    <div class="logo">
-        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-        <span>FindMyTutor</span>
-    </div>
-    <nav>
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="progetto.html">Il nostro progetto</a></li>
-            <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
-        </ul>
-    </nav>
-    <div class="header-actions">
-        <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
-        <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-    </div>
-</header>
+    <header>
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <span>FindMyTutor</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="progetto.html">Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </header>
 
     <main class="application-wrapper fade-wrapper">
-        
+
         <div class="application-container reveal">
-            
+
             <div class="form-header">
                 <div class="icon-circle">
                     <i class="fas fa-chalkboard-teacher"></i>
@@ -63,10 +66,10 @@
                 </a>
             </div>
 
-            <div id="mainFormContainer"> 
-                
+            <div id="mainFormContainer">
+
                 <form id="tutorForm" class="modern-form">
-                    
+
                     <div id="statusBanner" class="status-banner hidden">
                         <div class="status-icon"><i class="fas fa-clock"></i></div>
                         <div class="status-text">
@@ -81,7 +84,8 @@
                             <h4>Complimenti! Candidatura Accettata 🎉</h4>
                             <p>Sei ufficialmente un Tutor di FindMyTutor. Il tuo account è stato aggiornato.</p>
                             <br>
-                            <a href="dashboard.html" class="btn-dashboard-link">Vai alla tua Dashboard <i class="fas fa-arrow-right"></i></a>
+                            <a href="dashboard.html" class="btn-dashboard-link">Vai alla tua Dashboard <i
+                                    class="fas fa-arrow-right"></i></a>
                         </div>
                     </div>
                     <div id="rejectedBanner" class="status-banner error hidden">
@@ -97,10 +101,10 @@
                         </div>
                     </div>
                     <div id="formContent">
-                        
+
                         <div class="form-section">
                             <h3><i class="far fa-id-card"></i> Dati Personali</h3>
-                            
+
                             <div class="input-group">
                                 <label>Nome e Cognome</label>
                                 <div class="input-box">
@@ -114,7 +118,8 @@
                                     <label>E-mail Istituzionale</label>
                                     <div class="input-box">
                                         <i class="fas fa-envelope"></i>
-                                        <input type="email" id="email" placeholder="mario.rossi@istitutoagnelli.it" required>
+                                        <input type="email" id="email" placeholder="mario.rossi@istitutoagnelli.it"
+                                            required>
                                     </div>
                                 </div>
                                 <div class="input-group">
@@ -131,15 +136,19 @@
 
                         <div class="form-section">
                             <h3><i class="fas fa-book-open"></i> Le tue Competenze</h3>
-                            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Specifica per quali anni e indirizzi puoi offrire supporto.</p>
-                            
-                            <div class="competency-builder" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
+                            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Specifica per quali anni e
+                                indirizzi puoi offrire supporto.</p>
+
+                            <div class="competency-builder"
+                                style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <select id="tempSchool" style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
+                                    <select id="tempSchool"
+                                        style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
                                         <option value="ITT">ITT</option>
                                         <option value="Liceo">Liceo</option>
                                     </select>
-                                    <select id="tempYear" style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
+                                    <select id="tempYear"
+                                        style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
                                         <option value="1">1° Anno</option>
                                         <option value="2">2° Anno</option>
                                         <option value="3">3° Anno</option>
@@ -147,17 +156,21 @@
                                         <option value="5">5° Anno</option>
                                     </select>
                                 </div>
-                                
-                                <div id="subjectCheckboxesGrid" style="display: grid; gap: 15px; margin-top: 10px; background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px solid #f0f0f0;">
+
+                                <div id="subjectCheckboxesGrid"
+                                    style="display: grid; gap: 15px; margin-top: 10px; background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px solid #f0f0f0;">
                                     <!-- Popolato via JS -->
                                 </div>
 
-                                <button type="button" id="btnAddCompetency" class="btn-apply" style="margin-top: 10px; width: 100%; height: 45px; font-size: 0.9rem; background: #4a148c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <button type="button" id="btnAddCompetency" class="btn-apply"
+                                    style="margin-top: 10px; width: 100%; height: 45px; font-size: 0.9rem; background: #4a148c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                     <i class="fas fa-plus"></i> Aggiungi questo blocco di competenze
                                 </button>
                             </div>
-                            
-                            <div id="competenciesContainer" style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px; padding: 15px; background: #f9f9f9; border-radius: 12px; border: 1px dashed #ccc; margin-bottom: 20px;"></div>
+
+                            <div id="competenciesContainer"
+                                style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px; padding: 15px; background: #f9f9f9; border-radius: 12px; border: 1px dashed #ccc; margin-bottom: 20px;">
+                            </div>
 
                             <!-- Campi nascosti per Supabase -->
                             <input type="hidden" id="classInfo">
@@ -168,13 +181,18 @@
 
                         <div class="form-section">
                             <h3><i class="far fa-clock"></i> Disponibilità Oraria</h3>
-                            <div style="background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
-                                <small class="form-hint" style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 10px; text-align: center;">Seleziona fasce orarie dal <b>Lunedì al Venerdì</b>, tra le <b>14:45 e le 18:00</b>.</small>
+                            <div
+                                style="background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
+                                <small class="form-hint"
+                                    style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 10px; text-align: center;">Seleziona
+                                    fasce orarie dal <b>Lunedì al Venerdì</b>, tra le <b>14:45 e le 18:00</b>.</small>
 
                                 <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
                                     <div style="flex: 2;">
-                                        <span style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Giorno</span>
-                                        <select id="tempDay" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;">
+                                        <span
+                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Giorno</span>
+                                        <select id="tempDay"
+                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;">
                                             <option value="Lunedì">Lunedì</option>
                                             <option value="Martedì">Martedì</option>
                                             <option value="Mercoledì">Mercoledì</option>
@@ -184,13 +202,19 @@
                                     </div>
 
                                     <div style="flex: 1;">
-                                        <span style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Inizio</span>
-                                        <input type="time" id="tempStart" step="900" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;" min="14:45" max="18:00">
+                                        <span
+                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Inizio</span>
+                                        <input type="time" id="tempStart" step="900"
+                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;"
+                                            min="14:45" max="18:00">
                                     </div>
 
                                     <div style="flex: 1;">
-                                        <span style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Fine</span>
-                                        <input type="time" id="tempEnd" step="900" style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;" min="14:45" max="18:00">
+                                        <span
+                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Fine</span>
+                                        <input type="time" id="tempEnd" step="900"
+                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;"
+                                            min="14:45" max="18:00">
                                     </div>
 
                                     <button type="button" id="btnAddSlot" style="
@@ -218,14 +242,18 @@
                                     </button>
                                 </div>
 
-                                <div id="slotsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 10px; margin-bottom:5px;"></div>
-                                <small style="color:#666; font-size:0.75rem; display:block; margin-top:5px;">* Clicca il tasto viola + per aggiungere una fascia oraria.</small>
-                                <input type="text" id="availability" required readonly style="width:1px; height:1px; opacity:0; position:absolute; pointer-events:none;">
+                                <div id="slotsContainer"
+                                    style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 10px; margin-bottom:5px;">
+                                </div>
+                                <small style="color:#666; font-size:0.75rem; display:block; margin-top:5px;">* Clicca il
+                                    tasto viola + per aggiungere una fascia oraria.</small>
+                                <input type="text" id="availability" required readonly
+                                    style="width:1px; height:1px; opacity:0; position:absolute; pointer-events:none;">
                             </div>
                         </div>
 
                         <div class="form-footer">
-                            
+
                             <button type="submit" id="btnSubmitNew" class="btn-apply">
                                 Invia Candidatura <i class="fas fa-arrow-right"></i>
                             </button>
@@ -240,9 +268,11 @@
                             </div>
 
                         </div>
-                    
-                    </div> </form>
-            </div> </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
 
     </main>
     <div id="feedbackModal" class="modal-overlay hidden">
@@ -273,13 +303,12 @@
         </div>
     </div>
 
-    </body>
-</html>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/diventa_tutor.js"></script>
     <script src="js/global_maintenance.js"></script>
+    <script src="js/mobile-nav.js"></script>
 </body>
+
 </html>

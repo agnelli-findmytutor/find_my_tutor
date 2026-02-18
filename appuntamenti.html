@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Agenda Tutor - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="view-transition" content="same-origin">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/appuntamenti.css">
     <link rel="stylesheet" href="css/responsive.css">
-    
+    <link rel="stylesheet" href="css/mobile-app.css">
+
 </head>
+
 <body>
 
     <div class="overlay-menu"></div>
@@ -35,7 +39,7 @@
     </header>
 
     <main class="agenda-wrapper">
-        
+
         <div class="page-title reveal">
             <h1>La tua Agenda Tutor</h1>
             <p>Visualizza le lezioni programmate e gestisci gli imprevisti.</p>
@@ -43,12 +47,12 @@
 
         <div class="notice-container reveal">
             <div class="notice-header">
-                <i class="fas fa-exclamation-circle"></i> 
+                <i class="fas fa-exclamation-circle"></i>
                 <span>Linee Guida Disdetta</span>
             </div>
             <div class="notice-body">
                 <p>Se devi annullare una lezione già prenotata, usa queste motivazioni ufficiali:</p>
-                
+
                 <div class="copy-grid">
                     <div class="copy-card">
                         <div class="card-icon"><i class="fas fa-user-clock"></i></div>
@@ -80,7 +84,7 @@
             <div class="section-header-main">
                 <h3><i class="fas fa-chalkboard-teacher"></i> Gestione Lezioni</h3>
             </div>
-            
+
             <!-- BOX AVVISO CANCELLAZIONI (Appare solo se ci sono novità) -->
             <div id="cancellationAlert" class="cancellation-alert hidden"></div>
 
@@ -92,55 +96,66 @@
             </div>
 
             <!-- CONTENUTI TABS -->
-            <div id="tab-upcoming" class="tab-content active"><div id="upcomingList" class="calendar-stream"></div></div>
-            <div id="tab-past" class="tab-content"><div id="pastList" class="calendar-stream"></div></div>
-            <div id="tab-cancelled" class="tab-content"><div id="cancelledList" class="calendar-stream"></div></div>
+            <div id="tab-upcoming" class="tab-content active">
+                <div id="upcomingList" class="calendar-stream"></div>
+            </div>
+            <div id="tab-past" class="tab-content">
+                <div id="pastList" class="calendar-stream"></div>
+            </div>
+            <div id="tab-cancelled" class="tab-content">
+                <div id="cancelledList" class="calendar-stream"></div>
+            </div>
         </div>
 
-<div class="dashboard-grid">
-            
+        <div class="dashboard-grid">
+
             <div class="booking-widget reveal">
                 <div class="widget-header">
                     <h3><i class="fas fa-calendar-plus"></i> Nuova Prenotazione</h3>
                     <p>Seleziona i dettagli per bloccare l'aula.</p>
                 </div>
-               <form id="roomBookingForm" class="widget-form">
-    <div class="inputs-grid">
-        
-        <div class="input-box" style="grid-column: 1 / -1;">
-            <label><i class="far fa-calendar-alt"></i> Data</label>
-            <input type="date" id="selectDate" required class="date-input" style="width: 100%;">
-        </div>
+                <form id="roomBookingForm" class="widget-form">
+                    <div class="inputs-grid">
 
-        <div class="input-box">
-            <label><i class="fas fa-door-open"></i> Aula</label>
-            <select id="selectRoom" required>
-                <option value="Aula Magna">Aula Magna</option>
-                <option value="Aula 3A">Aula 3A</option>
-                <option value="Aula 4B">Aula 4B</option>
-            </select>
-        </div>
+                        <div class="input-box" style="grid-column: 1 / -1;">
+                            <label><i class="far fa-calendar-alt"></i> Data</label>
+                            <input type="date" id="selectDate" required class="date-input" style="width: 100%;">
+                        </div>
 
-        <div class="form-group" style="grid-column: 1 / -1; background: #E3F2FD; padding: 20px; border-radius: 12px; border: 1px solid #90CAF9; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1); margin-top: 10px;">
-            <label style="color: #1565C0; font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; display: block;">
-                <i class="fas fa-link"></i> Collega a una tua lezione
-            </label>
-            
-            <select id="selectLessonLink" disabled style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: #f5f5f5; color: #333; font-size: 0.95rem; outline: none; cursor: not-allowed;">
-                <option value="">-- Prima seleziona una data --</option>
-            </select>
-            
-            <small style="display: block; margin-top: 8px; color: #455A64; font-size: 0.85rem; font-style: italic;">
-                <i class="fas fa-info-circle"></i> L'aula verrà prenotata per l'orario della lezione scelta.
-            </small>
+                        <div class="input-box">
+                            <label><i class="fas fa-door-open"></i> Aula</label>
+                            <select id="selectRoom" required>
+                                <option value="Aula Magna">Aula Magna</option>
+                                <option value="Aula 3A">Aula 3A</option>
+                                <option value="Aula 4B">Aula 4B</option>
+                            </select>
+                        </div>
 
-            <input type="hidden" id="autoTimeSlot">
-        </div>
+                        <div class="form-group"
+                            style="grid-column: 1 / -1; background: #E3F2FD; padding: 20px; border-radius: 12px; border: 1px solid #90CAF9; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1); margin-top: 10px;">
+                            <label
+                                style="color: #1565C0; font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; display: block;">
+                                <i class="fas fa-link"></i> Collega a una tua lezione
+                            </label>
 
-    </div>
-    
-    <button type="submit" class="btn-widget-confirm">Conferma Prenotazione</button>
-</form>
+                            <select id="selectLessonLink" disabled
+                                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: #f5f5f5; color: #333; font-size: 0.95rem; outline: none; cursor: not-allowed;">
+                                <option value="">-- Prima seleziona una data --</option>
+                            </select>
+
+                            <small
+                                style="display: block; margin-top: 8px; color: #455A64; font-size: 0.85rem; font-style: italic;">
+                                <i class="fas fa-info-circle"></i> L'aula verrà prenotata per l'orario della lezione
+                                scelta.
+                            </small>
+
+                            <input type="hidden" id="autoTimeSlot">
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn-widget-confirm">Conferma Prenotazione</button>
+                </form>
             </div>
 
             <div class="booked-rooms-section reveal">
@@ -152,10 +167,10 @@
                 </div>
             </div>
 
-        </div> 
+        </div>
 
     </main>
-<div id="deleteModal" class="modal-overlay hidden">
+    <div id="deleteModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning">
                 <i class="fas fa-trash-alt"></i>
@@ -186,41 +201,47 @@
             </div>
             <h3 id="warningTitle">Attenzione</h3>
             <p id="warningMessage">Operazione non consentita.</p>
-            <button id="btnWarningClose" class="btn-modal secondary" style="width:100%; background:#FF9800; color:white;">Ho capito</button>
+            <button id="btnWarningClose" class="btn-modal secondary"
+                style="width:100%; background:#FF9800; color:white;">Ho capito</button>
         </div>
     </div>
     <div id="cancelLessonModal" class="modal-overlay hidden">
-    <div class="modal-card">
-        <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
-        <h3 style="color: #D32F2F;">Cancella Lezione</h3>
-        
-        <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">
-            Stai per cancellare la lezione con lo studente. Questa azione è irreversibile.
-        </p>
+        <div class="modal-card">
+            <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 style="color: #D32F2F;">Cancella Lezione</h3>
 
-        <div style="background: #ffebee; border-left: 4px solid #D32F2F; padding: 10px; margin-bottom: 15px; text-align: left; font-size: 0.85rem; color: #b71c1c;">
-            <strong>ATTENZIONE:</strong> Cancellare lezioni senza un motivo valido (es. malattia o gravi imprevisti) comporterà la revisione del tuo account e la possibile <strong>perdita del ruolo di Tutor</strong>.
-        </div>
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">
+                Stai per cancellare la lezione con lo studente. Questa azione è irreversibile.
+            </p>
 
-        <div class="form-group" style="text-align: left;">
-            <label style="font-weight: bold; font-size: 0.85rem;">Motivo della cancellazione (Obbligatorio)</label>
-            <textarea id="cancelReason" rows="3" placeholder="Scrivi qui il motivo..." style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
-        </div>
+            <div
+                style="background: #ffebee; border-left: 4px solid #D32F2F; padding: 10px; margin-bottom: 15px; text-align: left; font-size: 0.85rem; color: #b71c1c;">
+                <strong>ATTENZIONE:</strong> Cancellare lezioni senza un motivo valido (es. malattia o gravi imprevisti)
+                comporterà la revisione del tuo account e la possibile <strong>perdita del ruolo di Tutor</strong>.
+            </div>
 
-        <div class="modal-actions">
-            <button id="btnAbortCancel" class="btn-modal secondary">Indietro</button>
-            <button id="btnExecCancel" class="btn-modal danger">Conferma Cancellazione</button>
+            <div class="form-group" style="text-align: left;">
+                <label style="font-weight: bold; font-size: 0.85rem;">Motivo della cancellazione (Obbligatorio)</label>
+                <textarea id="cancelReason" rows="3" placeholder="Scrivi qui il motivo..."
+                    style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px;"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnAbortCancel" class="btn-modal secondary">Indietro</button>
+                <button id="btnExecCancel" class="btn-modal danger">Conferma Cancellazione</button>
+            </div>
         </div>
     </div>
-</div>
     <div id="toast"><i class="fas fa-check"></i> Testo copiato!</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="script.js"></script>
     <script src="js/appuntamenti.js"></script>
-        <script src="js/global_maintenance.js"></script>
+    <script src="js/global_maintenance.js"></script>
+    <script src="js/mobile-nav.js"></script>
 
 
 </body>
+
 </html>
