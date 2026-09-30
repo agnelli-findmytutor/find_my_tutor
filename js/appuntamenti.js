@@ -64,20 +64,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     function closeModal(modal) { if(modal) modal.classList.add('hidden'); }
 
-    // --- CHECK UTENTE ---
-    const { data: { user }, error: userError } = await sbClient.auth.getUser();
-    if (userError || !user) { window.location.href = "login.html"; return; }
+    // --- CHECK UTENTE (UNIFICATO TRA SUPABASE E MASTERCOM) ---
+    let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
+    let user = null;
+    let userRole = 'studente';
 
-    // Controllo Ruolo
     try {
-        const { data: profile } = await sbClient.from('profiles').select('role').eq('id', user.id).single();
-        const userRole = profile ? profile.role : 'studente';
-        if (userRole !== 'tutor' && userRole !== 'admin') {
-            alert("⛔ ACCESSO NEGATO: Pagina riservata ai Tutor.");
-            window.location.href = "dashboard.html";
-            return;
+        const { data: { user: sbUser } } = await sbClient.auth.getUser();
+        if (sbUser) {
+            user = sbUser;
+            const { data: profile } = await sbClient.from('profiles').select('role').eq('id', user.id).single();
+            if (profile && profile.role) userRole = profile.role;
         }
-    } catch (err) { console.error("Errore ruolo:", err); }
+    } catch (e) {
+        console.warn("Supabase auth check in appuntamenti:", e);
+    }
+
+    if (!user && fmtUser) {
+        user = {
+            id: fmtUser.google_id || fmtUser.id,
+            email: fmtUser.email,
+            user_metadata: {
+                full_name: fmtUser.full_name,
+                avatar_url: fmtUser.avatar_url
+            }
+        };
+        userRole = fmtUser.role || 'studente';
+    } else if (user && fmtUser) {
+        if (fmtUser.role === 'tutor' || fmtUser.role === 'admin') {
+            userRole = fmtUser.role;
+        }
+    }
+
+    if (!user) { window.location.href = "login.html"; return; }
+
+    if (userRole !== 'tutor' && userRole !== 'admin') {
+        alert("⛔ ACCESSO NEGATO: Pagina riservata ai Tutor.");
+        window.location.href = "dashboard.html";
+        return;
+    }
 
     // --- SETUP FORM AULA (MODIFICATO) ---
     
@@ -109,13 +134,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadFutureLessons() {
         try {
             const todayISO = new Date().toISOString().split('T')[0];
-            const { data } = await sbClient.from('appointments')
-                .select('*')
-                .eq('tutor_id', user.id)
-                .eq('status', 'Confermato') // Carica solo le confermate
-                .gte('date', todayISO); 
+            let list = [];
+
+            // 1. Carica da API FMT (backend Flask con account unificato)
+            if (typeof FMT_API !== 'undefined' && FMT_API.getAppointments) {
+                try {
+                    const apiRes = await FMT_API.getAppointments();
+                    if (apiRes && apiRes.success && Array.isArray(apiRes.appointments)) {
+                        list = apiRes.appointments.filter(l => l.status === 'Confermato' && l.date >= todayISO);
+                    }
+                } catch(apiErr) {
+                    console.warn("Errore getAppointments API:", apiErr);
+                }
+            }
+
+            // 2. Carica da Supabase se connesso
+            try {
+                const { data } = await sbClient.from('appointments')
+                    .select('*')
+                    .eq('tutor_id', user.id)
+                    .eq('status', 'Confermato')
+                    .gte('date', todayISO); 
+                if (data && data.length > 0) {
+                    const existingIds = new Set(list.map(l => l.id));
+                    data.forEach(d => { if (!existingIds.has(d.id)) list.push(d); });
+                }
+            } catch(sbErr) {}
             
-            myFutureLessons = data || [];
+            myFutureLessons = list;
         } catch(e) { console.error("Err future lessons", e); }
     }
     await loadFutureLessons();

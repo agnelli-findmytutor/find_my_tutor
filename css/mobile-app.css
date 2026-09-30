@@ -1,236 +1,937 @@
-/* ============================================================
-   MOBILE APP NAVIGATION & STYLES
-   ============================================================ */
+/* ==========================================================================
+   FIND MY TUTOR - MOBILE WEB APP DESIGN SYSTEM
+   Inspired directly by EduTrack (new_registro_elettronico)
+   Preserves the institutional Agnelli Red branding (#D32F2F, #9A0007)
+   ========================================================================== */
 
-/* --- 1. BOTTOM NAVIGATION BAR (FIXED) --- */
-.mobile-bottom-nav {
-    display: none;
-    /* Hidden on desktop */
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-    z-index: 9999;
-    justify-content: space-around;
-    align-items: center;
-    padding-bottom: env(safe-area-inset-bottom);
-    /* Fix for iPhone X+ */
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+:root {
+  --c-bg: #f8fafc;
+  --c-surface: #ffffff;
+  --c-surface-2: #f1f5f9;
+  --c-surface-3: #e2e8f0;
+  --c-border: #e2e8f0;
+  --c-border-2: #cbd5e1;
+
+  --c-text: #0f172a;
+  --c-muted: #64748b;
+  --c-subtle: #94a3b8;
+
+  /* Agnelli Red Theme Palette */
+  --c-primary: #D32F2F;
+  --c-primary-l: rgba(211, 47, 47, 0.08);
+  --c-primary-g: #B71C1C;
+  --c-primary-gradient: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+
+  --c-ok: #22c55e;
+  --c-ok-l: rgba(34, 197, 94, 0.12);
+  --c-warn: #f59e0b;
+  --c-warn-l: rgba(245, 158, 11, 0.12);
+  --c-danger: #ef4444;
+  --c-danger-l: rgba(239, 68, 68, 0.12);
+
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 20px;
+  --radius-xl: 28px;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 10px 35px rgba(0, 0, 0, 0.1);
+
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --t: .24s;
+
+  --topbar-h: 56px;
+  --bottom-h: 70px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.nav-item-mobile {
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE VIEWPORT & APP SHELL (< 900px)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 900px) {
+  html, body {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    animation: none !important;
+  }
+
+  html {
+    font-size: 15px;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: contain;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--c-bg) !important;
+    color: var(--c-text);
+    padding-bottom: calc(var(--bottom-h) + var(--safe-bottom) + 28px) !important;
+    -webkit-font-smoothing: antialiased;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
+    overscroll-behavior-y: contain;
+    overflow-x: hidden;
+  }
+
+  /* Nascondi bottone scroll-to-top che copre la bottom nav */
+  .scroll-top-btn {
+    display: none !important;
+  }
+
+  /* Nascondi header e sidebar desktop tradizionali */
+  header:not(.login-topbar):not(.topbar) {
+    display: none !important;
+  }
+
+  .dashboard-sidebar {
+    display: none !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     1. TOPBAR (Identica a new_registro_elettronico)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: max(10px, var(--safe-top)) 16px 10px 16px !important;
+    background: var(--c-surface) !important;
+    border-bottom: 1px solid var(--c-border) !important;
+    height: calc(var(--topbar-h) + var(--safe-top));
+    min-height: calc(var(--topbar-h) + var(--safe-top));
+    gap: 12px;
+    z-index: 900;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+
+  .tb-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .tb-logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: var(--c-primary-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--c-primary-l);
+  }
+
+  .tb-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--c-text);
+    line-height: 1.2;
+  }
+
+  .tb-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+
+  .tb-sync-btn, .tb-notify-btn, .tb-action-btn {
+    background: var(--c-surface-2);
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s var(--ease-spring);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tb-sync-btn:active, .tb-notify-btn:active, .tb-action-btn:active {
+    transform: scale(0.92);
+  }
+
+  .tb-sync-btn.is-syncing i {
+    animation: spin 0.8s linear infinite;
+    color: var(--c-primary);
+  }
+
+  .tb-notify-btn .tb-notify-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: var(--c-primary);
+    border: 2px solid var(--c-surface);
+    border-radius: 50%;
+  }
+
+  .tb-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--c-primary);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--c-border-2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    position: relative;
+    user-select: none;
+    text-decoration: none;
+  }
+
+  .tb-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .dot-online {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--c-ok);
+    border: 2px solid var(--c-surface);
+  }
+
+  .tb-login-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--c-primary-gradient);
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 8px 14px;
+    border-radius: var(--radius-m);
+    box-shadow: 0 4px 14px var(--c-primary-l);
+    text-decoration: none;
+    transition: transform 0.15s ease;
+  }
+
+  .tb-login-pill:active {
+    transform: scale(0.94);
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     2. BOTTOM NAV (Identica a new_registro_elettronico)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: var(--c-surface) !important;
+    border-top: 1px solid var(--c-border) !important;
+    padding-top: 6px !important;
+    padding-bottom: max(10px, var(--safe-bottom)) !important;
+    height: calc(var(--bottom-h) + max(10px, var(--safe-bottom))) !important;
+    min-height: calc(var(--bottom-h) + max(10px, var(--safe-bottom))) !important;
+    box-sizing: border-box !important;
+    z-index: 980 !important;
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.06) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+  }
+
+  .bn-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 3px;
+    padding: 6px 0 2px;
+    color: var(--c-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     text-decoration: none;
-    color: #888;
-    font-size: 0.7rem;
-    font-weight: 500;
-    gap: 4px;
-    flex: 1;
-    height: 100%;
-    transition: all 0.2s ease;
     position: relative;
-}
+    transition: color var(--t);
+    -webkit-tap-highlight-color: transparent;
+  }
 
-.nav-item-mobile i {
-    font-size: 1.4rem;
-    margin-bottom: 2px;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+  .bn-item i {
+    font-size: 1.25rem;
+    transition: transform var(--t);
+    opacity: 0.65;
+  }
 
-/* ACTIVE STATE */
-.nav-item-mobile.active {
-    color: #D32F2F;
+  .bn-item:active {
+    transform: scale(0.92);
+  }
+
+  .bn-item.is-active {
+    color: var(--c-primary) !important;
+  }
+
+  .bn-item.is-active i {
+    transform: translateY(-2px);
+    color: var(--c-primary) !important;
+    opacity: 1;
+  }
+
+  .bn-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 18px);
+    background: var(--c-primary);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 999px;
+    min-width: 16px;
+    text-align: center;
+    border: 1.5px solid var(--c-surface);
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     3. MORE MENU DRAWER & OVERLAY (Identico a new_registro_elettronico)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .sidebar-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    z-index: 990 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s var(--ease-out), visibility 0.3s !important;
+  }
+
+  .sidebar-overlay.is-open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .more-menu {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: var(--c-surface) !important;
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+    z-index: 1000 !important;
+    padding: 20px 20px max(24px, calc(16px + var(--safe-bottom))) !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.32s var(--ease-spring), visibility 0.32s !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid var(--c-border) !important;
+    border-bottom: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+  }
+
+  .more-menu.is-active {
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .more-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .more-menu-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .more-menu-user .tb-avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .mm-user-text h3 {
+    font-size: 1.05rem;
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--c-text);
+  }
+
+  .mm-user-text small {
+    color: var(--c-muted);
+    font-size: 0.78rem;
     font-weight: 600;
-}
+  }
 
-.nav-item-mobile.active i {
-    transform: translateY(-3px);
-    color: #D32F2F;
-}
+  .btn-close-more {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--c-surface-2);
+    border: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+  }
 
-/* Indicator dot for active item */
-.nav-item-mobile.active::after {
+  .btn-close-more:active {
+    transform: scale(0.92);
+  }
+
+  .more-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .mm-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    border-radius: 16px;
+    background: var(--c-surface-2);
+    color: var(--c-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all var(--t);
+    text-decoration: none;
+    border: 1px solid var(--c-border);
+  }
+
+  .mm-item i {
+    font-size: 1.35rem;
+    color: var(--c-primary);
+  }
+
+  .mm-item:active {
+    background: var(--c-surface-3);
+    transform: scale(0.95);
+  }
+
+  .more-menu-footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--c-border);
+  }
+
+  .action-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 46px;
+    border-radius: var(--radius-m);
+    font-size: 0.92rem;
+    font-weight: 700;
+    transition: all var(--t);
+    cursor: pointer;
+    border: 1px solid var(--c-border);
+  }
+
+  .action-btn.danger {
+    background: #fff5f5;
+    color: var(--c-danger);
+    border-color: #fecaca;
+  }
+
+  .action-btn.danger:active {
+    background: #fee2e2;
+    transform: scale(0.97);
+  }
+
+  .action-btn.primary {
+    background: var(--c-primary-gradient);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 14px var(--c-primary-l);
+  }
+
+  .action-btn.primary:active {
+    transform: scale(0.97);
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     4. CARDS & UI SURFACES (Basate su components.css di EduTrack)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .card, .card-box, .booking-card, .lessons-card, .grid-card, .feature-card, .fsl-card, .mastercom-profile-card {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-border) !important;
+    border-radius: var(--radius-l) !important;
+    box-shadow: var(--shadow-card) !important;
+    padding: 18px 16px !important;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+
+  /* KPI / Stat cards (Stile EduTrack con barra superiore e icona quadrata) */
+  .stat-box-modern, .kpi-card {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-border) !important;
+    border-radius: var(--radius-l) !important;
+    padding: 16px !important;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  .stat-box-modern::before, .kpi-card::before {
     content: '';
     position: absolute;
-    top: 5px;
-    width: 4px;
-    height: 4px;
-    background: #D32F2F;
-    border-radius: 50%;
-    opacity: 0;
-    /* Optional: remove if too cluttered */
-}
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5px;
+    background: var(--c-primary);
+  }
 
-/* Ripple Effect on Click */
-.nav-item-mobile:active {
-    background: rgba(0, 0, 0, 0.02);
-}
-
-/* Special "Add" or "Action" Button in Center (Optional) */
-.nav-item-mobile.highlight-action {
-    position: relative;
-    top: -20px;
-    background: #D32F2F;
-    color: white;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);
+  .stat-icon-wrapper, .kpi-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 13px !important;
+    background: var(--c-primary-l) !important;
+    color: var(--c-primary) !important;
     display: flex;
-    justify-content: center;
     align-items: center;
-    flex: 0 0 50px;
-    /* Fixed size */
+    justify-content: center;
+    font-size: 1.25rem !important;
+  }
+
+  /* Segmented switchers (Stile EduTrack .btn-pill e .btn-group) */
+  .agenda-view-switcher, .login-tabs-nav, .tabs-nav {
+    display: flex !important;
+    background: var(--c-surface-2) !important;
+    border: 1px solid var(--c-border) !important;
+    border-radius: var(--radius-m) !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    margin-bottom: 20px !important;
+    overflow-x: auto;
+  }
+
+  .view-switch-btn, .login-tab-btn, .tabs-nav .tab-btn {
+    flex: 1;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    border: none !important;
+    color: var(--c-muted) !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+    transition: all var(--t);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .view-switch-btn.active, .login-tab-btn.active, .tabs-nav .tab-btn.active {
+    background: var(--c-surface) !important;
+    color: var(--c-primary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     5. CONTROLLI TOUCH (INPUT, BOTTONI, FORM)
+     ═════════════════════════════════════════════════════════════════════════ */
+  input, select, textarea {
+    font-size: 16px !important; /* Previene lo zoom automatico su iOS Safari */
+    min-height: 48px !important;
+    border-radius: var(--radius-m) !important;
+    background: var(--c-surface-2) !important;
+    border: 1.5px solid var(--c-border) !important;
+    color: var(--c-text) !important;
+    padding: 0 16px !important;
+    box-sizing: border-box;
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--c-primary) !important;
+    box-shadow: 0 0 0 3px var(--c-primary-l) !important;
+    background: var(--c-surface) !important;
+  }
+
+  button, .cta-btn, .btn-confirm-booking, .btn-submit-login, .btn-cta {
+    min-height: 48px;
+    border-radius: var(--radius-m) !important;
+    font-weight: 700;
+  }
+
+  button:active, .cta-btn:active, .card-box:active {
+    transform: scale(0.98);
+  }
+
+  /* Override traditional bulky paddings from responsive.css & desktop layout */
+  section,
+  .agenda-wrapper,
+  .dashboard-wrapper,
+  .application-wrapper,
+  .container-agenda,
+  .hero,
+  .stats-dashboard,
+  .courses-info-section,
+  .group-courses-section,
+  .become-tutor-section {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .split-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .page-header {
+    margin-bottom: 14px !important;
+    text-align: left;
+  }
+  .page-header h1 {
+    font-size: 1.45rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+    margin-bottom: 4px !important;
+    color: var(--c-text);
+  }
+  .page-header p {
+    font-size: 0.85rem !important;
+    color: var(--c-muted) !important;
+    margin: 0 !important;
+  }
+
+  .admin-wrapper, .application-container {
+    margin-top: 14px !important;
+    padding: 14px !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     6. HOME PAGE & HERO REFINEMENT
+     ═════════════════════════════════════════════════════════════════════════ */
+  .hero {
+    padding: 20px 14px 16px 14px !important;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    margin-bottom: 20px;
+  }
+
+  .hero-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .hero-btns .cta-btn, .hero-btns .btn-outline {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero-visual {
+    position: static !important;
+    width: 100% !important;
+    max-width: 360px !important;
+    height: auto !important;
+    margin: 18px auto 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    transform: none !important;
+  }
+
+  .hero-visual .circle-bg {
+    display: none !important;
+  }
+
+  .hero-visual .floating-card {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    box-shadow: var(--shadow-card) !important;
+    border: 1px solid var(--c-border) !important;
+    border-radius: var(--radius-m) !important;
+    padding: 14px 16px !important;
+    background: var(--c-surface) !important;
+    justify-content: flex-start !important;
+  }
+
+  .hero-visual .floating-card:hover {
+    transform: none !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     7. NATIVE MODAL BOTTOM SHEET
+     ═════════════════════════════════════════════════════════════════════════ */
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.65) !important;
+  }
+
+  .modal-card, .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 16px 20px calc(24px + var(--safe-bottom)) 20px !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+    animation: slideUpModal 0.28s var(--ease-spring) forwards;
+    background: var(--c-surface) !important;
+  }
+
+  .modal-card::before {
+    content: '';
+    display: block;
+    width: 38px;
+    height: 4px;
+    background: var(--c-border-2);
+    border-radius: 999px;
+    margin: 0 auto 16px auto;
+  }
+
+  @keyframes slideUpModal {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     8. DASHBOARD & PROFILE
+     ═════════════════════════════════════════════════════════════════════════ */
+  .dashboard-main {
+    padding: 16px 14px calc(var(--bottom-h) + var(--safe-bottom) + 16px) 14px !important;
+  }
+
+  .content-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .content-header .header-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .content-header .header-actions button,
+  .content-header .header-actions a {
+    flex: 1 1 auto;
+    min-height: 42px;
+    justify-content: center;
+  }
+
+  #mobileLogoutBtn, .btn-outline-danger {
+    background: #fff5f5;
+    border: 1.5px solid #feb2b2;
+    color: #c53030;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .mastercom-profile-card {
+    padding: 18px 16px !important;
+    border-radius: 18px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .mc-profile-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .mc-profile-user-info {
+    gap: 14px !important;
+    width: 100%;
+  }
+
+  .btn-goto-booking {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     9. PWA INSTALL TOAST
+     ═════════════════════════════════════════════════════════════════════════ */
+  .pwa-install-toast {
+    display: block !important;
+    position: fixed !important;
+    bottom: calc(var(--bottom-h) + var(--safe-bottom) + 12px) !important;
+    left: 14px !important;
+    right: 14px !important;
+    background: #ffffff !important;
+    border: 1px solid var(--c-border) !important;
+    border-radius: var(--radius-m) !important;
+    box-shadow: var(--shadow-float) !important;
+    z-index: 950 !important;
+    padding: 12px 14px !important;
+    animation: toastEnter 0.3s var(--ease-spring) forwards;
+  }
+
+  @keyframes toastEnter {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pwa-toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pwa-toast-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--c-primary-gradient);
+    color: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .pwa-toast-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pwa-toast-info h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 2px;
+  }
+
+  .pwa-toast-info p {
+    font-size: 0.74rem;
+    color: var(--c-muted);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pwa-toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn-pwa-action.install {
+    background: var(--c-primary-gradient);
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-pwa-action.dismiss {
+    background: transparent;
+    color: var(--c-muted);
+    border: none;
+    padding: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
 }
 
-.nav-item-mobile.highlight-action i {
-    font-size: 1.5rem;
-    color: white;
-    transform: none;
-    margin: 0;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   PWA STANDALONE DISPLAY-MODE ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media all and (display-mode: standalone) {
+  .topbar {
+    padding-top: max(14px, var(--safe-top)) !important;
+  }
 
-/* --- 2. RESPONSIVE ADJUSTMENTS FOR MOBILE LAYOUT --- */
-@media screen and (max-width: 900px) {
-
-    /* Hide Desktop Header & Elements */
-    header {
-        display: none !important;
-        /* Hide standard header */
-    }
-
-    .dashboard-sidebar {
-        display: none !important;
-        /* Hide dashboard sidebar */
-    }
-
-    /* Show Mobile Nav */
-    .mobile-bottom-nav {
-        display: flex;
-    }
-
-    /* Adjust Main Content Padding to avoid overlap */
-    body {
-        padding-bottom: 90px !important;
-        /* Space for bottom nav */
-        padding-top: 0 !important;
-        /* Remove huge top padding from header place */
-    }
-
-    .dashboard-main {
-        padding: 20px !important;
-        padding-bottom: 90px !important;
-    }
-
-    /* FIX: Top Bar for Mobile (Logo + Actions) */
-    .mobile-top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 20px;
-        background: white;
-        position: sticky;
-        top: 0;
-        z-index: 9900;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    }
-
-    .mobile-logo {
-        font-weight: 700;
-        font-size: 1.2rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #333;
-    }
-
-    .mobile-logo i {
-        color: #D32F2F;
-        font-size: 1.3rem;
-    }
-
-    /* Page specific spacing fixes */
-    .hero {
-        padding-top: 20px !important;
-        /* Reduced from 120px */
-        min-height: auto !important;
-        /* Let content dictate height */
-        padding-bottom: 40px !important;
-    }
-
-    /* Admin specifics */
-    .admin-wrapper {
-        margin-top: 20px !important;
-        padding-bottom: 90px !important;
-    }
-
-    /* Login Page */
-    .login-container {
-        padding-top: 40px !important;
-        padding-bottom: 100px !important;
-    }
-
-    /* Stats Dashboard Margin */
-    .stats-dashboard {
-        margin-bottom: 0 !important;
-    }
-
-
-    .footer-container {
-        padding-bottom: 80px;
-        /* Ensure footer links are clickable */
-    }
-
-    /* --- 3. TOUCH FRIENDLY REFINEMENTS --- */
-
-    /* Bigger Inputs */
-    input,
-    select,
-    textarea {
-        font-size: 16px !important;
-        /* Prevents iOS zooom */
-        padding: 12px 15px !important;
-        border-radius: 12px !important;
-    }
-
-    /* Bigger Buttons */
-    button,
-    .cta-btn,
-    .btn {
-        min-height: 48px;
-        /* Touch target size */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* Card Interactions */
-    .card,
-    .feature-card,
-    .info-card,
-    .stat-box-modern {
-        active {
-            transform: scale(0.98);
-            transition: 0.1s;
-        }
-    }
-
-    /* Better Scrolling */
-    .lessons-scroll-area,
-    .table-responsive {
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
-    }
-
-    /* Fix weird tap colors */
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
+  .bottom-nav, .topbar, .login-tabs-nav, .agenda-view-switcher {
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }

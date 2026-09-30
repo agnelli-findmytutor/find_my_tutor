@@ -1,199 +1,428 @@
-// ============================================================
-// MOBILE APP NAVIGATION MANAGER
-// Injects bottom navigation and top bar based on context
-// ============================================================
+// ==========================================================================
+// FIND MY TUTOR - NATIVE MOBILE APP NAVIGATION SYSTEM
+// Direct architecture replica of EduTrack (new_registro_elettronico)
+// ==========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Check if we are on mobile (can trigger on resize too)
-    if (window.innerWidth <= 900) {
-        initMobileInterface();
-    }
-    
+    initEduTrackMobileInterface();
+
     window.addEventListener('resize', () => {
         if (window.innerWidth <= 900) {
-            if (!document.querySelector('.mobile-bottom-nav')) initMobileInterface();
-        } else {
-            // Optional: remove mobile elements if resizing to desktop
-            // document.querySelector('.mobile-bottom-nav')?.remove();
-            // document.querySelector('.mobile-top-bar')?.remove();
+            initEduTrackMobileInterface();
         }
     });
 });
 
-function initMobileInterface() {
-    // 1. Determine Context (Public, Dashboard (Student/Tutor), Admin)
-    const path = window.location.pathname;
-    const isDashboard = path.includes('dashboard.html') || path.includes('appuntamenti.html') || path.includes('prenota.html');
-    const isAdmin = path.includes('admin.html');
-    const isLogin = path.includes('login.html');
+function initEduTrackMobileInterface() {
+    if (window.innerWidth > 900) return;
+
+    const path = window.location.pathname.split('/').pop() || 'index.html';
+    const isLogin = path === 'login.html';
     
-    // Do not inject on Login page (keep it clean)
+    // Su login page manteniamo l'interfaccia pulita senza barre
     if (isLogin) return;
 
-    // 2. Inject Top Bar (Logo + Profile/Logout)
-    injectTopBar(isDashboard, isAdmin);
+    // Recupera utente e stato sessione
+    let user = null;
+    let role = 'studente';
+    try {
+        user = JSON.parse(localStorage.getItem('fmt_user') || localStorage.getItem('user') || 'null');
+        role = localStorage.getItem('fmt_role') || (user?.role) || 'studente';
+    } catch(e) {}
 
-    // 3. Inject Bottom Nav
-    if (isAdmin) {
-        injectAdminNav();
-    } else if (isDashboard) {
-        injectDashboardNav();
-    } else {
-        injectPublicNav();
-    }
-    
-    // 4. Highlight Active Link
-    highlightActiveLink();
+    const isLoggedIn = !!user || !!localStorage.getItem('fmt_token') || !!localStorage.getItem('fmt_role');
+    const isMastercom = localStorage.getItem('fmt_auth_provider') === 'mastercom' || !!localStorage.getItem('fmt_token');
+
+    // 1. Inietta Topbar nativa in stile EduTrack
+    injectEduTrackTopbar(isLoggedIn, user, isMastercom, path);
+
+    // 2. Inietta Bottom Nav in stile EduTrack
+    injectEduTrackBottomNav(isLoggedIn, role, path);
+
+    // 3. Inietta Overlay e More Menu Drawer (Altro)
+    injectEduTrackMoreMenu(isLoggedIn, user, role);
+
+    // 4. Gestione parametri query (?view=list)
+    handleViewQueryParams(path);
+
+    // 5. Inizializza Listeners
+    initEduTrackListeners();
 }
 
-function injectTopBar(isDashboard, isAdmin) {
-    if (document.querySelector('.mobile-top-bar')) return;
+function getPageTitle(path) {
+    switch (path) {
+        case 'index.html':
+        case '':
+            return 'FindMyTutor';
+        case 'prenota.html':
+            return 'Agenda Studente';
+        case 'dashboard.html':
+            return 'Area Personale';
+        case 'appuntamenti.html':
+            return 'Agenda Tutor';
+        case 'diventa_tutor.html':
+            return 'Diventa Tutor';
+        case 'progetto.html':
+            return 'Il Progetto';
+        case 'admin.html':
+            return 'Pannello Admin';
+        default:
+            return 'FindMyTutor';
+    }
+}
 
-    const topBar = document.createElement('div');
-    topBar.className = 'mobile-top-bar';
-    
-    let title = 'FindMyTutor';
-    let rightIcon = '<a href="login.html" style="color:#D32F2F; font-weight:600; font-size:0.9rem;">Accedi</a>';
-    
-    // Check auth state from localStorage (simple check)
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    if (user || isDashboard || isAdmin) {
-        rightIcon = `
-            <a href="${isAdmin ? 'admin.html' : 'dashboard.html'}" class="profile-icon-top" style="
-                width: 35px; height: 35px; background: #eee; border-radius: 50%; 
-                display: flex; justify-content: center; align-items: center; color: #555;
-            ">
-                <i class="fas fa-user"></i>
+function injectEduTrackTopbar(isLoggedIn, user, isMastercom, currentPath) {
+    if (document.querySelector('.topbar')) return;
+
+    const topbar = document.createElement('header');
+    topbar.className = 'topbar';
+
+    const pageTitle = getPageTitle(currentPath);
+    const avatarUrl = user?.avatar_url || localStorage.getItem('fmt_avatar') || 'https://via.placeholder.com/150';
+
+    let rightActions = '';
+    if (isLoggedIn) {
+        rightActions = `
+            ${isMastercom ? `
+                <button class="tb-sync-btn" id="manual-sync-btn" title="Sincronizza Registro Elettronico">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            ` : ''}
+            <a href="prenota.html?view=list" class="tb-notify-btn" title="Le tue Lezioni">
+                <i class="fa-solid fa-bell"></i>
+                <span class="tb-notify-dot hidden" id="tb-notify-dot"></span>
+            </a>
+            <a href="dashboard.html" class="tb-avatar" title="Vai all'Area Personale">
+                <img src="${avatarUrl}" alt="Profilo">
+                <span class="dot-online"></span>
+            </a>
+        `;
+    } else {
+        rightActions = `
+            <a href="login.html" class="tb-login-pill">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> <span>Accedi</span>
             </a>
         `;
     }
 
-    if (isAdmin) title = 'Admin Panel';
-    
-    topBar.innerHTML = `
-        <div class="mobile-logo">
-            <i class="fas fa-graduation-cap"></i>
-            <span>${title}</span>
+    topbar.innerHTML = `
+        <div class="tb-left">
+            <div class="tb-logo-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <span class="tb-title" id="tb-page-title">${pageTitle}</span>
         </div>
-        <div class="mobile-actions">
-            ${rightIcon}
+        <div class="tb-right">
+            ${rightActions}
         </div>
     `;
-    
-    // Insert at the very top of body
-    document.body.prepend(topBar);
+
+    document.body.prepend(topbar);
 }
 
-function injectPublicNav() {
-    if (document.querySelector('.mobile-bottom-nav')) return;
-    
+function injectEduTrackBottomNav(isLoggedIn, role, currentPath) {
+    if (document.querySelector('.bottom-nav')) return;
+
     const nav = document.createElement('nav');
-    nav.className = 'mobile-bottom-nav';
-    nav.innerHTML = `
-        <a href="index.html" class="nav-item-mobile">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="progetto.html" class="nav-item-mobile">
-            <i class="fas fa-info-circle"></i>
-            <span>Progetto</span>
-        </a>
-        <a href="prenota.html" class="nav-item-mobile highlight-action">
-             <i class="fas fa-search"></i>
-        </a>
-        <a href="diventa_tutor.html" class="nav-item-mobile">
-            <i class="fas fa-chalkboard-teacher"></i>
-            <span>Tutor</span>
-        </a>
-        <a href="dashboard.html" class="nav-item-mobile">
-            <i class="fas fa-user"></i>
-            <span>Area</span>
-        </a>
-    `;
+    nav.className = 'bottom-nav';
+    nav.id = 'bottom-nav';
+
+    const isHome = currentPath === 'index.html' || currentPath === '';
+    const isPrenota = currentPath === 'prenota.html';
+    const isDashboard = currentPath === 'dashboard.html';
+    const isAgenda = currentPath === 'appuntamenti.html';
+    const isProgetto = currentPath === 'progetto.html';
+    const isLogin = currentPath === 'login.html';
+
+    let navItemsHtml = '';
+
+    if (!isLoggedIn) {
+        // NAV OSPITE
+        navItemsHtml = `
+            <a href="index.html" class="bn-item ${isHome ? 'is-active' : ''}">
+                <i class="fa-solid fa-house"></i><span>Home</span>
+            </a>
+            <a href="prenota.html" class="bn-item ${isPrenota ? 'is-active' : ''}">
+                <i class="fa-solid fa-calendar-plus"></i><span>Prenota</span>
+            </a>
+            <a href="progetto.html" class="bn-item ${isProgetto ? 'is-active' : ''}">
+                <i class="fa-solid fa-compass"></i><span>Progetto</span>
+            </a>
+            <a href="login.html" class="bn-item ${isLogin ? 'is-active' : ''}">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i><span>Accedi</span>
+            </a>
+            <a href="#" class="bn-item" id="bn-more">
+                <i class="fa-solid fa-ellipsis"></i><span>Altro</span>
+            </a>
+        `;
+    } else if (role === 'tutor' || role === 'admin') {
+        // NAV TUTOR / ADMIN
+        navItemsHtml = `
+            <a href="index.html" class="bn-item ${isHome ? 'is-active' : ''}">
+                <i class="fa-solid fa-house"></i><span>Home</span>
+            </a>
+            <a href="prenota.html" class="bn-item ${isPrenota ? 'is-active' : ''}">
+                <i class="fa-solid fa-calendar-plus"></i><span>Prenota</span>
+            </a>
+            <a href="appuntamenti.html" class="bn-item ${isAgenda ? 'is-active' : ''}">
+                <i class="fa-solid fa-chalkboard-user"></i><span>Agenda</span>
+            </a>
+            <a href="dashboard.html" class="bn-item ${isDashboard ? 'is-active' : ''}">
+                <i class="fa-solid fa-user"></i><span>Profilo</span>
+            </a>
+            <a href="#" class="bn-item" id="bn-more">
+                <i class="fa-solid fa-ellipsis"></i><span>Altro</span>
+            </a>
+        `;
+    } else {
+        // NAV STUDENTE LOGGATO
+        navItemsHtml = `
+            <a href="index.html" class="bn-item ${isHome ? 'is-active' : ''}">
+                <i class="fa-solid fa-house"></i><span>Home</span>
+            </a>
+            <a href="prenota.html" class="bn-item ${isPrenota ? 'is-active' : ''}">
+                <i class="fa-solid fa-calendar-plus"></i><span>Prenota</span>
+            </a>
+            <a href="prenota.html?view=list" class="bn-item" id="navItemLessonsMobile">
+                <i class="fa-solid fa-calendar-check"></i><span>Lezioni</span>
+                <span class="bn-badge hidden" id="bn-badge-count">0</span>
+            </a>
+            <a href="dashboard.html" class="bn-item ${isDashboard ? 'is-active' : ''}">
+                <i class="fa-solid fa-user"></i><span>Profilo</span>
+            </a>
+            <a href="#" class="bn-item" id="bn-more">
+                <i class="fa-solid fa-ellipsis"></i><span>Altro</span>
+            </a>
+        `;
+    }
+
+    nav.innerHTML = navItemsHtml;
     document.body.appendChild(nav);
 }
 
-function injectDashboardNav() {
-    if (document.querySelector('.mobile-bottom-nav')) return;
+function injectEduTrackMoreMenu(isLoggedIn, user, role) {
+    if (document.querySelector('.more-menu')) return;
 
-    const nav = document.createElement('nav');
-    nav.className = 'mobile-bottom-nav';
-    nav.innerHTML = `
-        <a href="index.html" class="nav-item-mobile">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="dashboard.html" class="nav-item-mobile">
-            <i class="fas fa-th-large"></i>
-            <span>Dash</span>
-        </a>
-        <a href="prenota.html" class="nav-item-mobile highlight-action">
-             <i class="fas fa-plus"></i>
-        </a>
-        <a href="appuntamenti.html" class="nav-item-mobile">
-            <i class="fas fa-calendar-check"></i>
-            <span>Agenda</span>
-        </a>
-        <button id="mobileLogout" class="nav-item-mobile" style="background:none; border:none; cursor:pointer;">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Esci</span>
-        </button>
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    overlay.id = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+
+    // More Menu Drawer
+    const moreMenu = document.createElement('div');
+    moreMenu.className = 'more-menu';
+    moreMenu.id = 'more-menu';
+
+    const avatarUrl = user?.avatar_url || localStorage.getItem('fmt_avatar') || 'https://via.placeholder.com/150';
+    const userName = user?.full_name || (isLoggedIn ? 'Studente' : 'Visitatore');
+    const userSub = isLoggedIn ? (role === 'admin' ? 'Amministratore' : (role === 'tutor' ? 'Tutor Ufficiale' : 'Studente Agnelli')) : 'FindMyTutor Agnelli';
+
+    moreMenu.innerHTML = `
+        <div class="more-menu-header">
+            <div class="more-menu-user">
+                <div class="tb-avatar" id="mm-avatar">
+                    <img src="${avatarUrl}" alt="Avatar">
+                </div>
+                <div class="mm-user-text">
+                    <h3 id="mm-username">${userName}</h3>
+                    <small id="mm-user-sub">${userSub}</small>
+                </div>
+            </div>
+            <button class="btn-close-more" id="close-more-menu" title="Chiudi menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="more-menu-grid">
+            <a href="progetto.html" class="mm-item">
+                <i class="fa-solid fa-compass"></i><span>Progetto</span>
+            </a>
+            <a href="diventa_tutor.html" class="mm-item">
+                <i class="fa-solid fa-chalkboard-user"></i><span>Diventa Tutor</span>
+            </a>
+            <a href="dashboard.html" class="mm-item">
+                <i class="fa-solid fa-award"></i><span>FSL</span>
+            </a>
+            <a href="https://registro.istitutoagnelli.it" target="_blank" rel="noopener" class="mm-item">
+                <i class="fa-solid fa-school"></i><span>Registro</span>
+            </a>
+            <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="mm-item">
+                <i class="fa-solid fa-envelope"></i><span>Contatti</span>
+            </a>
+            ${role === 'admin' ? `
+            <a href="admin.html" class="mm-item">
+                <i class="fa-solid fa-shield-halved"></i><span>Admin</span>
+            </a>` : `
+            <a href="prenota.html" class="mm-item">
+                <i class="fa-solid fa-book-open"></i><span>Materie</span>
+            </a>`}
+        </div>
+        <div class="more-menu-footer">
+            ${isLoggedIn ? `
+                <button class="action-btn danger" id="logout-btn-mobile">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Esci dall'account
+                </button>
+            ` : `
+                <a href="login.html" class="action-btn primary" style="text-decoration:none;">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Accedi al Portale
+                </a>
+            `}
+        </div>
     `;
-    document.body.appendChild(nav);
-    
-    // Bind Logout
-    setTimeout(() => {
-        document.getElementById('mobileLogout')?.addEventListener('click', () => {
-             if(confirm('Vuoi davvero uscire?')) {
-                 localStorage.removeItem('user');
-                 localStorage.removeItem('sb-access-token');
-                 window.location.href = 'index.html';
-             }
+
+    document.body.appendChild(moreMenu);
+}
+
+function initEduTrackListeners() {
+    const bnMore = document.getElementById('bn-more');
+    const moreMenu = document.getElementById('more-menu');
+    const overlay = document.getElementById('sidebar-overlay');
+    const closeMore = document.getElementById('close-more-menu');
+    const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+    const manualSyncBtn = document.getElementById('manual-sync-btn');
+
+    // Apri More Menu
+    if (bnMore && moreMenu && overlay) {
+        bnMore.addEventListener('click', (e) => {
+            e.preventDefault();
+            moreMenu.classList.add('is-active');
+            overlay.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
         });
-    }, 500);
-}
+    }
 
-function injectAdminNav() {
-    if (document.querySelector('.mobile-bottom-nav')) return;
+    // Chiudi More Menu
+    const closeMenuFn = () => {
+        if (moreMenu) moreMenu.classList.remove('is-active');
+        if (overlay) overlay.classList.remove('is-open');
+        document.body.style.overflow = '';
+    };
 
-    const nav = document.createElement('nav');
-    nav.className = 'mobile-bottom-nav';
-    nav.innerHTML = `
-        <a href="admin.html" class="nav-item-mobile">
-            <i class="fas fa-chart-line"></i>
-            <span>Stats</span>
-        </a>
-        <a href="admin.html?tab=users" class="nav-item-mobile">
-            <i class="fas fa-users"></i>
-            <span>Utenti</span>
-        </a>
-        <a href="admin.html?tab=lessons" class="nav-item-mobile highlight-action" style="background: #4a148c;">
-             <i class="fas fa-list"></i>
-        </a>
-        <a href="admin.html?tab=requests" class="nav-item-mobile">
-            <i class="fas fa-user-plus"></i>
-            <span>Richieste</span>
-        </a>
-        <a href="dashboard.html" class="nav-item-mobile">
-            <i class="fas fa-arrow-left"></i>
-            <span>Esci</span>
-        </a>
-    `;
-    document.body.appendChild(nav);
-}
+    if (closeMore) closeMore.addEventListener('click', closeMenuFn);
+    if (overlay) overlay.addEventListener('click', closeMenuFn);
 
-function highlightActiveLink() {
-    const path = window.location.pathname.split("/").pop() || "index.html";
-    const links = document.querySelectorAll('.nav-item-mobile');
-    
-    links.forEach(link => {
-        const href = link.getAttribute('href');
-        // Simple match or query param match for admin tabs
-        if (href === path || (path === 'admin.html' && href.includes('admin.html'))) {
-            // Avoid highlighting multiple admin tabs if not precise, but for now simple is ok
-            link.classList.add('active');
-        }
+    document.querySelectorAll('.mm-item').forEach(item => {
+        item.addEventListener('click', closeMenuFn);
     });
+
+    // Logout Mobile
+    if (logoutBtnMobile) {
+        logoutBtnMobile.addEventListener('click', async (e) => {
+            e.preventDefault();
+            closeMenuFn();
+            if (typeof FMT_API !== 'undefined' && FMT_API.logout) {
+                try { await FMT_API.logout(); } catch(err) {}
+            }
+            if (typeof sb !== 'undefined' && sb.auth) {
+                try { await sb.auth.signOut(); } catch(err) {}
+            }
+            localStorage.clear();
+            window.location.href = 'login.html';
+        });
+    }
+
+    // Sincronizzazione Mastercom da Topbar
+    if (manualSyncBtn) {
+        manualSyncBtn.addEventListener('click', async () => {
+            const icon = manualSyncBtn.querySelector('i');
+            if (manualSyncBtn.classList.contains('is-syncing')) return;
+
+            manualSyncBtn.classList.add('is-syncing');
+            try {
+                if (typeof FMT_API !== 'undefined' && FMT_API.syncProfile) {
+                    const res = await FMT_API.syncProfile();
+                    if (res.success && res.user) {
+                        FMT_API.setCurrentUser(res.user);
+                        window.location.reload();
+                    } else {
+                        alert(res.message || "Errore sincronizzazione.");
+                    }
+                }
+            } catch (err) {
+                alert("Errore sincronizzazione registro: " + err.message);
+            } finally {
+                manualSyncBtn.classList.remove('is-syncing');
+            }
+        });
+    }
+
+    // Previeni ricaricamenti inutili se si clicca la scheda della pagina attuale
+    const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.bn-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            if (!href || href === '#' || href.includes('?')) return;
+            const targetFile = href.split('/').pop();
+            if (targetFile === currentFile) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Aggiorna badge notifiche / lezioni
+    updateLessonBadges();
+}
+
+function updateLessonBadges() {
+    const badgeCountEl = document.getElementById('bn-badge-count');
+    const notifyDot = document.getElementById('tb-notify-dot');
+    const myLessonsBadge = document.getElementById('myLessonsBadge');
+
+    let count = 0;
+    if (myLessonsBadge) {
+        count = parseInt(myLessonsBadge.textContent) || 0;
+    }
+
+    if (badgeCountEl) {
+        if (count > 0) {
+            badgeCountEl.textContent = count;
+            badgeCountEl.classList.remove('hidden');
+        } else {
+            badgeCountEl.classList.add('hidden');
+        }
+    }
+
+    if (notifyDot) {
+        if (count > 0) {
+            notifyDot.classList.remove('hidden');
+        } else {
+            notifyDot.classList.add('hidden');
+        }
+    }
+}
+
+function handleViewQueryParams(currentPath) {
+    if (currentPath === 'prenota.html') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === 'list') {
+            setTimeout(() => {
+                const btnViewList = document.getElementById('btnViewList');
+                if (btnViewList) btnViewList.click();
+            }, 100);
+        }
+
+        const navItemLessons = document.getElementById('navItemLessonsMobile');
+        const navItemBooking = document.querySelector('.bn-item[href="prenota.html"]');
+
+        if (navItemLessons) {
+            navItemLessons.addEventListener('click', (e) => {
+                e.preventDefault();
+                const btnViewList = document.getElementById('btnViewList');
+                if (btnViewList) btnViewList.click();
+                document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('is-active'));
+                navItemLessons.classList.add('is-active');
+            });
+        }
+
+        if (navItemBooking) {
+            navItemBooking.addEventListener('click', (e) => {
+                e.preventDefault();
+                const btnViewBooking = document.getElementById('btnViewBooking');
+                if (btnViewBooking) btnViewBooking.click();
+                document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('is-active'));
+                navItemBooking.classList.add('is-active');
+            });
+        }
+    }
 }

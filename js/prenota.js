@@ -48,10 +48,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     const successModal = document.getElementById('successModal');
     const warningModal = document.getElementById('warningModal');
 
+    // --- SWITCHER VISTA MOBILE (PRENOTA vs LE MIE LEZIONI) ---
+    const btnViewBooking = document.getElementById('btnViewBooking');
+    const btnViewList = document.getElementById('btnViewList');
+    const bookingCard = document.querySelector('.booking-card');
+    const listCard = document.querySelector('.list-card');
+
+    if (btnViewBooking && btnViewList && bookingCard && listCard) {
+        const switchView = (toView) => {
+            if (toView === 'list') {
+                btnViewList.classList.add('active');
+                btnViewList.setAttribute('aria-selected', 'true');
+                btnViewBooking.classList.remove('active');
+                btnViewBooking.setAttribute('aria-selected', 'false');
+                listCard.classList.remove('mobile-hidden');
+                bookingCard.classList.add('mobile-hidden');
+            } else {
+                btnViewBooking.classList.add('active');
+                btnViewBooking.setAttribute('aria-selected', 'true');
+                btnViewList.classList.remove('active');
+                btnViewList.setAttribute('aria-selected', 'false');
+                bookingCard.classList.remove('mobile-hidden');
+                listCard.classList.add('mobile-hidden');
+            }
+        };
+
+        btnViewBooking.addEventListener('click', () => switchView('booking'));
+        btnViewList.addEventListener('click', () => switchView('list'));
+
+        // Inizializzazione corretta su mobile (< 900px)
+        const initResponsiveView = () => {
+            if (window.innerWidth <= 900) {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('view') === 'list' || btnViewList.classList.contains('active')) {
+                    switchView('list');
+                } else {
+                    switchView('booking');
+                }
+            } else {
+                bookingCard.classList.remove('mobile-hidden');
+                listCard.classList.remove('mobile-hidden');
+            }
+        };
+
+        initResponsiveView();
+        window.addEventListener('resize', initResponsiveView);
+    }
+
     // --- LOGICA GRUPPO ---
     const btnToggleGroup = document.getElementById('btnToggleGroup');
     const groupSection = document.getElementById('groupSection');
-    const bookingCard = document.querySelector('.booking-card');
     const searchInput = document.getElementById('searchStudent');
     const resultsDiv = document.getElementById('studentResults');
     const chipsContainer = document.getElementById('selectedStudents');
@@ -129,9 +175,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // --- 1. CHECK UTENTE ---
-    const { data: { user } } = await sbClient.auth.getUser();
-    if (!user) { window.location.href = "login.html"; return; }
+    // --- 1. CHECK UTENTE (HYBRID MASTERCOM + SUPABASE UNIFICATO) ---
+    let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
+    let user = null;
+
+    let sbUser = null;
+    try {
+        const { data } = await sbClient.auth.getUser();
+        sbUser = data?.user;
+    } catch(e) {}
+
+    if (sbUser) {
+        user = sbUser;
+        if (fmtUser) {
+            user.id = fmtUser.google_id || sbUser.id;
+        }
+    } else if (fmtUser) {
+        user = {
+            id: fmtUser.google_id || fmtUser.id,
+            email: fmtUser.google_email || fmtUser.email,
+            user_metadata: {
+                full_name: fmtUser.full_name,
+                avatar_url: fmtUser.avatar_url
+            }
+        };
+    } else {
+        window.location.href = "login.html";
+        return;
+    }
+
+    // --- BANNER MATERIE MASTERCOM ---
+    function initMastercomBanner() {
+        const banner = document.getElementById('mastercomBanner');
+        const classBadge = document.getElementById('mcClassBadge');
+        const chipsContainer = document.getElementById('mastercomChips');
+        const btnSync = document.getElementById('btnSyncMastercom');
+        const syncIcon = document.getElementById('syncIcon');
+
+        if (!banner || !fmtUser) return;
+
+        const materie = fmtUser.materie || [];
+        if (materie.length === 0) return;
+
+        banner.classList.remove('hidden');
+        if (classBadge) {
+            classBadge.textContent = fmtUser.class_info || (fmtUser.class_year ? `${fmtUser.class_year}° Anno ${fmtUser.school_type || ''}` : 'Orario attivo');
+        }
+
+        function renderChips() {
+            chipsContainer.innerHTML = '';
+            materie.forEach(m => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'mc-subject-chip';
+                chip.innerHTML = `<i class="fas fa-book-reader mc-chip-star"></i> <span>${m}</span>`;
+                chip.onclick = () => {
+                    document.querySelectorAll('.mc-subject-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+
+                    // Auto-imposta l'anno e l'indirizzo della classe dello studente
+                    if (fmtUser.class_year) filterYear.value = String(fmtUser.class_year);
+                    if (fmtUser.school_type) filterSchoolType.value = fmtUser.school_type;
+                    updateSubjects();
+
+                    // Seleziona la materia scelta
+                    filterSubject.value = m;
+                    filterTutors();
+
+                    // Scroll morbido alla sezione scelta tutor
+                    selectTutor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                };
+                chipsContainer.appendChild(chip);
+            });
+        }
+        renderChips();
+
+        if (btnSync) {
+            btnSync.onclick = async () => {
+                if (syncIcon) syncIcon.classList.add('fa-spin');
+                try {
+                    const syncRes = await FMT_API.syncProfile();
+                    if (syncRes.success && syncRes.user) {
+                        fmtUser = syncRes.user;
+                        FMT_API.setCurrentUser(fmtUser);
+                        if (classBadge) classBadge.textContent = fmtUser.class_info || `${fmtUser.class_year}° Anno ${fmtUser.school_type}`;
+                        renderChips();
+                        updateSubjects();
+                        showSuccess("Sincronizzazione completata", "Orario e materie aggiornati dal Registro Elettronico!");
+                    } else {
+                        showWarning(syncRes.message || "Errore sincronizzazione.");
+                    }
+                } catch(e) {
+                    showWarning("Errore: " + e.message);
+                } finally {
+                    if (syncIcon) syncIcon.classList.remove('fa-spin');
+                }
+            };
+        }
+    }
+    initMastercomBanner();
 
     // --- FUNZIONI UTILI ---
     
@@ -372,6 +514,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadTutors() {
         try {
+            if (typeof FMT_API !== 'undefined') {
+                const res = await FMT_API.getTutors();
+                if (res && res.success && res.tutors && res.tutors.length > 0) {
+                    allTutors = res.tutors;
+                    return;
+                }
+            }
             const { data } = await sbClient.from('profiles').select('*').eq('role', 'tutor');
             allTutors = data || [];
         } catch(e) { console.error(e); }
@@ -392,18 +541,60 @@ document.addEventListener('DOMContentLoaded', async () => {
             limitDate.setDate(limitDate.getDate() - 30);
             const limitStr = limitDate.toISOString().split('T')[0];
 
-            // Recupera lezioni
-            const { data } = await sbClient.from('appointments').select('*').eq('user_id', user.id).order('date', {ascending:true});
-            
-            // Recupera ID delle lezioni già recensite per questo utente
-            const { data: ratedData } = await sbClient.from('tutor_ratings').select('appointment_id');
-            const ratedIds = new Set(ratedData ? ratedData.map(r => r.appointment_id) : []);
+            let data = [];
+            let ratedIds = new Set();
+
+            if (isMastercomUser) {
+                const res = await FMT_API.getAppointments(user.id);
+                data = Array.isArray(res) ? res : ((res && res.appointments) ? res.appointments : []);
+            } else {
+                const { data: sbData } = await sbClient.from('appointments').select('*').eq('user_id', user.id).order('date', {ascending:true});
+                data = sbData || [];
+                const { data: ratedData } = await sbClient.from('tutor_ratings').select('appointment_id');
+                ratedIds = new Set(ratedData ? ratedData.map(r => r.appointment_id) : []);
+            }
 
             // Filtra: Nascondi le cancellate più vecchie di 30 giorni
-            currentLessons = (data || []).filter(l => {
+                // --- CHECK UNNOTIFIED CANCELLATIONS ---
+    function checkCancellations(lessons) {
+        if (!lessons) return;
+        const unnotified = lessons.filter(l => l.status === 'Cancellata' && l.cancellation_notified === 0);
+        if (unnotified.length > 0) {
+            let msg = '<strong>Attenzione! Le seguenti lezioni sono state annullate dal tutor:</strong><br><br>';
+            unnotified.forEach(l => {
+                msg += - <strong>\</strong> del \ alle \<br>;
+                if (l.cancellation_reason) {
+                    msg += \  Motivo: <em>\</em><br>\;
+                }
+            });
+            showWarning(msg);
+            
+            // Acknowledge all
+            unnotified.forEach(l => {
+                fetch('/api/fmt/appointments/acknowledge_cancellation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + FMT_API.getToken()
+                    },
+                    body: JSON.stringify({ appointment_id: l.id })
+                }).catch(console.error);
+            });
+        }
+    }
+
+    checkCancellations(data);
+
+    currentLessons = (data || []).filter(l => {
                 if (l.status === 'Cancellata' && l.date < limitStr) return false;
                 return true;
             });
+
+            // Aggiorna contatore lezioni attive nel badge
+            const todayStr = new Date().toISOString().split('T')[0];
+            const activeLessonsCount = currentLessons.filter(l => l.status !== 'Cancellata' && l.date >= todayStr).length;
+            const badgeEl = document.getElementById('myLessonsBadge');
+            if (badgeEl) badgeEl.textContent = activeLessonsCount;
 
             upcomingList.innerHTML = '';
             if(pastList) pastList.innerHTML = '';
@@ -538,8 +729,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(subject) updateData.subject = subject;
 
             try {
-                const { error } = await sbClient.from('appointments').update(updateData).eq('id', idToModify);
-                if(error) throw error;
+                if (isMastercomUser) {
+                    const res = await FMT_API.updateAppointment(idToModify, updateData);
+                    if (!res.success) throw new Error(res.message || "Errore aggiornamento lezione.");
+                } else {
+                    const { error } = await sbClient.from('appointments').update(updateData).eq('id', idToModify);
+                    if(error) throw error;
+                }
                 closeModal(editModal);
                 showSuccess("Fatto", "Lezione aggiornata.");
                 fetchLessons();
@@ -552,17 +748,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', async () => {
             if(idToModify) {
-                const { error } = await sbClient.rpc('cancel_group_lesson', {
-                    p_lesson_id: idToModify,
-                    p_reason: 'Cancellata dallo studente'
-                });
-                
-                if (error) {
-                    alert("Errore: " + error.message);
+                if (isMastercomUser) {
+                    const res = await FMT_API.cancelAppointment(idToModify, 'Cancellata dallo studente');
+                    if (!res.success) {
+                        alert("Errore: " + (res.message || "Errore durante la cancellazione."));
+                    } else {
+                        closeModal(deleteModal);
+                        fetchLessons();
+                        showSuccess("Cancellata", "La lezione è stata annullata.");
+                    }
                 } else {
-                    closeModal(deleteModal);
-                    fetchLessons();
-                    showSuccess("Cancellata", "La lezione è stata annullata per tutti i partecipanti.");
+                    const { error } = await sbClient.rpc('cancel_group_lesson', {
+                        p_lesson_id: idToModify,
+                        p_reason: 'Cancellata dallo studente'
+                    });
+                    
+                    if (error) {
+                        alert("Errore: " + error.message);
+                    } else {
+                        closeModal(deleteModal);
+                        fetchLessons();
+                        showSuccess("Cancellata", "La lezione è stata annullata per tutti i partecipanti.");
+                    }
                 }
             }
         });
@@ -581,12 +788,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         btn.innerText = "Invio...";
 
         try {
-            const { error } = await sbClient.from('tutor_ratings').insert([{
-                tutor_id: tutorIdToRate,
-                appointment_id: idToModify,
-                rating: ratingValue
-            }]);
-            if(error) throw error;
+            if (isMastercomUser) {
+                const res = await FMT_API.rateTutor(tutorIdToRate, idToModify, ratingValue);
+                if (!res.success) throw new Error(res.message || "Errore invio recensione.");
+            } else {
+                const { error } = await sbClient.from('tutor_ratings').insert([{
+                    tutor_id: tutorIdToRate,
+                    appointment_id: idToModify,
+                    rating: ratingValue
+                }]);
+                if(error) throw error;
+            }
             document.getElementById('ratingModal').classList.add('hidden');
             showSuccess("Grazie!", "La tua recensione anonima è stata salvata.");
             fetchLessons();
@@ -642,10 +854,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (subjectSet.size > 0) {
             filterSubject.disabled = false;
-            Array.from(subjectSet).sort().forEach(s => {
+            const studentSubjects = (fmtUser && fmtUser.materie) ? fmtUser.materie : [];
+            const sortedSubjects = Array.from(subjectSet).sort((a, b) => {
+                const aInTimetable = studentSubjects.includes(a);
+                const bInTimetable = studentSubjects.includes(b);
+                if (aInTimetable && !bInTimetable) return -1;
+                if (!aInTimetable && bInTimetable) return 1;
+                return a.localeCompare(b);
+            });
+
+            sortedSubjects.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
-                opt.textContent = s;
+                const isTimetable = studentSubjects.includes(s);
+                opt.textContent = isTimetable ? `${s} ⭐ (Del tuo orario)` : s;
+                if (isTimetable) {
+                    opt.style.fontWeight = 'bold';
+                    opt.style.color = '#b71c1c';
+                }
                 filterSubject.appendChild(opt);
             });
         } else {
@@ -749,14 +975,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 2. Recupera lezioni esistenti del tutor per quel giorno (per calcolare i buchi)
         const tutorId = selectTutor.value;
-        const { data: existingApps, error } = await sbClient
-            .from('appointments')
-            .select('time_slot, duration')
-            .eq('tutor_id', tutorId)
-            .eq('date', dateVal)
-            .neq('status', 'Cancellata');
-            
-        if(error) { console.error(error); return; }
+        let existingApps = [];
+
+        if (isMastercomUser) {
+            const occRes = await FMT_API.getAppointments(null, tutorId, dateVal);
+            existingApps = (occRes && occRes.appointments) ? occRes.appointments.filter(a => a.status !== 'Cancellata') : [];
+        } else {
+            const { data: sbExisting, error } = await sbClient
+                .from('appointments')
+                .select('time_slot, duration')
+                .eq('tutor_id', tutorId)
+                .eq('date', dateVal)
+                .neq('status', 'Cancellata');
+            if (error) { console.error(error); return; }
+            existingApps = sbExisting || [];
+        }
 
         // 3. Mappa Occupazione (Mattoncini da 30 min)
         const occupiedSet = new Set();
@@ -874,7 +1107,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             const tName = selectTutor.options[selectTutor.selectedIndex].text.split(' (')[0];
             const organizerName = user.user_metadata.full_name || user.email;
 
-            if (isGroupMode && selectedStudents.length > 0) {
+            if (isMastercomUser) {
+                const appPayload = {
+                    user_id: user.id,
+                    tutor_id: tid,
+                    student_name: organizerName,
+                    student_email: user.email,
+                    subject: sub,
+                    date: date,
+                    time_slot: time,
+                    duration: dur,
+                    tutor_name_cache: tName,
+                    notes: notes,
+                    is_group: isGroupMode && selectedStudents.length > 0,
+                    group_members: (isGroupMode && selectedStudents.length > 0)
+                        ? `Organizzato da ${organizerName} | Altri: ${selectedStudents.map(s => s.name).join(', ')}`
+                        : null
+                };
+                const res = await FMT_API.createAppointment(appPayload);
+                if (!res.success) throw new Error(res.message || "Errore durante la prenotazione.");
+            } else if (isGroupMode && selectedStudents.length > 0) {
                 // LOGICA GRUPPO: Usiamo la RPC per superare i limiti RLS
                 const participantsData = selectedStudents.map(student => {
                     const sObj = allStudents.find(x => x.id === student.id);
@@ -911,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     student_email: user.email, 
                     subject: sub, 
                     date: date, 
-                    time_slot: time,
+                    time_slot: time, 
                     duration: dur, 
                     status: 'Confermato', 
                     tutor_name_cache: tName, 
@@ -935,3 +1187,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchLessons();
 });
 })();
+

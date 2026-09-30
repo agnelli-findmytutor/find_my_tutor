@@ -3,19 +3,25 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Agenda Studente - FindMyTutor</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="view-transition" content="same-origin">
-
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/prenota.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
     <style>
         /* Stile Stelle Recensione */
         .star-rating {
@@ -47,11 +53,6 @@
 
 <body>
 
-    <div class="animated-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-3"></div>
-    </div>
-
     <header>
         <div class="logo">
             <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -79,6 +80,16 @@
                 <p>Cerca un tutor, prenota la tua ripetizione e gestisci il tuo calendario.</p>
             </div>
 
+            <!-- Segmented Switcher per visualizzazione mobile rapida -->
+            <div class="agenda-view-switcher" role="tablist">
+                <button type="button" class="view-switch-btn active" id="btnViewBooking" role="tab" aria-selected="true">
+                    <i class="fas fa-calendar-plus"></i> <span>Prenota Lezione</span>
+                </button>
+                <button type="button" class="view-switch-btn" id="btnViewList" role="tab" aria-selected="false">
+                    <i class="fas fa-calendar-check"></i> <span>Le tue Lezioni</span> <span class="lessons-badge-count" id="myLessonsBadge">0</span>
+                </button>
+            </div>
+
             <div class="split-layout">
 
                 <div class="card-box booking-card">
@@ -92,6 +103,28 @@
                         <button type="button" id="btnToggleGroup" class="btn-group-toggle">
                             <i class="fas fa-users"></i> Prenotazione di Gruppo
                         </button>
+                    </div>
+
+                    <!-- BANNER MATERIE MASTERCOM (Mostrato per studenti collegati al Registro) -->
+                    <div id="mastercomBanner" class="mastercom-subjects-banner hidden">
+                        <div class="mc-banner-header">
+                            <div class="mc-banner-title">
+                                <i class="fas fa-graduation-cap mc-icon"></i>
+                                <div>
+                                    <div class="mc-banner-heading">Materie dal tuo orario scolastico</div>
+                                    <span id="mcClassBadge" class="mc-class-badge">Classe...</span>
+                                </div>
+                            </div>
+                            <button type="button" id="btnSyncMastercom" class="btn-sync-mc" title="Sincronizza orario con il Registro Elettronico">
+                                <i class="fas fa-sync-alt" id="syncIcon"></i> <span>Sincronizza</span>
+                            </button>
+                        </div>
+                        <p class="mc-banner-subtitle">
+                            Clicca su una materia del tuo orario per compilare istantaneamente i filtri e cercare i tutor:
+                        </p>
+                        <div id="mastercomChips" class="mc-chips-container">
+                            <!-- Popolato dinamicamente da prenota.js -->
+                        </div>
                     </div>
 
                     <form id="bookingForm">
@@ -352,6 +385,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/prenota.js"></script>

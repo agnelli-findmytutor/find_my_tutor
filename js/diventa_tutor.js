@@ -41,57 +41,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const availHiddenInput = document.getElementById('availability'); // Input nascosto fondamentale
 
     // --- ELEMENTI COMPETENZE (CLASSI E MATERIE) ---
-    const btnAddCompetency = document.getElementById('btnAddCompetency');
-    const competenciesContainer = document.getElementById('competenciesContainer');
 
-    const SUBJECTS_MAP = {
-        'ITT': {
-            'Informatica': ["Informatica", "Sistemi e Reti", "TPSIT", "Telecomunicazioni"],
-            'Meccanica': ["Meccanica", "Disegno", "Tecnologie Meccaniche"],
-            'Elettronica': ["Elettronica", "Elettrotecnica", "Sistemi Automatici"],
-            'Energia': ["Fisica Tecnica", "Impianti"],
-            'Generali': ["Matematica", "Fisica", "Inglese", "Italiano", "Storia", "Chimica", "Diritto"]
-        },
-        'Liceo': ["Matematica", "Fisica", "Latino", "Greco", "Filosofia", "Storia dell'Arte", "Scienze", "Inglese", "Italiano", "Storia"]
-    };
-
-    function renderSubjectList() {
-        const school = document.getElementById('tempSchool').value;
+    // Subject rendering is driven by the user's actual class_info from their profile.
+    // Called after the user is authenticated and profile loaded.
+    function renderSubjectListFromClass(classInfo, preSelected = []) {
         const container = document.getElementById('subjectCheckboxesGrid');
-        if(!container) return;
-        
-        container.innerHTML = '';
-        
-        if (school === 'ITT') {
-            container.style.gridTemplateColumns = "repeat(auto-fit, minmax(150px, 1fr))";
-            for (const [category, subjects] of Object.entries(SUBJECTS_MAP.ITT)) {
-                const col = document.createElement('div');
-                col.style = "display: flex; flex-direction: column; gap: 5px;";
-                col.innerHTML = `<h5 style="font-size:0.75rem; color:#4a148c; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:2px; text-transform:uppercase; letter-spacing:0.5px;">${category}</h5>`;
-                subjects.forEach(s => {
-                    const label = document.createElement('label');
-                    label.style = "display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #444;";
-                    label.innerHTML = `<input type="checkbox" name="tempSub" value="${s}" style="cursor: pointer;"> ${s}`;
-                    col.appendChild(label);
-                });
-                container.appendChild(col);
-            }
-        } else {
-            container.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
-            SUBJECTS_MAP.Liceo.forEach(s => {
-                const label = document.createElement('label');
-                label.style = "display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #444;";
-                label.innerHTML = `<input type="checkbox" name="tempSub" value="${s}" style="cursor: pointer;"> ${s}`;
-                container.appendChild(label);
-            });
+        const banner = document.getElementById('classDetectedBanner');
+        const classLabel = document.getElementById('classDetectedLabel');
+        if (!container) return;
+
+        if (!classInfo || !SubjectsConfig.parseClass(classInfo)) {
+            container.innerHTML = '<p style="color:#c62828; font-size:0.85rem;"><i class="fas fa-exclamation-triangle"></i> Classe non riconosciuta nel tuo profilo. Contatta un admin.</p>';
+            return;
         }
+
+        const subjects = SubjectsConfig.getSubjectsForTutor(classInfo);
+        if (banner) banner.style.display = 'block';
+        if (classLabel) classLabel.textContent = `${classInfo} (${SubjectsConfig.getSchoolTypeLabel(classInfo)})`;
+
+        // Populate classInfo hidden field
+        const classInfoHidden = document.getElementById('classInfo');
+        if (classInfoHidden) classInfoHidden.value = classInfo;
+
+        SubjectsConfig.renderCheckboxGrid(container, subjects, preSelected);
     }
 
-    const tempSchool = document.getElementById('tempSchool');
-    if(tempSchool) {
-        tempSchool.addEventListener('change', renderSubjectList);
-        renderSubjectList();
-    }
+
     
     let existingRequestId = null;
 
@@ -108,8 +83,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // 1. CONTROLLO UTENTE LOGGATO
-    const { data: { user } } = await sb.auth.getUser();
+    // 1. CONTROLLO UTENTE LOGGATO (UNIFICATO TRA GOOGLE E MASTERCOM)
+    let { data: { user } } = await sb.auth.getUser();
+    let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
+
+    if (!user && fmtUser) {
+        user = {
+            id: fmtUser.google_id || fmtUser.id,
+            email: fmtUser.email,
+            user_metadata: {
+                full_name: fmtUser.full_name,
+                avatar_url: fmtUser.avatar_url
+            }
+        };
+    }
 
     if (!user) {
         if(mainFormContainer) mainFormContainer.classList.add('hidden');
@@ -120,7 +107,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(mainFormContainer) mainFormContainer.classList.remove('hidden');
     if(loginWarning) loginWarning.classList.add('hidden');
 
-    // 2. CERCA RICHIESTE ESISTENTI (E RIPOPOLA I CAMPI)
+    // Fetch the user's profile to get their class_info
+    let userClassInfo = fmtUser ? fmtUser.class_info : null;
+    if (!userClassInfo && user) {
+        try {
+            const { data: profile } = await sb.from('profiles').select('class_info').eq('id', user.id).maybeSingle();
+            if (profile) userClassInfo = profile.class_info;
+        } catch(e) {}
+    }
+
+    // Render eligible subjects based on the user's class
+    renderSubjectListFromClass(userClassInfo);
+
+
     try {
         const { data: request, error } = await sb
             .from('tutor_requests')
@@ -153,23 +152,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('email').value = request.email;
                 document.getElementById('phone').value = request.phone;
                 
+                // Populate hidden fields
                 const classInfoHidden = document.getElementById('classInfo');
                 const subjectsHidden = document.getElementById('subjects');
                 if(classInfoHidden) classInfoHidden.value = request.class_info || '';
                 if(subjectsHidden) subjectsHidden.value = request.subjects || '';
                 
-                // Popola input nascosto
                 document.getElementById('availability').value = request.availability;
 
-                // --- VISUALIZZA LE COMPETENZE SALVATE ---
-                if (request.class_info && request.subjects) {
-                    const classes = request.class_info.split(' | ');
-                    const subjects = request.subjects.split(' | ');
-                    if(competenciesContainer) competenciesContainer.innerHTML = '';
-                    classes.forEach((c, idx) => {
-                        if(subjects[idx]) createCompetencyChip(`${c} (${subjects[idx]})`);
-                    });
-                }
+                // --- RE-RENDER SUBJECTS WITH SAVED SELECTIONS ---
+                const savedSubjects = request.subjects ? request.subjects.split(',').map(s => s.trim()) : [];
+                renderSubjectListFromClass(userClassInfo, savedSubjects);
 
                 // --- VISUALIZZA I BLOCCHETTI ORARI SALVATI ---
                 if (request.availability && request.availability.trim() !== "") {

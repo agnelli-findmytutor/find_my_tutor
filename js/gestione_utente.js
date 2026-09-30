@@ -65,6 +65,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- B. GESTIONE MENU ---
         const navLinks = document.querySelector('.nav-links');
+    if (userRole === 'tutor' || userRole === 'staff' || userRole === 'admin') {
+        document.querySelectorAll('a[href="diventa_tutor.html"]').forEach(el => el.style.display = 'none');
+    }
         if (navLinks) {
             // 1. Link "Prenota Lezione" (CORRETTO: Rimosso style inline)
             if (!document.querySelector('.link-prenota')) {
@@ -90,6 +93,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
+                        if ((userRole === 'staff' || userRole === 'admin') && !document.querySelector('.link-staff')) {
+                const liStaff = document.createElement('li');
+                let linkHTML = '<a href="staff.html" class="link-staff"><i class="fas fa-user-tie"></i> Area Staff</a>';
+                liStaff.innerHTML = checkActive(linkHTML);
+                navLinks.appendChild(liStaff);
+            }
             // 3. Link "Pannello Admin"
             if (userRole === 'admin' && !document.querySelector('.link-admin')) {
                 const liAdmin = document.createElement('li');
@@ -107,7 +116,111 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- 1. CONTROLLO VELOCE (CACHE LOCALE) ---
+    // --- 1. CONTROLLO SESSIONE MASTERCOM & UNIFICAZIONE ACCOUNT ---
+    const isMastercom = localStorage.getItem('fmt_auth_provider') === 'mastercom' || !!localStorage.getItem('fmt_token');
+    if (isMastercom) {
+        let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
+        if (!fmtUser) {
+            try {
+                fmtUser = JSON.parse(localStorage.getItem('fmt_user') || 'null');
+            } catch (e) {}
+        }
+
+        if (fmtUser) {
+            // Controlla se il browser ha anche una sessione Google attiva per lo stesso studente
+            try {
+                const { data: { user: sbUser } } = await sbClient.auth.getUser();
+                if (sbUser) {
+                    const sbFullName = sbUser.user_metadata?.full_name || '';
+                    const match = (typeof FMT_API !== 'undefined' && FMT_API.namesOrEmailMatch)
+                        ? FMT_API.namesOrEmailMatch(fmtUser.full_name, sbFullName, sbUser.email)
+                        : true;
+
+                    if (match) {
+                        // UNIFICAZIONE IMMEDIATA DEI PROFILI
+                        let { data: sbProfile } = await sbClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', sbUser.id)
+                            .maybeSingle();
+
+                        const unifiedRole = (sbProfile?.role === 'admin' || fmtUser.role === 'admin')
+                            ? 'admin'
+                            : ((sbProfile?.role === 'tutor' || fmtUser.role === 'tutor') ? 'tutor' : 'studente');
+
+                        fmtUser.id = sbUser.id;
+                        fmtUser.google_id = sbUser.id;
+                        fmtUser.email = sbUser.email;
+                        fmtUser.google_email = sbUser.email;
+                        fmtUser.role = unifiedRole;
+                        fmtUser.auth_provider = 'unified';
+                        fmtUser.linked = true;
+
+                        if (typeof FMT_API !== 'undefined' && FMT_API.setCurrentUser) {
+                            FMT_API.setCurrentUser(fmtUser);
+                            // Sincronizza anche con il database backend Flask
+                            FMT_API.syncGoogleAccount({
+                                id: sbUser.id,
+                                email: sbUser.email,
+                                full_name: fmtUser.full_name,
+                                role: unifiedRole,
+                                avatar_url: fmtUser.avatar_url
+                            });
+                        }
+                    }
+                }
+            } catch (mergeErr) {
+                console.warn("Verifica unificazione Google/Mastercom:", mergeErr);
+            }
+
+            // Render immediato da cache per evitare layout shift
+            const cachedRole = fmtUser.role || localStorage.getItem('fmt_role') || 'studente';
+            const cachedAvatar = fmtUser.avatar_url || localStorage.getItem('fmt_avatar') || 'https://via.placeholder.com/150';
+            updateInterface(cachedRole, cachedAvatar);
+
+            // Auto-fill identity se su diventa_tutor.html
+            if (window.location.pathname.includes('diventa_tutor.html')) {
+                const emailInput = document.getElementById('email');
+                if (emailInput) {
+                    emailInput.value = fmtUser.email || '';
+                    emailInput.readOnly = true;
+                    emailInput.style.backgroundColor = "#e9ecef";
+                    emailInput.style.cursor = "not-allowed";
+                }
+
+                const nameInput = document.getElementById('fullName');
+                if (nameInput) {
+                    nameInput.value = fmtUser.full_name || '';
+                    nameInput.readOnly = true;
+                    nameInput.style.backgroundColor = "#e9ecef";
+                    nameInput.style.cursor = "not-allowed";
+                }
+            }
+
+            // CONTROLLO ASINCRONO CRITTOGRAFICO CON IL SERVER (Previene manomissioni devtools)
+            if (typeof FMT_API !== 'undefined' && FMT_API.getMe) {
+                FMT_API.getMe().then(serverUser => {
+                    if (serverUser) {
+                        const verifiedRole = serverUser.role || 'studente';
+                        const verifiedAvatar = serverUser.avatar_url || cachedAvatar;
+                        if (verifiedRole !== cachedRole) {
+                            updateInterface(verifiedRole, verifiedAvatar);
+                        }
+                    } else if (localStorage.getItem('fmt_token')) {
+                        console.warn("Sessione token invalidata dal server.");
+                        FMT_API.clearSession();
+                        window.location.href = 'login.html';
+                    }
+                }).catch(err => {
+                    console.warn("Verifica sessione in background:", err);
+                });
+            }
+
+            return; // Utente Mastercom valido (e sincronizzato)
+        }
+    }
+
+    // --- 2. CONTROLLO VELOCE SUPABASE (CACHE LOCALE) ---
     // Questo elimina il "flicker" mostrando l'interfaccia loggata immediatamente
     const cachedRole = localStorage.getItem('fmt_role');
     const cachedAvatar = localStorage.getItem('fmt_avatar');
@@ -116,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateInterface(cachedRole, cachedAvatar || 'https://via.placeholder.com/150');
     }
 
-    // --- 2. CONTROLLO REALE (SUPABASE NETWORK) ---
+    // --- 3. CONTROLLO REALE (SUPABASE NETWORK) ---
     // Verifica che il token sia ancora valido e aggiorna i dati se cambiati
     const { data: { user } } = await sbClient.auth.getUser();
 
@@ -133,14 +246,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // DEBUG: Vediamo cosa legge il sito dal database
         if (profile) console.log("Ruolo letto da DB:", profile.role);
 
-        // SINCRONIZZAZIONE RUOLO: Aggiorna se c'è discrepanza
+        // SINCRONIZZAZIONE RUOLO: Aggiorna se c'è discrepanza (senza ricaricare la pagina)
         if (profile && profile.role !== cachedRole) {
             localStorage.setItem('fmt_role', profile.role);
             localStorage.setItem('fmt_avatar', user.user_metadata.avatar_url || 'https://via.placeholder.com/150');
-            
-            // Forza il ricaricamento per attivare i nuovi permessi e mostrare i menu corretti
-            window.location.reload();
-            return; // Interrompiamo l'esecuzione per attendere il ricaricamento
+            updateInterface(profile.role, user.user_metadata.avatar_url || 'https://via.placeholder.com/150');
         }
 
         // Se il profilo non esiste, lo creiamo automaticamente
@@ -161,11 +271,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (profile && profile.role) userRole = profile.role;
 
-        const avatarUrl = user.user_metadata.avatar_url || 'https://via.placeholder.com/150';
+        const avatarUrl = user.user_metadata?.avatar_url || 'https://via.placeholder.com/150';
+        const fullName = user.user_metadata?.full_name || profile?.full_name || (user.email ? user.email.split('@')[0] : 'Studente');
 
-        // Aggiorniamo la cache per la prossima volta
-        localStorage.setItem('fmt_role', userRole);
-        localStorage.setItem('fmt_avatar', avatarUrl);
+        // Sincronizza l'account Google con il backend Mastercom per unificare i dati se esiste
+        let mergedUser = null;
+        if (typeof FMT_API !== 'undefined' && FMT_API.syncGoogleAccount) {
+            try {
+                mergedUser = await FMT_API.syncGoogleAccount({
+                    id: user.id,
+                    email: user.email,
+                    full_name: fullName,
+                    role: userRole,
+                    avatar_url: avatarUrl
+                });
+            } catch (syncErr) {
+                console.warn("Sync Google con Flask backend:", syncErr);
+            }
+        }
+
+        // Aggiorniamo la cache con il profilo completo (eventualmente arricchito dai dati Mastercom)
+        const googleUserObj = mergedUser || {
+            id: user.id,
+            email: user.email,
+            full_name: fullName,
+            role: userRole,
+            avatar_url: avatarUrl,
+            auth_provider: 'google'
+        };
+
+        if (typeof FMT_API !== 'undefined' && FMT_API.setCurrentUser) {
+            FMT_API.setCurrentUser(googleUserObj);
+        } else {
+            localStorage.setItem('fmt_user', JSON.stringify(googleUserObj));
+            localStorage.setItem('fmt_role', userRole);
+            localStorage.setItem('fmt_avatar', avatarUrl);
+            localStorage.setItem('fmt_auth_provider', 'google');
+        }
 
         // Aggiorniamo l'interfaccia (nel caso la cache fosse vecchia o vuota)
         updateInterface(userRole, avatarUrl);
@@ -232,12 +374,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { console.error("Err ban check", e); }
 
     } else {
-        // Se Supabase dice che non siamo loggati, ma avevamo mostrato l'interfaccia (cache), dobbiamo pulire
-        if (cachedRole) {
+        // Se Supabase dice che non siamo loggati, ma avevamo mostrato l'interfaccia (cache), dobbiamo pulire senza ricaricare
+        if (cachedRole && !isMastercom) {
             localStorage.removeItem('fmt_role');
             localStorage.removeItem('fmt_avatar');
-            window.location.reload(); // Ricarica per mostrare lo stato pulito "Accedi"
+            const existingProfile = document.querySelector('.user-profile-header');
+            if (existingProfile) {
+                existingProfile.outerHTML = `<a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>`;
+            }
         }
     }
 });
 })();
+
+
+

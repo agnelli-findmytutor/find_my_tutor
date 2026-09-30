@@ -412,40 +412,6 @@
         gap: 15px;
     }
     .story-separator { display: none; }
-
-    /* --- 8. FOOTER --- */
-    .footer-grid {
-        grid-template-columns: 1fr 1fr !important; /* 2 Colonne per risparmiare altezza */
-        text-align: left !important;
-        gap: 20px !important;
-        padding-bottom: 20px;
-    }
-    
-    /* Brand occupa tutta la larghezza in alto */
-    .footer-col.brand-col {
-        grid-column: 1 / -1;
-        text-align: center;
-        margin-bottom: 10px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        padding-bottom: 20px;
-    }
-
-    .footer-col h4::after {
-        left: 0 !important;
-        transform: none !important;
-    }
-    
-    .contact-link { margin: 0; width: 100%; padding: 8px !important; }
-    .contact-link .icon-box { width: 30px; height: 30px; font-size: 0.9rem; }
-    .contact-link span { font-size: 0.75rem; }
-    
-    .social-area { align-items: flex-start !important; margin-top: 10px; }
-    
-    .footer-bottom {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
 }
 
 /* --- EXTRA SMALL DEVICES (iPhone SE, Fold) --- */

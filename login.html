@@ -2,91 +2,194 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Accedi o Registrati - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Accedi al Portale - FindMyTutor Agnelli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
 </head>
-<body>
+<body class="fmt-login-page">
 
-    <div class="animated-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
-
-    <a href="index.html" class="back-home-btn"><i class="fas fa-arrow-left"></i> Home</a>
-
-    <div class="container" id="container">
-        
-        <div class="form-container sign-up-container">
-            <form action="#">
-                <h1>Crea il tuo profilo</h1>
-                <div class="icon-circle small">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <span>Usa la tua mail istituzionale per registrarti</span>
-<button class="google-btn" type="button">
-    <div class="g-icon-wrapper">
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-        </svg>
-    </div>
-    <span class="btn-text">Continua con Google</span>
-</button>
-                
-                <p class="terms">Solo domini @istitutoagnelli.it</p>
-            </form>
+    <!-- Top Bar Navigation -->
+    <header class="login-topbar">
+        <a href="index.html" class="login-back-btn" title="Torna alla Home">
+            <i class="fas fa-arrow-left"></i>
+            <span>Torna alla Home</span>
+        </a>
+        <div class="login-institution-badge">
+            <i class="fas fa-shield-alt"></i>
+            <span>Portale Studenti Agnelli</span>
         </div>
+    </header>
 
-        <div class="form-container sign-in-container">
-            <form action="#">
-                <h1>Bentornato!</h1>
-                <div class="icon-circle small">
+    <main class="login-main-wrapper">
+        <div class="login-card-container">
+            <!-- Brand Header -->
+            <div class="login-card-header">
+                <div class="login-brand-icon">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <span>Accedi per gestire le tue lezioni</span>
+                <h1 class="login-brand-title">FindMyTutor</h1>
+                <p class="login-brand-subtitle">Istituto Internazionale Edoardo Agnelli</p>
                 
-<button class="google-btn" type="button">
-    <div class="g-icon-wrapper">
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-        </svg>
-    </div>
-    <span class="btn-text">Continua con Google</span>
-</button>
-            </form>
-        </div>
-
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1>Hai già un account?</h1>
-                    <p>Se sei già registrato alla piattaforma, clicca qui sotto per accedere velocemente.</p>
-                    <button class="ghost" id="signIn">Accedi</button>
+                <!-- Segmented Tabs Switcher -->
+                <div class="login-tabs-nav" role="tablist">
+                    <button type="button" class="login-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true" aria-controls="paneLogin">
+                        <i class="fas fa-sign-in-alt"></i> Accedi
+                    </button>
+                    <button type="button" class="login-tab-btn" id="tabBtnInfo" role="tab" aria-selected="false" aria-controls="paneInfo">
+                        <i class="fas fa-info-circle"></i> Come Funziona
+                    </button>
                 </div>
-                
-                <div class="overlay-panel overlay-right">
-                    <h1>Nuovo studente?</h1>
-                    <p>Entra a far parte della community di FindMyTutor. Registrati ora con la tua mail scolastica.</p>
-                    <button class="ghost" id="signUp">Registrati</button>
+            </div>
+
+            <div class="login-card-body">
+                <!-- TAB PANE 1: ACCEDI CON MASTERCOM -->
+                <div class="login-tab-pane active" id="paneLogin" role="tabpanel">
+                    <div class="login-pane-intro">
+                        <h2>Accesso con Registro Elettronico</h2>
+                        <p>Inserisci il tuo codice studente e la password di Mastercom per accedere o creare automaticamente il tuo profilo.</p>
+                    </div>
+
+                    <div class="auth-alert error hidden" id="loginErrorBanner" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="loginErrorText"></span>
+                    </div>
+
+                    <div class="auth-alert success hidden" id="loginSuccessBanner" role="status">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="loginSuccessText"></span>
+                    </div>
+
+                    <form id="mastercomLoginForm" novalidate autocomplete="on">
+                        <div class="login-form-group">
+                            <label for="mcUsername">Codice Studente</label>
+                            <div class="login-input-box">
+                                <i class="fas fa-id-card input-icon"></i>
+                                <input type="text" id="mcUsername" name="username" placeholder="Es. 616709" required autocomplete="username" inputmode="numeric">
+                            </div>
+                        </div>
+
+                        <div class="login-form-group">
+                            <label for="mcPassword">Password Mastercom</label>
+                            <div class="login-input-box">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="mcPassword" name="password" placeholder="Inserisci la password" required autocomplete="current-password">
+                                <button type="button" class="btn-toggle-pwd" id="togglePasswordBtn" aria-label="Mostra o nascondi password" tabindex="-1">
+                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button class="btn-submit-login" id="btnSubmitMastercom" type="submit">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="btn-text">Accedi con Mastercom</span>
+                        </button>
+
+                        <div class="auth-divider">
+                            <span>oppure</span>
+                        </div>
+
+                        <button class="btn-google-login" id="btnGoogleLogin" type="button">
+                            <div class="g-icon-wrapper">
+                                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                                </svg>
+                            </div>
+                            <span class="btn-text">Continua con Google Workspace</span>
+                        </button>
+                        <p class="google-domain-hint">
+                            <i class="fas fa-lock"></i> Solo account <strong>@istitutoagnelli.it</strong>
+                        </p>
+                    </form>
+
+                    <div class="login-security-notice">
+                        <i class="fas fa-lock"></i>
+                        <span>Autenticazione crittografata diretta con i server Mastercom dell'Istituto. Nessuna registrazione manuale richiesta.</span>
+                    </div>
+                </div>
+
+                <!-- TAB PANE 2: COME FUNZIONA & PRIMO ACCESSO -->
+                <div class="login-tab-pane hidden" id="paneInfo" role="tabpanel">
+                    <div class="login-pane-intro">
+                        <h2>Tutto Automatico e Protetto</h2>
+                        <p>FindMyTutor è integrato direttamente con il Registro Scolastico Mastercom dell'Istituto Agnelli.</p>
+                    </div>
+
+                    <div class="info-features-grid">
+                        <div class="info-feature-item">
+                            <div class="info-icon-badge">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Nessuna registrazione separata</h3>
+                                <p>Usa subito le stesse credenziali del Registro Elettronico: il tuo profilo viene creato e verificato istantaneamente.</p>
+                            </div>
+                        </div>
+
+                        <div class="info-feature-item">
+                            <div class="info-icon-badge">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Sincronizzazione orario e classe</h3>
+                                <p>Le tue materie d'indirizzo (ITT o Liceo) e il tuo orario settimanale vengono sincronizzati per aiutarti a scegliere il tutor migliore.</p>
+                            </div>
+                        </div>
+
+                        <div class="info-feature-item">
+                            <div class="info-icon-badge">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Foto profilo e dati ufficiali</h3>
+                                <p>La tua foto profilo ufficiale del registro e il tuo nome garantiscono che solo gli studenti della scuola possano accedere alle ripetizioni.</p>
+                            </div>
+                        </div>
+
+                        <div class="info-feature-item">
+                            <div class="info-icon-badge">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <h3>Sicurezza HMAC-SHA256</h3>
+                                <p>La tua sessione è protetta da token crittografici conformi ai più alti standard di riservatezza e integrità.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-submit-login secondary" id="btnGoToLoginTab">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Ho capito, procedi all'Accesso</span>
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="login-footer">
+        <p>&copy; 2026 FindMyTutor &bull; Istituto Internazionale Edoardo Agnelli &bull; Torino</p>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
     <script src="js/gestione_utente.js"></script>
-    <script src="js/config.js"></script>
     <script src="js/login.js"></script>
-    <script src="script.js"></script>
-    <script src="js/global_maintenance.js"></script>
 </body>
 </html>

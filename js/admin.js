@@ -39,23 +39,40 @@ let selectedId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     
-    // 1. CHECK SICUREZZA
-    const { data: { user }, error: authError } = await sb.auth.getUser();
-    
-    // Se non c'è sessione, reindirizza immediatamente
-    if (authError || !user) {
+    // 1. CHECK SICUREZZA UNIFICATO
+    let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
+    let user = null;
+    let isAdmin = false;
+
+    try {
+        const { data: { user: sbUser } } = await sb.auth.getUser();
+        if (sbUser) {
+            user = sbUser;
+            const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).single();
+            if (profile && profile.role === 'admin') isAdmin = true;
+        }
+    } catch(e) {}
+
+    if (!user && fmtUser) {
+        user = {
+            id: fmtUser.google_id || fmtUser.id,
+            email: fmtUser.email,
+            user_metadata: { full_name: fmtUser.full_name }
+        };
+    }
+
+    if (fmtUser && fmtUser.role === 'admin') {
+        isAdmin = true;
+    }
+
+    if (!user) {
         window.location.replace("login.html");
         return;
     }
 
-    // Verifica il ruolo direttamente sul database (Senza usare cache)
-    const { data: profile, error: profileError } = await sb.from('profiles').select('role').eq('id', user.id).single();
-    
-    if (profileError || !profile || profile.role !== 'admin') {
-        // Pulizia aggressiva: se hanno provato a manomettere il localStorage, lo svuotiamo
+    if (!isAdmin) {
         localStorage.removeItem('fmt_role');
         localStorage.removeItem('fmt_avatar');
-        // Reindirizzamento forzato
         window.location.replace("dashboard.html");
         return;
     }
@@ -229,6 +246,7 @@ async function loadUsers() {
                     <option value="studente" ${u.role === 'studente' ? 'selected' : ''}>Studente</option>
                     <option value="tutor" ${u.role === 'tutor' ? 'selected' : ''}>Tutor</option>
                     <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    <option value="staff" ${u.role === 'staff' ? 'selected' : ''}>Staff</option>
                 </select>
             </td>
             <td>
@@ -888,3 +906,4 @@ async function loadBanHistory() {
     });
 }
 })();
+

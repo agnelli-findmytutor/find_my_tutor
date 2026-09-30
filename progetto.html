@@ -3,18 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Il Nostro Progetto - La Storia</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/progetto.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
-
-
+    <script src="js/pwa-init.js"></script>
 </head>
 
 <body>
@@ -63,7 +68,7 @@
                         <div class="story-part">
                             <h4><i class="fas fa-users"></i> 3° Liceo B</h4>
                             <p>Partecipa agli incontri con <strong>Stellantis</strong> per apprendere gestione ed
-                                economia aziendale nell'ambito del PCTO.</p>
+                                economia aziendale nell'ambito del FSL.</p>
                         </div>
                         <div class="story-separator"></div>
                         <div class="story-part">
@@ -180,71 +185,102 @@
         </div>
     </section>
 
-    <footer class="modern-footer reveal">
-
-        <footer class="modern-footer reveal">
-
-            <div class="footer-container">
-                <div class="footer-grid">
-
-                    <div class="footer-col brand-col">
-                        <div class="footer-logo">
-                            <i class="fas fa-graduation-cap"></i> FindMyTutor
-                        </div>
-                        <p class="brand-desc">
-                            La piattaforma ufficiale di peer-tutoring dell'Istituto Agnelli.
-                            Costruita dagli studenti, per gli studenti.
-                        </p>
-                        <div class="agnelli-badge">
-                            <i class="fas fa-university"></i> Istituto Agnelli Torino
-                        </div>
+    <footer class="app-footer">
+        <div class="footer-wrapper">
+            <!-- Top Banner: Brand Lockup & Status Tag -->
+            <div class="footer-top-strip">
+                <div class="footer-brand-lockup">
+                    <div class="footer-logo-badge">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
-
-                    <div class="footer-col links-col">
-                        <h4>Esplora</h4>
-                        <ul>
-                            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-                            <li><a href="progetto.html"><i class="fas fa-chevron-right"></i>Il nostro progetto</a></li>
-                            <li><a href="#"><i class="fas fa-chevron-right"></i> Corsi di Gruppo</a></li>
-                            <li><a href="#"><i class="fas fa-chevron-right"></i> Unisciti allo Staff</a></li>
-                        </ul>
+                    <div class="footer-brand-info">
+                        <span class="footer-brand-name">FindMyTutor</span>
+                        <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
                     </div>
+                </div>
+                <div class="footer-status-tag">
+                    <span class="status-pulse-dot"></span>
+                    <span>Piattaforma Attiva &bull; A.S. 2025/2026</span>
+                </div>
+            </div>
 
-                    <div class="footer-col contact-col">
-                        <h4>Contattaci</h4>
-
-                        <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="contact-link">
-                            <div class="icon-box"><i class="fas fa-envelope"></i></div>
-                            <span>staff.findmytutor@<br>istitutoagnelli.it</span>
-                        </a>
-
-                        <div class="social-area">
-                            <h4>Seguici</h4>
-                            <a href="#" class="social-btn instagram" aria-label="Instagram">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                        </div>
+            <!-- Main Columns Grid -->
+            <div class="footer-main-grid">
+                <!-- Col 1: Mission & Identity -->
+                <div class="footer-grid-col col-main">
+                    <p class="footer-mission-text">
+                        La piattaforma ufficiale di peer-tutoring dell'Istituto Agnelli. Creata e gestita dagli studenti per supportare lo studio quotidiano, valorizzare le eccellenze e certificare le ore FSL.
+                    </p>
+                    <div class="footer-cert-pills">
+                        <span class="cert-pill"><i class="fas fa-shield-alt"></i> Accesso Mastercom</span>
+                        <span class="cert-pill"><i class="fab fa-google"></i> Google Workspace</span>
+                        <span class="cert-pill"><i class="fas fa-award"></i> Ore FSL Valide</span>
                     </div>
                 </div>
 
-                <div class="footer-separator"></div>
+                <!-- Col 2: Navigazione Rapida -->
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Navigazione</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home Principale</a></li>
+                        <li><a href="prenota.html"><i class="fas fa-chevron-right"></i> Prenota Ripetizione</a></li>
+                        <li><a href="diventa_tutor.html"><i class="fas fa-chevron-right"></i> Diventa Tutor</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-chevron-right"></i> Il nostro Progetto</a></li>
+                        <li><a href="login.html"><i class="fas fa-chevron-right"></i> Accedi al Portale</a></li>
+                    </ul>
+                </div>
 
-                <div class="footer-bottom">
-                    <p>&copy; 2026 FindMyTutor Agnelli. Tutti i diritti riservati.</p>
+                <!-- Col 3: Risorse Scuola -->
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Istituto Agnelli</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="https://registro.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Registro Mastercom</a></li>
+                        <li><a href="https://www.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Sito Istituzionale</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-history"></i> Storia del Progetto</a></li>
+                        <li><a href="diventa_tutor.html"><i class="fas fa-graduation-cap"></i> Candidatura Staff</a></li>
+                    </ul>
+                </div>
 
-                    <div class="legal-links">
-                        <span class="dmca-badge"><i class="fas fa-shield-alt"></i> DMCA Protected</span>
-                        <a href="#">Privacy Policy</a>
-                        <a href="#">Termini d'uso</a>
+                <!-- Col 4: Contatti & Canali -->
+                <div class="footer-grid-col col-contact">
+                    <h4 class="footer-col-title">Assistenza & Social</h4>
+                    <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
+                        <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="f-contact-details">
+                            <small>Assistenza Ufficiale</small>
+                            <span>staff.findmytutor@<br>istitutoagnelli.it</span>
+                        </div>
+                    </a>
+                    <div class="footer-social-strip">
+                        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-link instagram" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                            <span>Instagram Ufficiale</span>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <button id="scrollToTop" class="scroll-top-btn">
-                <i class="fas fa-arrow-up"></i>
-            </button>
-        </footer>
+            <!-- Bottom Legal Bar -->
+            <div class="footer-bottom-bar">
+                <div class="footer-copy">
+                    &copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Sviluppato dagli studenti per l'Istituto Internazionale Edoardo Agnelli.
+                </div>
+                <div class="footer-legal-links">
+                    <a href="#">Privacy Policy</a>
+                    <span class="sep">&bull;</span>
+                    <a href="#">Termini d'Uso</a>
+                    <span class="sep">&bull;</span>
+                    <span class="security-chip"><i class="fas fa-lock"></i> SSL / TLS Protetto</span>
+                </div>
+            </div>
+        </div>
+
+        <button id="scrollToTop" class="scroll-top-btn" title="Torna all'inizio">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </footer>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="js/api_config.js"></script>
         <script src="js/gestione_utente.js"></script>
         <script src="js/login.js"></script>
         <script src="script.js"></script>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pannello Staff - FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .staff-wrapper { max-width: 1300px; margin: 80px auto 40px; padding: 20px; }
+        .staff-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .fsl-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .table th { background: #f8f9fa; font-weight: 600; }
+        .btn-register { background: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-register:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+        <header>
+        <div class="logo">
+            <a href="index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center;">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>FindMyTutor</span>
+            </a>
+        </div>
+        <nav class="desktop-nav">
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+        </div>
+    </header>
+
+    <div class="staff-wrapper">
+        <div class="staff-header">
+            <h1><i class="fas fa-user-tie"></i> Dashboard Staff</h1>
+        </div>
+        
+        <div class="fsl-card">
+            <h3>Ore FSL Tutor</h3>
+            <p>Visualizza e registra le ore FSL dei tutor. Le ore registrate vengono azzerate in questa vista, ma il tutor vedrà sempre il totale storico.</p>
+            <div style="overflow-x: auto; margin-top: 15px;">
+                <table class="table" id="tutorsTable">
+                    <thead>
+                        <tr>
+                            <th>Tutor</th>
+                            <th>Classe</th>
+                            <th>Ore Totali Storiche</th>
+                            <th>Ore da Registrare</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5">Caricamento in corso...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
+    <script src="js/gestione_utente.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const cachedRole = localStorage.getItem('fmt_role');
+            if (cachedRole !== 'staff' && cachedRole !== 'admin') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            
+
+            await loadTutors();
+
+            async function loadTutors() {
+                try {
+                    // Fetch tutors from Supabase
+                    const { data: tutorsData, error: tutorsError } = await sb.from('profiles').select('*').eq('role', 'tutor');
+                    if (tutorsError) throw tutorsError;
+                    
+                    const tbody = document.querySelector('#tutorsTable tbody');
+                    tbody.innerHTML = '';
+
+                    const today = new Date().toISOString().split('T')[0];
+
+                    if (tutorsData && tutorsData.length > 0) {
+                        for (let t of tutorsData) {
+                            // Fetch appointments for this tutor
+                            const { data: apps } = await sb.from('appointments')
+                                .select('duration, status, date')
+                                .eq('tutor_id', t.id)
+                                .neq('status', 'Cancellata');
+                                
+                            let totalMinutes = 0;
+                            if (apps) {
+                                apps.forEach(a => {
+                                    if (a.date < today || a.status === 'Conclusa') {
+                                        const dStr = String(a.duration).replace('min', '').trim();
+                                        totalMinutes += isNaN(parseInt(dStr)) ? 60 : parseInt(dStr);
+                                    }
+                                });
+                            }
+                            const totalHours = totalMinutes / 60.0;
+                            const fslAck = parseFloat(t.fsl_acknowledged || 0);
+                            const unacknowledgedHours = Math.max(0, totalHours - fslAck);
+
+                            const tr = document.createElement('tr');
+                            const btnDisabled = unacknowledgedHours <= 0 ? 'disabled' : '';
+                            tr.innerHTML = `
+                                <td><strong>${t.full_name || 'N.D.'}</strong></td>
+                                <td>${t.class_info || '-'}</td>
+                                <td>${totalHours.toFixed(2)} h</td>
+                                <td><span style="color:#d32f2f; font-weight:bold;">${unacknowledgedHours.toFixed(2)} h</span></td>
+                                <td>
+                                    <button class="btn-register" ${btnDisabled} onclick="registerHours('${t.id}', ${fslAck}, ${unacknowledgedHours})">
+                                        <i class="fas fa-check"></i> Registra
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5">Nessun tutor trovato.</td></tr>';
+                    }
+                } catch(e) {
+                    console.error("Errore:", e);
+                    document.querySelector('#tutorsTable tbody').innerHTML = '<tr><td colspan="5">Errore caricamento dati.</td></tr>';
+                }
+            }
+
+            window.registerHours = async (tutorId, currentAck, hoursToAdd) => {
+                if (!confirm(`Vuoi registrare ${hoursToAdd.toFixed(2)} ore FSL per questo tutor?`)) return;
+                try {
+                    const newTotal = currentAck + hoursToAdd;
+                    const { error } = await sb.from('profiles').update({ fsl_acknowledged: newTotal }).eq('id', tutorId);
+                    
+                    if (!error) {
+                        alert("Ore registrate con successo.");
+                        loadTutors();
+                    } else {
+                        alert("Errore Supabase: " + error.message);
+                    }
+                } catch(e) {
+                    alert("Errore di rete.");
+                }
+            };
+        });
+    </script>
+</body>
+</html>
+
+
+

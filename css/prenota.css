@@ -402,3 +402,199 @@ textarea::placeholder {
 /* Modale Successo Blu */
 #successModal.group-success .modal-icon { background: #E3F2FD; color: #1565C0; }
 #successModal.group-success .success-btn { background: #1565C0; }
+
+/* --- BANNER MATERIE MASTERCOM --- */
+.mastercom-subjects-banner {
+    background: linear-gradient(135deg, #fffafa 0%, #fff1f1 100%);
+    border: 1.5px solid #ffcdd2;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(211, 47, 47, 0.06);
+    animation: fadeInDown 0.4s ease;
+}
+
+.mc-banner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mc-banner-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mc-icon {
+    font-size: 1.25rem;
+    color: var(--agnelli-red);
+    background: #ffebee;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mc-banner-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #b71c1c;
+    line-height: 1.2;
+}
+
+.mc-class-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 3px;
+    border: 1px solid #ffcdd2;
+}
+
+.btn-sync-mc {
+    background: white;
+    border: 1px solid #ef9a9a;
+    color: #c62828;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.btn-sync-mc:hover {
+    background: #ffebee;
+    border-color: #e57373;
+    transform: translateY(-1px);
+}
+
+.mc-banner-subtitle {
+    font-size: 0.82rem;
+    color: #666;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.mc-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mc-subject-chip {
+    background: white;
+    border: 1.5px solid #e0e0e0;
+    color: #333;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    user-select: none;
+}
+
+.mc-subject-chip:hover {
+    border-color: var(--agnelli-red);
+    color: var(--agnelli-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.15);
+}
+
+.mc-subject-chip.active {
+    background: var(--agnelli-red);
+    border-color: var(--agnelli-red);
+    color: white;
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.35);
+}
+
+.mc-subject-chip .mc-chip-star {
+    font-size: 0.75rem;
+    color: #ff9800;
+}
+
+.mc-subject-chip.active .mc-chip-star {
+    color: #ffe082;
+}
+
+/* --- SEGMENTED SWITCHER PER MOBILE --- */
+.agenda-view-switcher {
+    display: none;
+    margin: 0 auto 24px auto;
+    max-width: 480px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    gap: 4px;
+}
+
+.view-switch-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.view-switch-btn.active {
+    background: #ffffff;
+    color: var(--agnelli-red);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.lessons-badge-count {
+    background: var(--agnelli-red);
+    color: #ffffff;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.view-switch-btn:not(.active) .lessons-badge-count {
+    background: #94a3b8;
+}
+
+@media (max-width: 991px) {
+    .agenda-view-switcher {
+        display: flex;
+    }
+    
+    .split-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .booking-card.mobile-hidden,
+    .list-card.mobile-hidden {
+        display: none !important;
+    }
+}

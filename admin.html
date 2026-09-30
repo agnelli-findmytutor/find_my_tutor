@@ -3,17 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pannello Admin - FindMyTutor</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <meta name="view-transition" content="same-origin">
-
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
 
 
     <style>
@@ -663,7 +669,7 @@
             </div>
         </div>
 
-        <div id="tab-settings" class="tab-content">
+                <div id="tab-settings" class="tab-content">
             <div class="card-box">
                 <div class="card-header">
                     <i class="fas fa-tools"></i>
@@ -807,11 +813,15 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/global_maintenance.js"></script>
     <script src="js/mobile-nav.js"></script>
-</body>
+<script src="js/admin_staff.js"></script></body>
 
 </html>
+
+
+

@@ -3,26 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Candidatura Tutor - FindMyTutor</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <meta name="view-transition" content="same-origin">
-
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/diventa_tutor.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
+    <script src="js/subjects_config.js"></script>
 </head>
 
 <body>
-
-    <div class="animated-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
 
     <header>
         <div class="logo">
@@ -136,41 +138,23 @@
 
                         <div class="form-section">
                             <h3><i class="fas fa-book-open"></i> Le tue Competenze</h3>
-                            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Specifica per quali anni e
-                                indirizzi puoi offrire supporto.</p>
+                            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
+                                Seleziona le materie che puoi insegnare. La lista è filtrata in base alla tua classe.
+                            </p>
 
-                            <div class="competency-builder"
-                                style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <select id="tempSchool"
-                                        style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
-                                        <option value="ITT">ITT</option>
-                                        <option value="Liceo">Liceo</option>
-                                    </select>
-                                    <select id="tempYear"
-                                        style="flex: 1; height: 45px; border-radius: 8px; border: 1px solid #ccc; padding: 0 10px;">
-                                        <option value="1">1° Anno</option>
-                                        <option value="2">2° Anno</option>
-                                        <option value="3">3° Anno</option>
-                                        <option value="4">4° Anno</option>
-                                        <option value="5">5° Anno</option>
-                                    </select>
-                                </div>
-
-                                <div id="subjectCheckboxesGrid"
-                                    style="display: grid; gap: 15px; margin-top: 10px; background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px solid #f0f0f0;">
-                                    <!-- Popolato via JS -->
-                                </div>
-
-                                <button type="button" id="btnAddCompetency" class="btn-apply"
-                                    style="margin-top: 10px; width: 100%; height: 45px; font-size: 0.9rem; background: #4a148c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                                    <i class="fas fa-plus"></i> Aggiungi questo blocco di competenze
-                                </button>
+                            <div id="classDetectedBanner" style="display:none; background:#f3e5f5; border:1px solid #ce93d8; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:0.85rem; color:#4a148c;">
+                                <i class="fas fa-school"></i> Classe rilevata: <strong id="classDetectedLabel">–</strong>
+                                <span style="color:#666;"> — Puoi insegnare le materie dei tuoi anni di studio.</span>
                             </div>
 
-                            <div id="competenciesContainer"
-                                style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px; padding: 15px; background: #f9f9f9; border-radius: 12px; border: 1px dashed #ccc; margin-bottom: 20px;">
+                            <div id="subjectCheckboxesGrid"
+                                style="background: #fdfdfd; padding: 14px; border-radius: 8px; border: 1px solid #f0f0f0; margin-bottom:14px;">
+                                <p style="color:#999; font-size:0.85rem;">Caricamento materie in base alla tua classe...</p>
                             </div>
+
+                            <small style="color:#888; font-size:0.78rem; display:block; margin-bottom:16px;">
+                                * Se la tua classe non è presente, contatta un admin per aggiornarla nel profilo.
+                            </small>
 
                             <!-- Campi nascosti per Supabase -->
                             <input type="hidden" id="classInfo">
@@ -273,8 +257,103 @@
                 </form>
             </div>
         </div>
-
     </main>
+
+    <footer class="app-footer">
+        <div class="footer-wrapper">
+            <!-- Top Banner: Brand Lockup & Status Tag -->
+            <div class="footer-top-strip">
+                <div class="footer-brand-lockup">
+                    <div class="footer-logo-badge">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-brand-info">
+                        <span class="footer-brand-name">FindMyTutor</span>
+                        <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
+                    </div>
+                </div>
+                <div class="footer-status-tag">
+                    <span class="status-pulse-dot"></span>
+                    <span>Piattaforma Attiva &bull; A.S. 2025/2026</span>
+                </div>
+            </div>
+
+            <!-- Main Columns Grid -->
+            <div class="footer-main-grid">
+                <!-- Col 1: Mission & Identity -->
+                <div class="footer-grid-col col-main">
+                    <p class="footer-mission-text">
+                        La piattaforma ufficiale di peer-tutoring dell'Istituto Agnelli. Creata e gestita dagli studenti per supportare lo studio quotidiano, valorizzare le eccellenze e certificare le ore FSL.
+                    </p>
+                    <div class="footer-cert-pills">
+                        <span class="cert-pill"><i class="fas fa-shield-alt"></i> Accesso Mastercom</span>
+                        <span class="cert-pill"><i class="fab fa-google"></i> Google Workspace</span>
+                        <span class="cert-pill"><i class="fas fa-award"></i> Ore FSL Valide</span>
+                    </div>
+                </div>
+
+                <!-- Col 2: Navigazione Rapida -->
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Navigazione</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home Principale</a></li>
+                        <li><a href="prenota.html"><i class="fas fa-chevron-right"></i> Prenota Ripetizione</a></li>
+                        <li><a href="diventa_tutor.html"><i class="fas fa-chevron-right"></i> Diventa Tutor</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-chevron-right"></i> Il nostro Progetto</a></li>
+                        <li><a href="login.html"><i class="fas fa-chevron-right"></i> Accedi al Portale</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Risorse Scuola -->
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Istituto Agnelli</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="https://registro.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Registro Mastercom</a></li>
+                        <li><a href="https://www.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Sito Istituzionale</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-history"></i> Storia del Progetto</a></li>
+                        <li><a href="diventa_tutor.html"><i class="fas fa-graduation-cap"></i> Candidatura Staff</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Contatti & Canali -->
+                <div class="footer-grid-col col-contact">
+                    <h4 class="footer-col-title">Assistenza & Social</h4>
+                    <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
+                        <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="f-contact-details">
+                            <small>Assistenza Ufficiale</small>
+                            <span>staff.findmytutor@<br>istitutoagnelli.it</span>
+                        </div>
+                    </a>
+                    <div class="footer-social-strip">
+                        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-link instagram" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                            <span>Instagram Ufficiale</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Legal Bar -->
+            <div class="footer-bottom-bar">
+                <div class="footer-copy">
+                    &copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Sviluppato dagli studenti per l'Istituto Internazionale Edoardo Agnelli.
+                </div>
+                <div class="footer-legal-links">
+                    <a href="#">Privacy Policy</a>
+                    <span class="sep">&bull;</span>
+                    <a href="#">Termini d'Uso</a>
+                    <span class="sep">&bull;</span>
+                    <span class="security-chip"><i class="fas fa-lock"></i> SSL / TLS Protetto</span>
+                </div>
+            </div>
+        </div>
+
+        <button id="scrollToTop" class="scroll-top-btn" title="Torna all'inizio">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </footer>
+
     <div id="feedbackModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon success">
@@ -304,6 +383,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/diventa_tutor.js"></script>

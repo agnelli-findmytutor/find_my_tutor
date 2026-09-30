@@ -3,22 +3,25 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Dashboard - FindMyTutor</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
 </head>
 
 <body class="dashboard-body">
-
-    <div class="animated-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
 
     <div class="dashboard-layout">
         <!-- SIDEBAR -->
@@ -43,7 +46,7 @@
                 <a href="prenota.html" class="nav-item"><i class="fas fa-calendar-day"></i> Agenda Studente</a>
                 <a href="appuntamenti.html" id="btnAgendaTutor" class="nav-item hidden"><i
                         class="fas fa-chalkboard-teacher"></i> Agenda Tutor</a>
-                <a href="#" id="navPcto" class="nav-item hidden"><i class="fas fa-medal"></i> PCTO</a>
+                <a href="#" id="navFSL" class="nav-item hidden"><i class="fas fa-medal"></i> FSL</a>
                 <div class="nav-spacer"></div>
                 <button id="logoutBtn" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i>
                     Disconnetti</button>
@@ -58,8 +61,14 @@
                     <p>Ecco il riepilogo delle tue attività.</p>
                 </div>
                 <div class="header-actions">
+                    <button id="btnSyncDashboard" class="btn-sync-registry" title="Sincronizza con il Registro Elettronico Mastercom">
+                        <i class="fas fa-sync-alt" id="dashSyncIcon"></i> Sincronizza Registro
+                    </button>
                     <button id="btnDowngrade" class="btn-outline-warning hidden">
                         <i class="fas fa-user-minus"></i> Torna Studente
+                    </button>
+                    <button id="mobileLogoutBtn" class="btn-outline-danger" title="Disconnetti">
+                        <i class="fas fa-sign-out-alt"></i> <span>Esci</span>
                     </button>
                     <button id="deleteBtn" class="btn-icon-danger" title="Elimina Account">
                         <i class="fas fa-trash-alt"></i>
@@ -69,6 +78,72 @@
 
             <!-- SEZIONE PANORAMICA (DEFAULT) -->
             <div id="tab-overview" class="dashboard-tab-content">
+                <!-- SCHEDA PROFILO REGISTRO ELETTRONICO -->
+                <section id="mastercomProfileSection" class="mastercom-profile-card hidden">
+                    <div class="mc-profile-header">
+                        <div class="mc-profile-user-info">
+                            <img id="mcProfilePhoto" src="https://via.placeholder.com/150" alt="Foto Mastercom" class="mc-avatar-large">
+                            <div>
+                                <div class="mc-status-pill"><i class="fas fa-check-circle"></i> Sincronizzato con Registro Mastercom</div>
+                                <h2 id="mcStudentName">--</h2>
+                                <p class="mc-student-meta">
+                                    <span id="mcClassInfo"><i class="fas fa-graduation-cap"></i> --</span> &bull; 
+                                    <span id="mcStudentCode"><i class="fas fa-id-badge"></i> --</span>
+                                </p>
+                            </div>
+                        </div>
+                        <a href="prenota.html" class="btn-goto-booking">
+                            <i class="fas fa-calendar-plus"></i> Prenota Ripetizione
+                        </a>
+                    </div>
+
+                    <div class="mc-subjects-section">
+                        <h4><i class="fas fa-book-open"></i> Materie del tuo orario scolastico:</h4>
+                        <div id="mcDashboardSubjects" class="mc-dash-chips">
+                            <!-- Chips caricate dinamicamente -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SCHEDA PROFILO GOOGLE WORKSPACE -->
+                <section id="googleProfileSection" class="mastercom-profile-card hidden">
+                    <div class="mc-profile-header">
+                        <div class="mc-profile-user-info">
+                            <img id="googleProfilePhoto" src="https://via.placeholder.com/150" alt="Foto Profilo Google" class="mc-avatar-large">
+                            <div>
+                                <div class="mc-status-pill" style="background:#e8f0fe; color:#1a73e8; border-color:#d2e3fc;"><i class="fab fa-google"></i> Connesso con Google Workspace</div>
+                                <h2 id="googleStudentName">--</h2>
+                                <p class="mc-student-meta">
+                                    <span id="googleStudentEmail"><i class="fas fa-envelope"></i> --</span> &bull; 
+                                    <span id="googleStudentRole"><i class="fas fa-user-graduate"></i> Studente</span>
+                                </p>
+                            </div>
+                        </div>
+                        <a href="prenota.html" class="btn-goto-booking">
+                            <i class="fas fa-calendar-plus"></i> Prenota Ripetizione
+                        </a>
+                    </div>
+                </section>
+
+                <!-- SUGGERIMENTO DI COLLEGAMENTO MASTERCOM (SE ACCESSO SOLO CON GOOGLE) -->
+                <section id="connectMastercomCard" class="connect-mastercom-banner hidden">
+                    <div class="connect-mc-left">
+                        <div class="connect-mc-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="connect-mc-text">
+                            <div class="connect-mc-badge"><i class="fas fa-sparkles"></i> Consiglio per te</div>
+                            <h3>Collega il tuo Registro Elettronico (Mastercom)</h3>
+                            <p>Attualmente sei autenticato solo con Google Workspace. Per importare in automatico la tua <strong>classe</strong>, l'<strong>orario scolastico</strong>, le <strong>materie</strong> e unificare le tue prenotazioni, ti consigliamo di collegare il tuo account Mastercom.</p>
+                        </div>
+                    </div>
+                    <div class="connect-mc-actions">
+                        <button id="btnOpenConnectMastercom" class="btn-connect-mc" type="button">
+                            <i class="fas fa-link"></i> Collega Mastercom
+                        </button>
+                    </div>
+                </section>
+
                 <section class="activity-overview">
                     <div class="section-title-main">
                         <h2><i class="fas fa-stream"></i> Attività e Feedback</h2>
@@ -111,21 +186,21 @@
                 </section>
             </div>
 
-            <!-- NUOVA SEZIONE PCTO (SOLO TUTOR) -->
-            <div id="tab-pcto" class="dashboard-tab-content hidden">
-                <section class="pcto-section">
+            <!-- NUOVA SEZIONE FSL (SOLO TUTOR) -->
+            <div id="tab-FSL" class="dashboard-tab-content hidden">
+                <section class="FSL-section">
                     <div class="section-title-main">
-                        <h2><i class="fas fa-medal"></i> Ore PCTO Accumulate</h2>
+                        <h2><i class="fas fa-medal"></i> Ore FSL Accumulate</h2>
                         <p>Le ore vengono conteggiate automaticamente al termine di ogni lezione.</p>
                     </div>
 
-                    <div class="pcto-display-card">
-                        <div class="pcto-main-stat">
-                            <span id="pctoHours" class="pcto-number">0</span>
-                            <span class="pcto-unit">Ore Totali</span>
+                    <div class="FSL-display-card">
+                        <div class="FSL-main-stat">
+                            <span id="FSLHours" class="FSL-number">0</span>
+                            <span class="FSL-unit">Ore Totali</span>
                         </div>
 
-                        <div id="pctoExtraMinutes" class="pcto-extra-box hidden">
+                        <div id="FSLExtraMinutes" class="FSL-extra-box hidden">
                             <div class="extra-badge">+30 min</div>
                             <p>Hai una mezza ora in attesa di essere completata.</p>
                         </div>
@@ -204,7 +279,45 @@
             </button>
         </div>
     </div>
+
+    <!-- MODALE COLLEGAMENTO MASTERCOM -->
+    <div id="modalConnectMastercom" class="modal-overlay hidden">
+        <div class="modal-card modal-connect-box">
+            <div class="modal-connect-header">
+                <div class="connect-modal-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3>Collega Registro Elettronico</h3>
+                <p>Inserisci le tue credenziali di Mastercom per unificare questo profilo Google al tuo account del registro.</p>
+            </div>
+            <form id="formConnectMastercom" class="connect-modal-form">
+                <div id="connectMcErrorBanner" class="alert-box-mini hidden">
+                    <i class="fas fa-exclamation-circle"></i> <span id="connectMcErrorText">Errore</span>
+                </div>
+                <div class="modal-form-group">
+                    <label for="mcConnectUsername"><i class="fas fa-id-card"></i> Codice Studente (Matricola)</label>
+                    <input type="text" id="mcConnectUsername" placeholder="Es. 616709" required autocomplete="username">
+                </div>
+                <div class="modal-form-group">
+                    <label for="mcConnectPassword"><i class="fas fa-lock"></i> Password Registro</label>
+                    <div class="password-input-wrap">
+                        <input type="password" id="mcConnectPassword" placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" id="btnToggleConnectPw" class="btn-toggle-pw" tabindex="-1">
+                            <i class="fas fa-eye" id="toggleConnectPwIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-actions-grid">
+                    <button type="button" id="btnCancelConnectMc" class="btn-modal secondary">Annulla</button>
+                    <button type="submit" id="btnSubmitConnectMc" class="btn-modal primary">
+                        <i class="fas fa-link"></i> <span>Verifica e Unifica</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/global_maintenance.js"></script>
     <script src="script.js"></script>
