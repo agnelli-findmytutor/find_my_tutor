@@ -139,10 +139,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 1. Carica da API FMT (backend Flask con account unificato)
             if (typeof FMT_API !== 'undefined' && FMT_API.getAppointments) {
                 try {
-                    const apiRes = await FMT_API.getAppointments();
-                    if (apiRes && apiRes.success && Array.isArray(apiRes.appointments)) {
-                        list = apiRes.appointments.filter(l => l.status === 'Confermato' && l.date >= todayISO);
-                    }
+                    const apiRes = await FMT_API.getAppointments(null, user.id);
+                    const arr = Array.isArray(apiRes) ? apiRes : (apiRes && Array.isArray(apiRes.appointments) ? apiRes.appointments : []);
+                    list = arr.filter(l => l.status === 'Confermato' && l.date >= todayISO);
                 } catch(apiErr) {
                     console.warn("Errore getAppointments API:", apiErr);
                 }
@@ -549,3 +548,19 @@ window.switchTab = (tabName) => {
     const btn = document.querySelector(`button[onclick="switchTab('${tabName}')"]`);
     if(btn) btn.classList.add('active');
 };
+
+window.copyText = (text) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+    }
+    const reasonEl = document.getElementById('cancelReason');
+    if (reasonEl && !reasonEl.value) {
+        reasonEl.value = text;
+    }
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+};
+

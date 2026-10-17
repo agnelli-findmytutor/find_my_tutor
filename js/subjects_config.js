@@ -234,26 +234,43 @@ const SubjectsConfig = {
     },
 
     /**
-     * Renders a grid of checkboxes inside containerElement.
+     * Renders a grid of interactive checkbox cards inside containerElement.
      * @param {HTMLElement} containerElement
      * @param {string[]} subjects
      * @param {string[]} [selectedValues]
      */
     renderCheckboxGrid(containerElement, subjects, selectedValues = []) {
         containerElement.innerHTML = '';
-        containerElement.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:8px; margin-top:10px;';
+        containerElement.className = 'subjects-interactive-grid';
+        containerElement.style.cssText = '';
 
-        subjects.forEach(s => {
+        subjects.forEach((s, idx) => {
             const label = document.createElement('label');
-            label.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:#333; padding:4px 2px;';
+            const isChecked = selectedValues.includes(s);
+            label.className = 'subject-check-card' + (isChecked ? ' is-checked' : '');
+            label.style.animationDelay = `${Math.min(idx * 0.025, 0.35)}s`;
+
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.name = 'subject_checkbox';
             cb.value = s;
-            cb.style.cursor = 'pointer';
-            if (selectedValues.includes(s)) cb.checked = true;
+            if (isChecked) cb.checked = true;
+
+            cb.addEventListener('change', () => {
+                label.classList.toggle('is-checked', cb.checked);
+            });
+
+            const checkIcon = document.createElement('span');
+            checkIcon.className = 'subj-check-box';
+            checkIcon.innerHTML = '<i class="fas fa-check"></i>';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'subj-check-label';
+            textSpan.textContent = s;
+
             label.appendChild(cb);
-            label.appendChild(document.createTextNode(s));
+            label.appendChild(checkIcon);
+            label.appendChild(textSpan);
             containerElement.appendChild(label);
         });
     },

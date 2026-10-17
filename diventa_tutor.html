@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Candidatura Tutor - FindMyTutor</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <meta name="theme-color" content="#D32F2F">
@@ -35,7 +35,7 @@
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="progetto.html">Il nostro progetto</a></li>
-                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+                <li><a href="diventa_tutor.html" class="active">Diventa Tutor</a></li>
             </ul>
         </nav>
         <div class="header-actions">
@@ -49,11 +49,14 @@
         <div class="application-container reveal">
 
             <div class="form-header">
+                <div class="header-pill-badge">
+                    <i class="fas fa-award"></i> Riconoscimento Ore FSL &bull; Peer Tutoring
+                </div>
                 <div class="icon-circle">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
                 <h1>Diventa Tutor</h1>
-                <p>Metti a disposizione il tuo talento. Guadagna crediti e aiuta i tuoi compagni.</p>
+                <p>Metti a disposizione il tuo talento, aiuta i compagni dell'Istituto Agnelli e accumula ore FSL certificate.</p>
             </div>
 
             <div id="loginWarning" class="login-warning hidden">
@@ -61,22 +64,21 @@
                     <i class="fas fa-lock"></i>
                 </div>
                 <h3>Accesso Richiesto</h3>
-                <p>Per inviare la tua candidatura devi essere uno studente registrato.</p>
-                <br>
+                <p>Per inviare la tua candidatura devi aver effettuato l'accesso con il tuo account istituzionale.</p>
                 <a href="login.html" class="btn-login-redirect">
-                    Accedi o Registrati <i class="fas fa-sign-in-alt"></i>
+                    Accedi al Portale <i class="fas fa-sign-in-alt"></i>
                 </a>
             </div>
 
             <div id="mainFormContainer">
 
-                <form id="tutorForm" class="modern-form">
+                <form id="tutorForm" class="modern-form" novalidate>
 
                     <div id="statusBanner" class="status-banner hidden">
                         <div class="status-icon"><i class="fas fa-clock"></i></div>
                         <div class="status-text">
                             <h4>Richiesta in Valutazione</h4>
-                            <p>Stiamo controllando la tua candidatura. Puoi modificare i dati o ritirarla qui sotto.</p>
+                            <p>Stiamo esaminando la tua candidatura. Puoi aggiornare le tue materie o gli orari qui sotto.</p>
                         </div>
                     </div>
 
@@ -84,31 +86,37 @@
                         <div class="status-icon"><i class="fas fa-check-circle"></i></div>
                         <div class="status-text">
                             <h4>Complimenti! Candidatura Accettata 🎉</h4>
-                            <p>Sei ufficialmente un Tutor di FindMyTutor. Il tuo account è stato aggiornato.</p>
-                            <br>
-                            <a href="dashboard.html" class="btn-dashboard-link">Vai alla tua Dashboard <i
-                                    class="fas fa-arrow-right"></i></a>
+                            <p>Sei ufficialmente un Tutor di FindMyTutor. Il tuo profilo è attivo per ricevere prenotazioni.</p>
+                            <div style="margin-top: 12px;">
+                                <a href="dashboard.html" class="btn-dashboard-link">Vai alla tua Dashboard <i class="fas fa-arrow-right"></i></a>
+                            </div>
                         </div>
                     </div>
+
                     <div id="rejectedBanner" class="status-banner error hidden">
                         <div class="status-icon"><i class="fas fa-times-circle"></i></div>
                         <div class="status-text">
                             <h4>Candidatura Rifiutata</h4>
-                            <p>Ci dispiace, la tua richiesta non è stata accettata.</p>
+                            <p>Ci dispiace, la tua richiesta non è stata approvata.</p>
                             <p class="reason-text"><strong>Motivo:</strong> <span id="rejectReasonText">...</span></p>
-                            <br>
-                            <button type="button" id="btnTryAgain" class="btn-retry">
-                                <i class="fas fa-redo"></i> Riprova e Invia Nuova Candidatura
-                            </button>
+                            <div style="margin-top: 12px;">
+                                <button type="button" id="btnTryAgain" class="btn-retry">
+                                    <i class="fas fa-redo"></i> Compila Nuova Candidatura
+                                </button>
+                            </div>
                         </div>
                     </div>
+
                     <div id="formContent">
 
+                        <!-- SEZIONE 1: DATI PERSONALI -->
                         <div class="form-section">
-                            <h3><i class="far fa-id-card"></i> Dati Personali</h3>
+                            <div class="section-title-row">
+                                <h3><span class="sec-num">1</span> <i class="far fa-id-card"></i> Dati Personali</h3>
+                            </div>
 
                             <div class="input-group">
-                                <label>Nome e Cognome</label>
+                                <label for="fullName">Nome e Cognome</label>
                                 <div class="input-box">
                                     <i class="fas fa-user"></i>
                                     <input type="text" id="fullName" placeholder="Es. Mario Rossi" required>
@@ -117,18 +125,17 @@
 
                             <div class="form-row-split">
                                 <div class="input-group">
-                                    <label>E-mail Istituzionale</label>
+                                    <label for="email">E-mail Istituzionale</label>
                                     <div class="input-box">
                                         <i class="fas fa-envelope"></i>
-                                        <input type="email" id="email" placeholder="mario.rossi@istitutoagnelli.it"
-                                            required>
+                                        <input type="email" id="email" placeholder="mario.rossi@istitutoagnelli.it" required>
                                     </div>
                                 </div>
                                 <div class="input-group">
-                                    <label>N° Telefono</label>
+                                    <label for="phone">Numero di Telefono (WhatsApp)</label>
                                     <div class="input-box">
                                         <i class="fas fa-phone"></i>
-                                        <input type="tel" id="phone" placeholder="333 1234567" required>
+                                        <input type="tel" id="phone" placeholder="Es. 333 1234567" required>
                                     </div>
                                 </div>
                             </div>
@@ -136,25 +143,82 @@
 
                         <div class="divider"></div>
 
+                        <!-- SEZIONE 2: CLASSE E MATERIE -->
                         <div class="form-section">
-                            <h3><i class="fas fa-book-open"></i> Le tue Competenze</h3>
-                            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
-                                Seleziona le materie che puoi insegnare. La lista è filtrata in base alla tua classe.
+                            <div class="section-title-row">
+                                <h3><span class="sec-num">2</span> <i class="fas fa-book-open"></i> Le tue Competenze</h3>
+                                <span id="selectedSubjectsCount" class="subject-counter-badge">0 selezionate</span>
+                            </div>
+                            <p class="section-desc">
+                                Seleziona la tua classe attuale e tocca le materie in cui ti senti pronto ad aiutare gli altri studenti.
                             </p>
 
-                            <div id="classDetectedBanner" style="display:none; background:#f3e5f5; border:1px solid #ce93d8; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:0.85rem; color:#4a148c;">
-                                <i class="fas fa-school"></i> Classe rilevata: <strong id="classDetectedLabel">–</strong>
-                                <span style="color:#666;"> — Puoi insegnare le materie dei tuoi anni di studio.</span>
+                            <div id="classDetectedBanner" class="class-detected-banner" style="display:none;">
+                                <div class="cdb-icon"><i class="fas fa-graduation-cap"></i></div>
+                                <div class="cdb-text">
+                                    Classe rilevata: <strong id="classDetectedLabel">–</strong>
+                                    <span>&bull; Materie abilitate per il tuo piano di studi</span>
+                                </div>
                             </div>
 
-                            <div id="subjectCheckboxesGrid"
-                                style="background: #fdfdfd; padding: 14px; border-radius: 8px; border: 1px solid #f0f0f0; margin-bottom:14px;">
-                                <p style="color:#999; font-size:0.85rem;">Caricamento materie in base alla tua classe...</p>
+                            <!-- Selettore classe manuale/modificabile -->
+                            <div class="class-selector-bar">
+                                <label for="manualClassSelect"><i class="fas fa-school"></i> La tua Classe:</label>
+                                <select id="manualClassSelect">
+                                    <option value="">-- Seleziona la tua classe --</option>
+                                    <optgroup label="ITT – Biennio Comune">
+                                        <option value="1ITT">1° ITT</option>
+                                        <option value="2ITT">2° ITT</option>
+                                    </optgroup>
+                                    <optgroup label="ITT – Informatica">
+                                        <option value="3INFO">3° INFO</option>
+                                        <option value="4INFO">4° INFO</option>
+                                        <option value="5INFO">5° INFO</option>
+                                    </optgroup>
+                                    <optgroup label="ITT – Elettronica">
+                                        <option value="3ELN">3° ELN</option>
+                                        <option value="4ELN">4° ELN</option>
+                                        <option value="5ELN">5° ELN</option>
+                                    </optgroup>
+                                    <optgroup label="ITT – Energia">
+                                        <option value="3ENE">3° ENE</option>
+                                        <option value="4ENE">4° ENE</option>
+                                        <option value="5ENE">5° ENE</option>
+                                    </optgroup>
+                                    <optgroup label="ITT – Meccanica">
+                                        <option value="3MEC">3° MEC</option>
+                                        <option value="4MEC">4° MEC</option>
+                                        <option value="5MEC">5° MEC</option>
+                                    </optgroup>
+                                    <optgroup label="Liceo Scientifico – Sezione A">
+                                        <option value="1A">1° A Liceo</option>
+                                        <option value="2A">2° A Liceo</option>
+                                        <option value="3A">3° A Liceo</option>
+                                        <option value="4A">4° A Liceo</option>
+                                        <option value="5A">5° A Liceo</option>
+                                    </optgroup>
+                                    <optgroup label="Liceo Scientifico – Sezione B">
+                                        <option value="1B">1° B Liceo</option>
+                                        <option value="2B">2° B Liceo</option>
+                                        <option value="3B">3° B Liceo</option>
+                                        <option value="4B">4° B Liceo</option>
+                                        <option value="5B">5° B Liceo</option>
+                                    </optgroup>
+                                    <optgroup label="Liceo Scientifico – Sezione C">
+                                        <option value="1C">1° C Liceo</option>
+                                        <option value="2C">2° C Liceo</option>
+                                        <option value="3C">3° C Liceo</option>
+                                        <option value="4C">4° C Liceo</option>
+                                        <option value="5C">5° C Liceo</option>
+                                    </optgroup>
+                                </select>
                             </div>
 
-                            <small style="color:#888; font-size:0.78rem; display:block; margin-bottom:16px;">
-                                * Se la tua classe non è presente, contatta un admin per aggiornarla nel profilo.
-                            </small>
+                            <div id="subjectCheckboxesGrid" class="subjects-interactive-grid">
+                                <p style="color:#94a3b8; font-size:0.88rem; grid-column: 1 / -1; text-align:center; padding: 16px;">
+                                    Seleziona la tua classe sopra per visualizzare le materie insegnabili.
+                                </p>
+                            </div>
 
                             <!-- Campi nascosti per Supabase -->
                             <input type="hidden" id="classInfo">
@@ -163,20 +227,20 @@
 
                         <div class="divider"></div>
 
+                        <!-- SEZIONE 3: DISPONIBILITÀ ORARIA -->
                         <div class="form-section">
-                            <h3><i class="far fa-clock"></i> Disponibilità Oraria</h3>
-                            <div
-                                style="background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
-                                <small class="form-hint"
-                                    style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 10px; text-align: center;">Seleziona
-                                    fasce orarie dal <b>Lunedì al Venerdì</b>, tra le <b>14:45 e le 18:00</b>.</small>
+                            <div class="section-title-row">
+                                <h3><span class="sec-num">3</span> <i class="far fa-clock"></i> Disponibilità Oraria</h3>
+                            </div>
+                            <p class="section-desc">
+                                Scegli i pomeriggi (dal <strong>Lunedì al Venerdì</strong>, tra le <strong>14:45 e le 18:00</strong>) in cui sei disponibile per fare ripetizioni.
+                            </p>
 
-                                <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
-                                    <div style="flex: 2;">
-                                        <span
-                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Giorno</span>
-                                        <select id="tempDay"
-                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;">
+                            <div class="avail-builder-card">
+                                <div class="avail-builder-row">
+                                    <div class="avail-field day-col">
+                                        <label for="tempDay">Giorno</label>
+                                        <select id="tempDay">
                                             <option value="Lunedì">Lunedì</option>
                                             <option value="Martedì">Martedì</option>
                                             <option value="Mercoledì">Mercoledì</option>
@@ -185,52 +249,36 @@
                                         </select>
                                     </div>
 
-                                    <div style="flex: 1;">
-                                        <span
-                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Inizio</span>
-                                        <input type="time" id="tempStart" step="900"
-                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;"
-                                            min="14:45" max="18:00">
+                                    <div class="avail-field time-col">
+                                        <label for="tempStart">Dalle</label>
+                                        <input type="time" id="tempStart" step="900" min="14:45" max="18:00" value="14:45">
                                     </div>
 
-                                    <div style="flex: 1;">
-                                        <span
-                                            style="font-size:0.8rem; color:#333; display:block; margin-bottom:3px;">Fine</span>
-                                        <input type="time" id="tempEnd" step="900"
-                                            style="width:100%; height:40px; padding:5px; border-radius:5px; border:1px solid #999; background:white; color:#333;"
-                                            min="14:45" max="18:00">
+                                    <div class="avail-field time-col">
+                                        <label for="tempEnd">Alle</label>
+                                        <input type="time" id="tempEnd" step="900" min="14:45" max="18:00" value="16:15">
                                     </div>
 
-                                    <button type="button" id="btnAddSlot" style="
-                                        background: #4a148c; 
-                                        border: none; 
-                                        width: 45px; 
-                                        height: 40px; 
-                                        border-radius: 5px; 
-                                        cursor: pointer; 
-                                        display: flex !important; 
-                                        align-items: center !important; 
-                                        justify-content: center !important; 
-                                        padding: 0 !important;
-                                        position: relative !important;
-                                        z-index: 1;">
-                                        <i class="fas fa-plus" style="
-                                            position: static !important; 
-                                            margin: 0 !important; 
-                                            padding: 0 !important;
-                                            color: white !important; 
-                                            font-size: 1.2rem !important;
-                                            transform: none !important;
-                                            display: inline-block !important;
-                                            pointer-events: none !important;"></i>
+                                    <button type="button" id="btnAddSlot" class="btn-add-slot" title="Aggiungi fascia oraria">
+                                        <i class="fas fa-plus"></i> <span>Aggiungi</span>
                                     </button>
                                 </div>
 
-                                <div id="slotsContainer"
-                                    style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 10px; margin-bottom:5px;">
+                                <!-- Fasce orarie rapide con 1 click -->
+                                <div class="quick-slot-presets">
+                                    <span class="preset-label"><i class="fas fa-magic"></i> Orari rapidi:</span>
+                                    <button type="button" class="slot-preset-btn" data-start="14:45" data-end="15:45">14:45 – 15:45 (1h)</button>
+                                    <button type="button" class="slot-preset-btn" data-start="14:45" data-end="16:15">14:45 – 16:15 (1h 30m)</button>
+                                    <button type="button" class="slot-preset-btn" data-start="15:00" data-end="16:30">15:00 – 16:30 (1h 30m)</button>
+                                    <button type="button" class="slot-preset-btn" data-start="16:00" data-end="17:30">16:00 – 17:30 (1h 30m)</button>
                                 </div>
-                                <small style="color:#666; font-size:0.75rem; display:block; margin-top:5px;">* Clicca il
-                                    tasto viola + per aggiungere una fascia oraria.</small>
+
+                                <div id="slotsContainer" class="slots-chips-container"></div>
+
+                                <small class="slot-helper-note">
+                                    <i class="fas fa-info-circle"></i> Imposta il giorno e l'orario e premi <strong>+ Aggiungi</strong> per inserire una o più fasce settimanali.
+                                </small>
+
                                 <input type="text" id="availability" required readonly
                                     style="width:1px; height:1px; opacity:0; position:absolute; pointer-events:none;">
                             </div>
@@ -239,7 +287,7 @@
                         <div class="form-footer">
 
                             <button type="submit" id="btnSubmitNew" class="btn-apply">
-                                Invia Candidatura <i class="fas fa-arrow-right"></i>
+                                <span>Invia Candidatura</span> <i class="fas fa-paper-plane"></i>
                             </button>
 
                             <div id="btnGroupExisting" class="btn-group-action hidden">
@@ -261,7 +309,6 @@
 
     <footer class="app-footer">
         <div class="footer-wrapper">
-            <!-- Top Banner: Brand Lockup & Status Tag -->
             <div class="footer-top-strip">
                 <div class="footer-brand-lockup">
                     <div class="footer-logo-badge">
@@ -278,9 +325,7 @@
                 </div>
             </div>
 
-            <!-- Main Columns Grid -->
             <div class="footer-main-grid">
-                <!-- Col 1: Mission & Identity -->
                 <div class="footer-grid-col col-main">
                     <p class="footer-mission-text">
                         La piattaforma ufficiale di peer-tutoring dell'Istituto Agnelli. Creata e gestita dagli studenti per supportare lo studio quotidiano, valorizzare le eccellenze e certificare le ore FSL.
@@ -292,7 +337,6 @@
                     </div>
                 </div>
 
-                <!-- Col 2: Navigazione Rapida -->
                 <div class="footer-grid-col">
                     <h4 class="footer-col-title">Navigazione</h4>
                     <ul class="footer-nav-list">
@@ -304,7 +348,6 @@
                     </ul>
                 </div>
 
-                <!-- Col 3: Risorse Scuola -->
                 <div class="footer-grid-col">
                     <h4 class="footer-col-title">Istituto Agnelli</h4>
                     <ul class="footer-nav-list">
@@ -315,9 +358,8 @@
                     </ul>
                 </div>
 
-                <!-- Col 4: Contatti & Canali -->
                 <div class="footer-grid-col col-contact">
-                    <h4 class="footer-col-title">Assistenza & Social</h4>
+                    <h4 class="footer-col-title">Assistenza &amp; Social</h4>
                     <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
                         <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
                         <div class="f-contact-details">
@@ -334,7 +376,6 @@
                 </div>
             </div>
 
-            <!-- Bottom Legal Bar -->
             <div class="footer-bottom-bar">
                 <div class="footer-copy">
                     &copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Sviluppato dagli studenti per l'Istituto Internazionale Edoardo Agnelli.

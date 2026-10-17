@@ -22,33 +22,7 @@
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/mobile-app.css">
     <script src="js/pwa-init.js"></script>
-    <style>
-        /* Stile Stelle Recensione */
-        .star-rating {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            font-size: 2.5rem;
-            color: #ddd;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .star-rating label:hover,
-        .star-rating label:hover~label,
-        .star-rating input:checked~label {
-            color: #ffc107;
-        }
-    </style>
+    <script src="js/subjects_config.js"></script>
 </head>
 
 <body>
@@ -76,8 +50,11 @@
         <div class="container-agenda reveal">
 
             <div class="page-header">
+                <div class="page-header-badge">
+                    <span class="pulse-dot"></span> Prenotazione Rapida &amp; Intelligente
+                </div>
                 <h1>Agenda Studente</h1>
-                <p>Cerca un tutor, prenota la tua ripetizione e gestisci il tuo calendario.</p>
+                <p>Configura la tua lezione passo dopo passo, scegli il tutor ideale e gestisci il tuo calendario.</p>
             </div>
 
             <!-- Segmented Switcher per visualizzazione mobile rapida -->
@@ -92,26 +69,65 @@
 
             <div class="split-layout">
 
+                <!-- COLONNA SINISTRA: FORM PRENOTAZIONE INTERATTIVO -->
                 <div class="card-box booking-card">
-                    <div class="card-header">
-                        <i class="fas fa-calendar-plus"></i>
-                        <h3>Nuova Prenotazione</h3>
-                    </div>
-                    <p class="card-subtitle">Seleziona i dettagli per bloccare la tua lezione.</p>
+                    <div class="card-header-top">
+                        <div class="card-header">
+                            <div class="card-header-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div>
+                                <h3>Nuova Prenotazione</h3>
+                                <p class="card-subtitle">Segui i passaggi per bloccare la tua ripetizione</p>
+                            </div>
+                        </div>
 
-                    <div class="group-toggle-container">
-                        <button type="button" id="btnToggleGroup" class="btn-group-toggle">
-                            <i class="fas fa-users"></i> Prenotazione di Gruppo
-                        </button>
+                        <div class="group-toggle-container">
+                            <button type="button" id="btnToggleGroup" class="btn-group-toggle" title="Attiva per studiare insieme ai tuoi compagni">
+                                <div class="group-toggle-left">
+                                    <i class="fas fa-users"></i>
+                                    <div>
+                                        <span class="gt-title">Lezione di Gruppo</span>
+                                        <small class="gt-sub">Studia con fino a 5 compagni</small>
+                                    </div>
+                                </div>
+                                <span class="gt-switch-pill"><span class="gt-switch-dot"></span></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROGRESS STEPPER VISIVO -->
+                    <div class="booking-stepper" id="bookingStepper" aria-label="Progresso compilazione">
+                        <div class="stepper-track">
+                            <div class="stepper-fill" id="stepperFill" style="width: 25%;"></div>
+                        </div>
+                        <div class="stepper-nodes">
+                            <div class="step-node active" data-step="1">
+                                <div class="step-circle"><span>1</span><i class="fas fa-check"></i></div>
+                                <span class="step-label">Materia</span>
+                            </div>
+                            <div class="step-node" data-step="2">
+                                <div class="step-circle"><span>2</span><i class="fas fa-check"></i></div>
+                                <span class="step-label">Tutor</span>
+                            </div>
+                            <div class="step-node" data-step="3">
+                                <div class="step-circle"><span>3</span><i class="fas fa-check"></i></div>
+                                <span class="step-label">Data &amp; Ora</span>
+                            </div>
+                            <div class="step-node" data-step="4">
+                                <div class="step-circle"><span>4</span><i class="fas fa-check"></i></div>
+                                <span class="step-label">Conferma</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- BANNER MATERIE MASTERCOM (Mostrato per studenti collegati al Registro) -->
                     <div id="mastercomBanner" class="mastercom-subjects-banner hidden">
                         <div class="mc-banner-header">
                             <div class="mc-banner-title">
-                                <i class="fas fa-graduation-cap mc-icon"></i>
+                                <div class="mc-icon"><i class="fas fa-bolt"></i></div>
                                 <div>
-                                    <div class="mc-banner-heading">Materie dal tuo orario scolastico</div>
+                                    <div class="mc-banner-heading">Scelta rapida dal tuo Orario</div>
                                     <span id="mcClassBadge" class="mc-class-badge">Classe...</span>
                                 </div>
                             </div>
@@ -120,149 +136,259 @@
                             </button>
                         </div>
                         <p class="mc-banner-subtitle">
-                            Clicca su una materia del tuo orario per compilare istantaneamente i filtri e cercare i tutor:
+                            Tocca una materia del tuo piano di studi per impostare automaticamente anno, indirizzo e materia:
                         </p>
                         <div id="mastercomChips" class="mc-chips-container">
                             <!-- Popolato dinamicamente da prenota.js -->
                         </div>
                     </div>
 
-                    <form id="bookingForm">
+                    <form id="bookingForm" novalidate>
 
-                        <div class="row-group">
-                            <div class="form-group">
-                                <label>Il tuo Anno</label>
-                                <select id="filterYear" required>
-                                    <option value="" disabled selected>Seleziona...</option>
-                                    <option value="1">1° Anno</option>
-                                    <option value="2">2° Anno</option>
-                                    <option value="3">3° Anno</option>
-                                    <option value="4">4° Anno</option>
-                                    <option value="5">5° Anno</option>
-                                </select>
+                        <!-- STEP 1: ANNO, SCUOLA E MATERIA -->
+                        <div class="form-step-block active-step" id="stepBlock1">
+                            <div class="step-block-header">
+                                <span class="step-badge">Passo 1</span>
+                                <h4>Indirizzo e Materia di studio</h4>
                             </div>
-                            <div class="form-group">
-                                <label>Scuola</label>
-                                <select id="filterSchoolType" required>
-                                    <option value="" disabled selected>Seleziona...</option>
-                                    <option value="ITT">ITT</option>
-                                    <option value="Liceo">Liceo</option>
-                                </select>
+
+                            <div class="row-group two-cols">
+                                <div class="form-group">
+                                    <label for="filterYear"><i class="fas fa-layer-group"></i> Il tuo Anno</label>
+                                    <div class="Quick-year-pills" id="quickYearPills">
+                                        <button type="button" class="q-pill" data-val="1">1°</button>
+                                        <button type="button" class="q-pill" data-val="2">2°</button>
+                                        <button type="button" class="q-pill" data-val="3">3°</button>
+                                        <button type="button" class="q-pill" data-val="4">4°</button>
+                                        <button type="button" class="q-pill" data-val="5">5°</button>
+                                    </div>
+                                    <select id="filterYear" class="sr-select-sync" required>
+                                        <option value="" disabled selected>Seleziona anno...</option>
+                                        <option value="1">1° Anno</option>
+                                        <option value="2">2° Anno</option>
+                                        <option value="3">3° Anno</option>
+                                        <option value="4">4° Anno</option>
+                                        <option value="5">5° Anno</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="filterSchoolType"><i class="fas fa-university"></i> Indirizzo Scolastico</label>
+                                    <div class="Quick-school-pills" id="quickSchoolPills">
+                                        <button type="button" class="q-pill school-pill" data-val="ITT">
+                                            <i class="fas fa-microchip"></i> ITT Tecnico
+                                        </button>
+                                        <button type="button" class="q-pill school-pill" data-val="Liceo">
+                                            <i class="fas fa-atom"></i> Liceo
+                                        </button>
+                                    </div>
+                                    <select id="filterSchoolType" class="sr-select-sync" required>
+                                        <option value="" disabled selected>Seleziona scuola...</option>
+                                        <option value="ITT">ITT</option>
+                                        <option value="Liceo">Liceo</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Materia</label>
-                                <select id="filterSubject" disabled required>
-                                    <option value="">Seleziona prima l'anno...</option>
-                                </select>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="filterSubject"><i class="fas fa-book-open"></i> Materia da ripassare</label>
+                                <div class="select-wrapper">
+                                    <select id="filterSubject" disabled required>
+                                        <option value="">Seleziona prima anno e indirizzo...</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Scegli Tutor</label>
-                            <select id="selectTutor" disabled required>
-                                <option value="">Imposta prima i filtri...</option>
-                            </select>
-                        </div>
-
-                        <div class="divider"></div>
-
-                        <div class="form-group">
-                            <label>3. Seleziona Data</label>
-
-                            <div id="tutorAvailDisplay"
-                                style="background:#e3f2fd; color:#1565c0; padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;">
-                                <i class="fas fa-info-circle"></i> <strong>Disponibilità Tutor:</strong><br>
-                                <span id="availText">--</span>
+                        <!-- STEP 2: SCELTA TUTOR -->
+                        <div class="form-step-block" id="stepBlock2">
+                            <div class="step-block-header">
+                                <span class="step-badge">Passo 2</span>
+                                <h4>Scegli il tuo Tutor</h4>
                             </div>
 
-                            <input type="date" id="selectDate" required disabled style="opacity: 0.6;">
-                            <small id="dateError" style="color: #d32f2f; display: none;">⛔ Il tutor non è disponibile in
-                                questo giorno.</small>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <div id="tutorCardsContainer" class="tutor-cards-grid">
+                                    <div class="step-placeholder">
+                                        <i class="fas fa-user-graduate"></i>
+                                        <span>Seleziona una materia al Passo 1 per scoprire i tutor disponibili.</span>
+                                    </div>
+                                </div>
+                                <div class="select-wrapper" style="margin-top: 10px;">
+                                    <select id="selectTutor" disabled required>
+                                        <option value="">Imposta prima i filtri sopra...</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>4. Seleziona Orario Disponibile</label>
-                            <select id="selectTime" required disabled style="opacity: 0.6; cursor: not-allowed;">
-                                <option value="">-- Prima seleziona una data valida --</option>
-                            </select>
+                        <!-- STEP 3: DATA, ORARIO E DURATA -->
+                        <div class="form-step-block" id="stepBlock3">
+                            <div class="step-block-header">
+                                <span class="step-badge">Passo 3</span>
+                                <h4>Data, Fascia Oraria e Durata</h4>
+                            </div>
+
+                            <div id="tutorAvailDisplay" class="tutor-avail-banner" style="display:none;">
+                                <div class="avail-banner-icon"><i class="fas fa-calendar-Week"></i></div>
+                                <div class="avail-banner-content">
+                                    <strong>Giorni e orari in cui il tutor riceve:</strong>
+                                    <div id="availText" class="avail-badges-wrap">--</div>
+                                </div>
+                            </div>
+
+                            <div class="row-group two-cols">
+                                <div class="form-group">
+                                    <label for="selectDate"><i class="far fa-calendar-alt"></i> Giorno della lezione</label>
+                                    <input type="date" id="selectDate" required disabled>
+                                    <small id="dateError" class="date-error-msg" style="display: none;">
+                                        <i class="fas fa-exclamation-circle"></i> Il tutor non riceve in questo giorno della settimana. Prova uno dei giorni indicati sopra!
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="selectTime"><i class="far fa-clock"></i> Orario di inizio</label>
+                                    <div class="select-wrapper">
+                                        <select id="selectTime" required disabled>
+                                            <option value="">-- Prima scegli una data --</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down select-arrow"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Griglia interattiva di pillole orarie (sincronizzata con #selectTime) -->
+                            <div id="timePillsWrapper" class="time-pills-wrapper hidden">
+                                <span class="time-pills-label"><i class="fas fa-hand-pointer"></i> Tocca un orario libero:</span>
+                                <div id="timePillsGrid" class="time-pills-grid"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0; margin-top: 8px;">
+                                <label><i class="fas fa-hourglass-half"></i> Durata della ripetizione</label>
+                                <div class="duration-pills">
+                                    <input type="radio" name="duration" id="d60" value="60" checked>
+                                    <label for="d60">
+                                        <span class="dur-icon"><i class="far fa-clock"></i></span>
+                                        <span class="dur-text">
+                                            <strong>1 Ora</strong>
+                                            <small>Sessione standard (60 min)</small>
+                                        </span>
+                                    </label>
+
+                                    <input type="radio" name="duration" id="d90" value="90">
+                                    <label for="d90">
+                                        <span class="dur-icon"><i class="fas fa-bolt"></i></span>
+                                        <span class="dur-text">
+                                            <strong>1h 30m</strong>
+                                            <small>Sessione intensiva (90 min)</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- SEZIONE GRUPPO (Nascosta di default) -->
+                        <!-- SEZIONE GRUPPO (Nascosta di default, animata all'apertura) -->
                         <div id="groupSection" class="group-selection-area hidden">
-                            <label><i class="fas fa-user-plus"></i> Aggiungi compagni (Max 5)</label>
+                            <div class="group-area-header">
+                                <label><i class="fas fa-user-plus"></i> Aggiungi compagni di classe (Max 5)</label>
+                                <span class="group-counter-pill" id="groupCountPill">0 / 5</span>
+                            </div>
                             <div class="search-container-mini">
-                                <input type="text" id="searchStudent" placeholder="Cerca per nome o email...">
+                                <input type="text" id="searchStudent" placeholder="Cerca compagno per nome o email istituzionale...">
                                 <i class="fas fa-search"></i>
                             </div>
                             <div id="studentResults" class="search-results-dropdown hidden"></div>
                             <div id="selectedStudents" class="selected-chips-container"></div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Durata</label>
-                            <div class="duration-pills">
-                                <input type="radio" name="duration" id="d60" value="60" checked>
-                                <label for="d60">1 Ora</label>
-
-                                <input type="radio" name="duration" id="d90" value="90">
-                                <label for="d90">1h 30m</label>
+                        <!-- STEP 4: ARGOMENTI & RIEPILOGO -->
+                        <div class="form-step-block" id="stepBlock4">
+                            <div class="step-block-header">
+                                <span class="step-badge">Passo 4</span>
+                                <h4>Argomenti &amp; Conferma Finale</h4>
                             </div>
-                        </div>
 
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label for="lessonNotes"><i class="far fa-comment-dots"></i> Argomenti specifici da trattare <span class="opt-tag">Opzionale</span></label>
+                                <textarea id="lessonNotes" rows="3"
+                                    placeholder="Es. Vorrei ripassare le equazioni di secondo grado, risolvere gli esercizi per la verifica..."></textarea>
+                                <div class="quick-notes-tags">
+                                    <button type="button" class="note-suggestion-chip" data-note="Preparazione alla verifica scritta">📝 Preparazione verifica</button>
+                                    <button type="button" class="note-suggestion-chip" data-note="Ripasso teoria ed esercizi">📚 Ripasso teoria + esercizi</button>
+                                    <button type="button" class="note-suggestion-chip" data-note="Recupero argomenti non chiari">💡 Recupero lacune</button>
+                                </div>
+                            </div>
 
-                        <div class="form-group">
-                            <label><i class="far fa-comment-dots"></i> Argomenti Specifici (Opzionale)</label>
-                            <textarea id="lessonNotes" rows="3"
-                                placeholder="Es. Vorrei ripassare le equazioni di secondo grado..."></textarea>
+                            <!-- RIEPILOGO LIVE PRENOTAZIONE -->
+                            <div id="bookingSummaryBar" class="booking-summary-bar hidden">
+                                <div class="summary-bar-title"><i class="fas fa-receipt"></i> Riepilogo della tua lezione</div>
+                                <div class="summary-bar-grid" id="bookingSummaryContent"></div>
+                            </div>
+
+                            <button type="submit" class="btn-confirm-booking" id="btnSubmitBooking">
+                                <span class="btn-shine"></span>
+                                <i class="fas fa-check-circle"></i>
+                                <span>Conferma Prenotazione</span>
+                                <i class="fas fa-arrow-right btn-arrow"></i>
+                            </button>
                         </div>
-                        <button type="submit" class="btn-confirm-booking">
-                            <i class="fas fa-check-circle"></i> Conferma Prenotazione
-                        </button>
                     </form>
                 </div>
 
+                <!-- COLONNA DESTRA: LE TUE LEZIONI -->
                 <div class="card-box list-card">
                     <div class="card-header">
-                        <i class="fas fa-list-alt"></i>
-                        <h3>Le tue Lezioni</h3>
-                    </div>
-                    <p class="card-subtitle">Gestisci le lezioni già programmate.</p>
-
-                    <div id="myLessonsList" class="lessons-scroll-area">
-                        <div class="empty-state">
-                            <i class="fas fa-calendar-times"></i>
-                            <p>Nessuna lezione in programma.</p>
+                        <div class="card-header-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h3>Le tue Lezioni</h3>
+                            <p class="card-subtitle">Monitora e gestisci gli appuntamenti in programma</p>
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-                    <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
-                        <i class="fas fa-history"
-                            style="background: #f5f5f5; color: #666; width: 35px; height: 35px; font-size: 1.1rem;"></i>
-                        <h3 style="color: #666; font-size: 1.1rem;">Lezioni Concluse</h3>
-                        <button id="btnTogglePast" class="btn-mini"
-                            style="margin-left: auto; width: auto; background: #eee; color: #666;">
-                            <i class="fas fa-eye"></i> Mostra
-                        </button>
-                    </div>
-                    <div id="pastLessonsList" class="lessons-scroll-area hidden"
-                        style="max-height: 300px; margin-top: 15px;">
-                        <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione conclusa.</p>
+                    <div id="myLessonsList" class="lessons-scroll-area">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-calendar-plus"></i></div>
+                            <h4>Nessuna lezione in programma</h4>
+                            <p>Compila il modulo a fianco per prenotare la tua prossima ripetizione!</p>
+                        </div>
                     </div>
 
-                    <div class="divider"></div>
-                    <div class="card-header" style="border-bottom: none; padding-bottom: 0; margin-top: 20px;">
-                        <i class="fas fa-ban"
-                            style="background: #fff5f5; color: #d32f2f; width: 35px; height: 35px; font-size: 1.1rem;"></i>
-                        <h3 style="color: #d32f2f; font-size: 1.1rem;">Lezioni Cancellate</h3>
-                        <button id="btnToggleCancelled" class="btn-mini"
-                            style="margin-left: auto; width: auto; background: #ffebee; color: #d32f2f;">
-                            <i class="fas fa-eye"></i> Mostra
-                        </button>
+                    <!-- SEZIONE CONCLUSE -->
+                    <div class="collapsible-section">
+                        <div class="collapsible-header" id="headerTogglePast">
+                            <div class="collapsible-title">
+                                <span class="collapsible-icon past"><i class="fas fa-history"></i></span>
+                                <h4>Lezioni Concluse</h4>
+                                <span class="section-count-pill" id="pastCountBadge">0</span>
+                            </div>
+                            <button type="button" id="btnTogglePast" class="btn-collapse-toggle">
+                                <i class="fas fa-eye"></i> <span>Mostra</span>
+                            </button>
+                        </div>
+                        <div id="pastLessonsList" class="lessons-scroll-area collapsible-body hidden">
+                            <p class="empty-state-mini">Nessuna lezione conclusa negli ultimi 30 giorni.</p>
+                        </div>
                     </div>
-                    <div id="cancelledLessonsList" class="lessons-scroll-area hidden"
-                        style="max-height: 300px; margin-top: 15px;">
-                        <p class="empty-state" style="padding: 20px; font-size: 0.9rem;">Nessuna lezione cancellata.</p>
+
+                    <!-- SEZIONE CANCELLATE -->
+                    <div class="collapsible-section">
+                        <div class="collapsible-header" id="headerToggleCancelled">
+                            <div class="collapsible-title">
+                                <span class="collapsible-icon cancelled"><i class="fas fa-ban"></i></span>
+                                <h4 style="color: #c62828;">Lezioni Cancellate</h4>
+                                <span class="section-count-pill cancelled" id="cancelledCountBadge">0</span>
+                            </div>
+                            <button type="button" id="btnToggleCancelled" class="btn-collapse-toggle cancelled">
+                                <i class="fas fa-eye"></i> <span>Mostra</span>
+                            </button>
+                        </div>
+                        <div id="cancelledLessonsList" class="lessons-scroll-area collapsible-body hidden">
+                            <p class="empty-state-mini">Nessuna lezione cancellata.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -270,20 +396,22 @@
         </div>
     </main>
 
+    <!-- MODALE SUCCESSO -->
     <div id="successModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon success"><i class="fas fa-check"></i></div>
             <h3 id="successTitle">Prenotata!</h3>
-            <p id="successMessage">Operazione completata.</p>
-            <button id="btnSuccessClose" class="btn-modal success-btn">OK</button>
+            <p id="successMessage">Operazione completata con successo.</p>
+            <button id="btnSuccessClose" class="btn-modal success-btn">Perfetto!</button>
         </div>
     </div>
 
+    <!-- MODALE ANNULLA -->
     <div id="deleteModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning"><i class="fas fa-trash-alt"></i></div>
             <h3>Annulla Lezione</h3>
-            <p>Sei sicuro di voler annullare questa lezione?</p>
+            <p>Sei sicuro di voler annullare questa lezione? Il tutor verrà avvisato automaticamente.</p>
             <div class="modal-actions">
                 <button id="btnCancelDelete" class="btn-modal secondary">Indietro</button>
                 <button id="btnConfirmDelete" class="btn-modal danger">Sì, Annulla</button>
@@ -291,94 +419,100 @@
         </div>
     </div>
 
+    <!-- MODALE ATTENZIONE -->
     <div id="warningModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
             <h3>Attenzione</h3>
             <p id="warningMessage">Messaggio di avviso.</p>
-            <button id="btnWarningClose" class="btn-modal secondary" style="background:#FF9800; color:white;">Ho
-                capito</button>
+            <button id="btnWarningClose" class="btn-modal danger" style="margin-top: 20px; width: 100%;">Ho capito</button>
         </div>
     </div>
 
+    <!-- MODALE VALUTAZIONE STELLE -->
     <div id="ratingModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-icon success" style="background: #FFF8E1; color: #FFC107;"><i class="fas fa-star"></i>
+            <div class="modal-icon success" style="background: #FFF8E1; color: #FFC107;">
+                <i class="fas fa-star"></i>
             </div>
             <h3>Valuta la lezione</h3>
-            <p>Com'è andata la tua ripetizione? Il tuo voto aiuterà il tutor a migliorare.</p>
-            <p
-                style="font-size: 0.8rem; color: #888; font-style: italic; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                <i class="fas fa-user-secret"></i> <strong>Privacy:</strong> Il tutor vedrà solo la media totale dei
-                suoi voti. Non saprà chi ha inviato questa specifica valutazione.
-            </p>
+            <p>Com'è andata la tua ripetizione? Il tuo feedback aiuta a mantenere alta la qualità del servizio.</p>
+            <div class="privacy-note-box">
+                <i class="fas fa-user-secret"></i>
+                <span><strong>100% Anonimo:</strong> Il tutor vedrà solo la media complessiva dei voti ricevuti.</span>
+            </div>
 
             <div class="star-rating">
-                <input type="radio" name="stars" id="star5" value="5"><label for="star5"><i
-                        class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star4" value="4"><label for="star4"><i
-                        class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star3" value="3"><label for="star3"><i
-                        class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star2" value="2"><label for="star2"><i
-                        class="fas fa-star"></i></label>
-                <input type="radio" name="stars" id="star1" value="1"><label for="star1"><i
-                        class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star5" value="5"><label for="star5" title="5 stelle - Eccellente"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star4" value="4"><label for="star4" title="4 stelle - Molto buono"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star3" value="3"><label for="star3" title="3 stelle - Buono"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star2" value="2"><label for="star2" title="2 stelle - Sufficiente"><i class="fas fa-star"></i></label>
+                <input type="radio" name="stars" id="star1" value="1"><label for="star1" title="1 stella - Da migliorare"><i class="fas fa-star"></i></label>
             </div>
 
             <div class="modal-actions">
                 <button id="btnCancelRating" class="btn-modal secondary">Annulla</button>
-                <button id="btnSubmitRating" class="btn-modal primary" style="background: #ffc107; color: #333;">Invia
-                    Voto</button>
+                <button id="btnSubmitRating" class="btn-modal primary" style="background: #ffc107; color: #1e293b;">Invia Voto</button>
             </div>
         </div>
     </div>
 
+    <!-- MODALE MODIFICA LEZIONE -->
     <div id="editModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="card-header-simple" style="border-bottom:none; padding-bottom:0;">
-                <h3 style="margin:0; color:var(--text-dark);">Modifica Lezione</h3>
+        <div class="modal-card modal-card-wide">
+            <div class="modal-header-bar">
+                <div class="modal-header-icon"><i class="fas fa-pen"></i></div>
+                <div>
+                    <h3>Modifica Lezione</h3>
+                    <p>Aggiorna data, orario o argomenti della ripetizione</p>
+                </div>
             </div>
 
-            <form id="editForm" style="margin-top:20px; text-align:left;">
+            <form id="editForm" style="margin-top:18px; text-align:left;">
                 <input type="hidden" id="editLessonId">
                 <input type="hidden" id="editTutorId">
-                <div class="row-group">
+                <div class="row-group two-cols">
                     <div class="form-group">
                         <label>Nuova Data</label>
                         <input type="date" id="editDate" required>
                     </div>
                     <div class="form-group">
                         <label>Nuovo Orario</label>
-                        <select id="editTime" required
-                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background-color: white;">
-                            <option value="">-- Seleziona prima la data --</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="editTime" required>
+                                <option value="">-- Seleziona prima la data --</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-group two-cols">
+                    <div class="form-group">
+                        <label>Materia</label>
+                        <input type="text" id="editSubject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Durata</label>
+                        <div class="select-wrapper">
+                            <select id="editDuration">
+                                <option value="60 min">1 Ora (60 min)</option>
+                                <option value="90 min">1 Ora e mezza (90 min)</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Materia</label>
-                    <input type="text" id="editSubject" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Durata</label>
-                    <select id="editDuration">
-                        <option value="60 min">1 Ora (60 min)</option>
-                        <option value="90 min">1 Ora e mezza (90 min)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label>Argomenti</label>
-                    <textarea id="editNotes" rows="2"
-                        style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+                    <textarea id="editNotes" rows="2" placeholder="Specifica gli argomenti..."></textarea>
                 </div>
 
                 <div class="modal-actions">
                     <button type="button" id="btnCancelEdit" class="btn-modal secondary">Annulla</button>
-                    <button type="submit" class="btn-modal primary">Salva Modifiche</button>
+                    <button type="submit" class="btn-modal danger">Salva Modifiche</button>
                 </div>
             </form>
         </div>

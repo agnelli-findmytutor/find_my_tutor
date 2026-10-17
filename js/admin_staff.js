@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const addStaffForm = document.getElementById('addStaffForm');
     if (addStaffForm) {
         addStaffForm.addEventListener('submit', async (e) => {
@@ -8,11 +8,12 @@
             const fullName = document.getElementById('staffFullName').value;
             
             try {
-                const res = await fetch('/api/fmt/admin/staff', {
+                const baseUrl = (typeof FMT_API !== 'undefined') ? FMT_API.getBaseUrl() : '';
+                const res = await fetch(`${baseUrl}/api/fmt/admin/staff`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + FMT_API.getToken()
+                        'Authorization': 'Bearer ' + (typeof FMT_API !== 'undefined' ? FMT_API.getToken() : '')
                     },
                     body: JSON.stringify({ username, password, full_name: fullName })
                 }).then(r => r.json());
@@ -31,19 +32,20 @@
         
         async function loadStaffAccounts() {
             try {
-                const res = await fetch('/api/fmt/admin/staff', {
-                    headers: { 'Authorization': 'Bearer ' + FMT_API.getToken() }
+                const baseUrl = (typeof FMT_API !== 'undefined') ? FMT_API.getBaseUrl() : '';
+                const res = await fetch(`${baseUrl}/api/fmt/admin/staff`, {
+                    headers: { 'Authorization': 'Bearer ' + (typeof FMT_API !== 'undefined' ? FMT_API.getToken() : '') }
                 }).then(r => r.json());
                 
                 const tbody = document.querySelector('#staffTable tbody');
                 if (res.success && tbody) {
                     tbody.innerHTML = '';
                     res.staff.forEach(s => {
-                        tbody.innerHTML += \<tr>
-                            <td>\</td>
-                            <td>\</td>
-                            <td>-</td>
-                        </tr>\;
+                        tbody.innerHTML += `<tr>
+                            <td><strong>${s.full_name || '-'}</strong></td>
+                            <td>${s.username || '-'}</td>
+                            <td><span class="role-badge tutor">Attivo</span></td>
+                        </tr>`;
                     });
                 }
             } catch(err) {

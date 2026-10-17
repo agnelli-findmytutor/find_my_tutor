@@ -22,75 +22,122 @@ document.addEventListener('DOMContentLoaded', async () => {
     const rejectReasonText = document.getElementById('rejectReasonText');
     const btnTryAgain = document.getElementById('btnTryAgain');
 
-    // Modale Feedback
+    // Modale Feedback (Successo)
     const modal = document.getElementById('feedbackModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalMessage = document.getElementById('modalMessage');
     const btnModalClose = document.getElementById('btnModalClose');
 
-    // Modale Alert
+    // Modale Alert (Errore / Avviso)
     const alertModal = document.getElementById('alertModal');
     const alertModalTitle = document.getElementById('alertModalTitle');
     const alertModalMessage = document.getElementById('alertModalMessage');
     const btnAlertModalClose = document.getElementById('btnAlertModalClose');
 
-
-    // --- ELEMENTI DISPONIBILITÀ (ORARI) ---
-    const btnAddSlot = document.getElementById('btnAddSlot');
-    const slotsContainer = document.getElementById('slotsContainer');
-    const availHiddenInput = document.getElementById('availability'); // Input nascosto fondamentale
-
-    // --- ELEMENTI COMPETENZE (CLASSI E MATERIE) ---
-
-    // Subject rendering is driven by the user's actual class_info from their profile.
-    // Called after the user is authenticated and profile loaded.
-    function renderSubjectListFromClass(classInfo, preSelected = []) {
-        const container = document.getElementById('subjectCheckboxesGrid');
-        const banner = document.getElementById('classDetectedBanner');
-        const classLabel = document.getElementById('classDetectedLabel');
-        if (!container) return;
-
-        if (!classInfo || !SubjectsConfig.parseClass(classInfo)) {
-            container.innerHTML = '<p style="color:#c62828; font-size:0.85rem;"><i class="fas fa-exclamation-triangle"></i> Classe non riconosciuta nel tuo profilo. Contatta un admin.</p>';
-            return;
-        }
-
-        const subjects = SubjectsConfig.getSubjectsForTutor(classInfo);
-        if (banner) banner.style.display = 'block';
-        if (classLabel) classLabel.textContent = `${classInfo} (${SubjectsConfig.getSchoolTypeLabel(classInfo)})`;
-
-        // Populate classInfo hidden field
-        const classInfoHidden = document.getElementById('classInfo');
-        if (classInfoHidden) classInfoHidden.value = classInfo;
-
-        SubjectsConfig.renderCheckboxGrid(container, subjects, preSelected);
+    // --- HELPER MODALI (precedentemente mancanti!) ---
+    function showModal(title, message) {
+        if (modalTitle) modalTitle.textContent = title || 'Operazione completata';
+        if (modalMessage) modalMessage.textContent = message || '';
+        if (modal) modal.classList.remove('hidden');
     }
 
-
-    
-    let existingRequestId = null;
+    function showAlert(title, message) {
+        if (alertModalTitle) alertModalTitle.textContent = title || 'Attenzione';
+        if (alertModalMessage) alertModalMessage.textContent = message || '';
+        if (alertModal) alertModal.classList.remove('hidden');
+    }
 
     if (btnModalClose) {
         btnModalClose.addEventListener('click', () => {
-            if(modal) modal.classList.add('hidden');
+            if (modal) modal.classList.add('hidden');
             window.location.reload();
         });
     }
 
     if (btnAlertModalClose) {
         btnAlertModalClose.addEventListener('click', () => {
-            if(alertModal) alertModal.classList.add('hidden');
+            if (alertModal) alertModal.classList.add('hidden');
         });
     }
 
+    // --- ELEMENTI DISPONIBILITÀ (ORARI) ---
+    const btnAddSlot = document.getElementById('btnAddSlot');
+    const slotsContainer = document.getElementById('slotsContainer');
+    const availHiddenInput = document.getElementById('availability');
+    const manualClassSelect = document.getElementById('manualClassSelect');
+    const subjectCheckboxesGrid = document.getElementById('subjectCheckboxesGrid');
+    const selectedSubjectsCount = document.getElementById('selectedSubjectsCount');
+
+    // Aggiorna l'input nascosto #subjects e il contatore badge quando cambiano le checkbox
+    function syncSelectedSubjects() {
+        const checked = Array.from(document.querySelectorAll('input[name="subject_checkbox"]:checked'))
+                             .map(cb => cb.value);
+        const subjectsHidden = document.getElementById('subjects');
+        if (subjectsHidden) subjectsHidden.value = checked.join(', ');
+        if (selectedSubjectsCount) {
+            selectedSubjectsCount.textContent = `${checked.length} ${checked.length === 1 ? 'selezionata' : 'selezionate'}`;
+        }
+    }
+
+    if (subjectCheckboxesGrid) {
+        subjectCheckboxesGrid.addEventListener('change', (e) => {
+            if (e.target && e.target.name === 'subject_checkbox') {
+                syncSelectedSubjects();
+            }
+        });
+    }
+
+    function renderSubjectListFromClass(classInfo, preSelected = []) {
+        const container = document.getElementById('subjectCheckboxesGrid');
+        const banner = document.getElementById('classDetectedBanner');
+        const classLabel = document.getElementById('classDetectedLabel');
+        if (!container) return;
+
+        const cleanClass = classInfo ? classInfo.trim().toUpperCase().replace(/\s+/g, '') : '';
+
+        if (!cleanClass || typeof SubjectsConfig === 'undefined' || !SubjectsConfig.parseClass(cleanClass)) {
+            if (banner) banner.style.display = 'none';
+            container.innerHTML = '<p style="color:#64748b; font-size:0.88rem; grid-column: 1 / -1; text-align:center; padding: 14px;"><i class="fas fa-hand-point-up" style="color:#D32F2F;"></i> Seleziona la tua classe dal menu qui sopra per visualizzare le materie abilitate.</p>';
+            syncSelectedSubjects();
+            return;
+        }
+
+        const subjects = SubjectsConfig.getSubjectsForTutor(cleanClass);
+        if (banner) banner.style.display = 'flex';
+        if (classLabel) classLabel.textContent = `${cleanClass} (${SubjectsConfig.getSchoolTypeLabel(cleanClass)})`;
+        if (manualClassSelect && manualClassSelect.value !== cleanClass) {
+            manualClassSelect.value = cleanClass;
+        }
+
+        const classInfoHidden = document.getElementById('classInfo');
+        if (classInfoHidden) classInfoHidden.value = cleanClass;
+
+        SubjectsConfig.renderCheckboxGrid(container, subjects, preSelected);
+        syncSelectedSubjects();
+    }
+
+    if (manualClassSelect) {
+        manualClassSelect.addEventListener('change', () => {
+            const currentChecked = Array.from(document.querySelectorAll('input[name="subject_checkbox"]:checked')).map(cb => cb.value);
+            renderSubjectListFromClass(manualClassSelect.value, currentChecked);
+        });
+    }
+
+    let existingRequestId = null;
+
     // 1. CONTROLLO UTENTE LOGGATO (UNIFICATO TRA GOOGLE E MASTERCOM)
-    let { data: { user } } = await sb.auth.getUser();
+    let user = null;
+    try {
+        const { data } = await sb.auth.getUser();
+        user = data?.user || null;
+    } catch(e) {}
+
     let fmtUser = (typeof FMT_API !== 'undefined') ? FMT_API.getCurrentUser() : null;
 
     if (!user && fmtUser) {
         user = {
             id: fmtUser.google_id || fmtUser.id,
-            email: fmtUser.email,
+            email: fmtUser.google_email || fmtUser.email,
             user_metadata: {
                 full_name: fmtUser.full_name,
                 avatar_url: fmtUser.avatar_url
@@ -99,27 +146,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (!user) {
-        if(mainFormContainer) mainFormContainer.classList.add('hidden');
-        if(loginWarning) loginWarning.classList.remove('hidden');
+        if (mainFormContainer) mainFormContainer.classList.add('hidden');
+        if (loginWarning) loginWarning.classList.remove('hidden');
         return; 
     }
 
-    if(mainFormContainer) mainFormContainer.classList.remove('hidden');
-    if(loginWarning) loginWarning.classList.add('hidden');
+    if (mainFormContainer) mainFormContainer.classList.remove('hidden');
+    if (loginWarning) loginWarning.classList.add('hidden');
 
-    // Fetch the user's profile to get their class_info
+    // Pre-popola Nome ed Email dall'utente loggato
+    const fullNameInput = document.getElementById('fullName');
+    const emailInput = document.getElementById('email');
+    if (fullNameInput && !fullNameInput.value) {
+        fullNameInput.value = user.user_metadata?.full_name || fmtUser?.full_name || '';
+    }
+    if (emailInput && !emailInput.value) {
+        emailInput.value = user.email || fmtUser?.google_email || fmtUser?.email || '';
+    }
+
+    // Recupera class_info dal profilo
     let userClassInfo = fmtUser ? fmtUser.class_info : null;
     if (!userClassInfo && user) {
         try {
             const { data: profile } = await sb.from('profiles').select('class_info').eq('id', user.id).maybeSingle();
-            if (profile) userClassInfo = profile.class_info;
+            if (profile && profile.class_info) userClassInfo = profile.class_info;
         } catch(e) {}
     }
 
-    // Render eligible subjects based on the user's class
     renderSubjectListFromClass(userClassInfo);
 
+    // --- FUNZIONI CHIP DISPONIBILITÀ ORARIA ---
+    function createAvailChip(text) {
+        if (!text || !slotsContainer) return;
+        // Evita duplicati esatti
+        const existing = Array.from(slotsContainer.querySelectorAll('.avail-chip span')).map(s => s.innerText.trim());
+        if (existing.includes(text.trim())) return;
 
+        const chip = document.createElement('div');
+        chip.className = 'avail-chip';
+        chip.innerHTML = `
+            <i class="far fa-calendar-check"></i>
+            <span>${text.trim()}</span>
+            <i class="fas fa-times" title="Rimuovi fascia oraria"></i>
+        `;
+
+        chip.querySelector('.fa-times').addEventListener('click', () => {
+            chip.remove();
+            updateAvailString();
+        });
+
+        slotsContainer.appendChild(chip);
+    }
+
+    function updateAvailString() {
+        const chips = document.querySelectorAll('#slotsContainer .avail-chip span');
+        const parts = Array.from(chips).map(c => c.innerText.trim());
+        if (availHiddenInput) availHiddenInput.value = parts.join(', ');
+    }
+
+    // 2. CONTROLLO RICHIESTE ESISTENTI
     try {
         const { data: request, error } = await sb
             .from('tutor_requests')
@@ -130,7 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (request) {
             existingRequestId = request.id;
 
-            // Nascondi tutti i banner inizialmente
             statusBanner.classList.add('hidden');
             successBanner.classList.add('hidden');
             rejectedBanner.classList.add('hidden');
@@ -138,33 +222,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (request.status === 'approved') {
                 successBanner.classList.remove('hidden');
                 formContent.classList.add('hidden');
-            
             } else if (request.status === 'rejected') {
                 rejectedBanner.classList.remove('hidden');
                 formContent.classList.add('hidden');
-                if(rejectReasonText) {
+                if (rejectReasonText) {
                     rejectReasonText.textContent = request.rejection_reason || "Non specificato.";
                 }
-
             } else if (request.status === 'pending') {
-                // --- UTENTE IN ATTESA: MOSTRIAMO I SUOI DATI ---
-                document.getElementById('fullName').value = request.full_name;
-                document.getElementById('email').value = request.email;
-                document.getElementById('phone').value = request.phone;
+                document.getElementById('fullName').value = request.full_name || '';
+                document.getElementById('email').value = request.email || '';
+                document.getElementById('phone').value = request.phone || '';
                 
-                // Populate hidden fields
                 const classInfoHidden = document.getElementById('classInfo');
                 const subjectsHidden = document.getElementById('subjects');
-                if(classInfoHidden) classInfoHidden.value = request.class_info || '';
-                if(subjectsHidden) subjectsHidden.value = request.subjects || '';
-                
-                document.getElementById('availability').value = request.availability;
+                if (classInfoHidden) classInfoHidden.value = request.class_info || '';
+                if (subjectsHidden) subjectsHidden.value = request.subjects || '';
+                if (availHiddenInput) availHiddenInput.value = request.availability || '';
 
-                // --- RE-RENDER SUBJECTS WITH SAVED SELECTIONS ---
                 const savedSubjects = request.subjects ? request.subjects.split(',').map(s => s.trim()) : [];
-                renderSubjectListFromClass(userClassInfo, savedSubjects);
+                renderSubjectListFromClass(request.class_info || userClassInfo, savedSubjects);
 
-                // --- VISUALIZZA I BLOCCHETTI ORARI SALVATI ---
                 if (request.availability && request.availability.trim() !== "") {
                     const savedSlots = request.availability.split(',');
                     slotsContainer.innerHTML = ''; 
@@ -180,242 +257,132 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (err) {
         console.error("Errore controllo richieste:", err);
-        showAlert("Errore di Caricamento", "Impossibile verificare lo stato della tua candidatura. Riprova più tardi.");
     }
 
-    // --- 3. LOGICA DISPONIBILITÀ (IL CUORE DEL SISTEMA) ---
-    
-    // Click su "+"
-    if(btnAddSlot) {
+    // --- 3. LOGICA DISPONIBILITÀ ORARIA ---
+    function tryAddSlot(day, start, end) {
+        if (!start || !end) { 
+            showAlert("Campo Mancante", "Inserisci un orario di inizio e uno di fine."); 
+            return false; 
+        }
+        if (start >= end) { 
+            showAlert("Orario non valido", "L'orario di fine deve essere successivo a quello di inizio."); 
+            return false; 
+        }
+        
+        const getMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+        const startMin = getMinutes(start);
+        const endMin = getMinutes(end);
+        const diff = endMin - startMin;
+
+        const [, sM] = start.split(':').map(Number);
+        const [, eM] = end.split(':').map(Number);
+        if (sM % 15 !== 0 || eM % 15 !== 0) {
+            showAlert("Orario non allineato", "Gli orari devono essere a quarti d'ora (es. :00, :15, :30, :45).");
+            return false;
+        }
+
+        // 14:45 = 885 min, 18:00 = 1080 min
+        if (startMin < 885 || endMin > 1080) {
+            showAlert("Orario non consentito", "L'orario pomeridiano deve essere compreso tra le 14:45 e le 18:00.");
+            return false;
+        }
+
+        if (![60, 90, 120, 150, 180].includes(diff)) {
+            showAlert("Durata non valida", "La fascia deve avere una durata di 1h, 1h 30m, 2h, 2h 30m o 3h.");
+            return false;
+        }
+
+        const slotText = `${day} ${start}-${end}`;
+        createAvailChip(slotText);
+        updateAvailString();
+        return true;
+    }
+
+    if (btnAddSlot) {
         btnAddSlot.addEventListener('click', () => {
             const day = document.getElementById('tempDay').value;
             const start = document.getElementById('tempStart').value;
             const end = document.getElementById('tempEnd').value;
-
-            if(!start || !end) { 
-                showAlert("Campo Mancante", "Per favore, inserisci un orario di inizio e uno di fine."); 
-                return; 
-            }
-            if(start >= end) { 
-                showAlert("Orario non valido", "L'orario di fine deve essere successivo a quello di inizio."); 
-                return; 
-            }
-            
-            // Calcolo minuti per validazione precisa
-            const getMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
-            const startMin = getMinutes(start);
-            const endMin = getMinutes(end);
-            const diff = endMin - startMin;
-
-            // NUOVO: Validazione Step 15 minuti (00, 15, 30, 45)
-            const [sH, sM] = start.split(':').map(Number);
-            const [eH, eM] = end.split(':').map(Number);
-            if (sM % 15 !== 0 || eM % 15 !== 0) {
-                showAlert("Orario non allineato", "Gli orari devono essere a quarti d'ora (00, 15, 30, 45).");
-                return;
-            }
-
-            // 14:45 = 885 min, 18:00 = 1080 min
-            if (startMin < 885 || endMin > 1080) {
-                showAlert("Orario non consentito", "L'orario deve essere compreso tra le 14:45 e le 18:00.");
-                return;
-            }
-            // Blocchi consentiti: 60 (1h), 90 (1.5h), 120 (2h), 150 (2.5h), 180 (3h)
-            if (![60, 90, 120, 150, 180].includes(diff)) {
-                showAlert("Durata non valida", "La disponibilità deve essere a blocchi di 1h, 1h 30m, 2h, 2h 30m o 3h.");
-                return;
-            }
-
-            // Crea testo: "Lunedì 14:00-16:00"
-            const slotText = `${day} ${start}-${end}`;
-            
-            // Crea chip visivo
-            createAvailChip(slotText);
-            
-            // Aggiorna input nascosto (PER SALVARE NEL DB)
-            updateAvailString();
-
-            // Reset campi
-            document.getElementById('tempStart').value = '';
-            document.getElementById('tempEnd').value = '';
+            tryAddSlot(day, start, end);
         });
     }
 
-    // --- LOGICA COMPETENZE (CLASSI E MATERIE) ---
-    if(btnAddCompetency) {
-        btnAddCompetency.addEventListener('click', () => {
-            const school = document.getElementById('tempSchool').value;
-            const year = document.getElementById('tempYear').value;
-            
-            const selectedSubs = Array.from(document.querySelectorAll('input[name="tempSub"]:checked'))
-                                     .map(cb => cb.value);
-
-            if(selectedSubs.length === 0) { 
-                showAlert("Materie Mancanti", "Seleziona almeno una materia dalla lista prima di aggiungere."); 
-                return; 
-            }
-
-            const compText = `${year} ${school} (${selectedSubs.join(', ')})`;
-            createCompetencyChip(compText);
-            updateCompetencyStrings();
-            document.querySelectorAll('input[name="tempSub"]:checked').forEach(cb => cb.checked = false);
+    // Bottoni preset orari rapidi
+    document.querySelectorAll('.slot-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const start = btn.getAttribute('data-start');
+            const end = btn.getAttribute('data-end');
+            const day = document.getElementById('tempDay').value;
+            const startInput = document.getElementById('tempStart');
+            const endInput = document.getElementById('tempEnd');
+            if (startInput) startInput.value = start;
+            if (endInput) endInput.value = end;
+            tryAddSlot(day, start, end);
         });
-    }
-
-    function createCompetencyChip(text) {
-        if(!text || !competenciesContainer) return;
-        const chip = document.createElement('div');
-        chip.className = 'avail-chip';
-        chip.style = "background:#e3f2fd; color:#1565c0; border:1px solid #bbdefb; padding:5px 12px; border-radius:20px; font-size:0.85rem; display:inline-flex; align-items:center; gap:8px; font-weight:600; margin-bottom:5px; margin-right:5px;";
-        
-        chip.innerHTML = `
-            <span>${text}</span>
-            <i class="fas fa-times" style="cursor:pointer; color:#c62828; font-size:1rem;"></i>
-        `;
-
-        chip.querySelector('.fa-times').addEventListener('click', () => {
-            chip.remove();
-            updateCompetencyStrings();
-        });
-
-        competenciesContainer.appendChild(chip);
-    }
-
-    function updateCompetencyStrings() {
-        const chips = document.querySelectorAll('#competenciesContainer .avail-chip span');
-        let classParts = [];
-        let subjectParts = [];
-        
-        chips.forEach(c => {
-            const text = c.innerText;
-            const match = text.match(/^(\d+) ([A-Za-z]+) \((.*)\)$/);
-            if(match) {
-                classParts.push(`${match[1]} ${match[2]}`);
-                subjectParts.push(match[3]);
-            }
-        });
-        
-        const classInfoHidden = document.getElementById('classInfo');
-        const subjectsHidden = document.getElementById('subjects');
-        if(classInfoHidden) classInfoHidden.value = classParts.join(' | ');
-        if(subjectsHidden) subjectsHidden.value = subjectParts.join(' | ');
-    }
-
-    // Crea il blocchetto visivo (Con fix grafico X)
-    function createAvailChip(text) {
-        if(!text) return;
-        const chip = document.createElement('div');
-        chip.className = 'avail-chip';
-        
-        chip.style = `
-            background: #e1bee7; 
-            color: #4a148c; 
-            border: 1px solid #ba68c8; 
-            padding: 5px 12px; 
-            border-radius: 20px; 
-            font-size: 0.85rem; 
-            display: inline-flex !important; 
-            align-items: center !important; 
-            gap: 8px !important; 
-            font-weight: 600;
-            white-space: nowrap;
-            position: relative !important;
-            margin-bottom: 5px;
-            margin-right: 5px;
-        `;
-        
-        chip.innerHTML = `
-            <span>${text}</span>
-            <i class="fas fa-times" style="
-                cursor: pointer; 
-                color: #c62828 !important; 
-                position: static !important; 
-                margin: 0 !important;
-                font-size: 1rem !important;
-                display: inline-block !important;"></i>
-        `;
-
-        // Rimuovi al click sulla X
-        chip.querySelector('.fa-times').addEventListener('click', () => {
-            chip.remove();
-            updateAvailString(); // Aggiorna input nascosto quando rimuovi
-        });
-
-        slotsContainer.appendChild(chip);
-    }
-
-    // Aggiorna l'input nascosto leggendo tutti i chip
-    function updateAvailString() {
-        const chips = document.querySelectorAll('#slotsContainer .avail-chip span');
-        let parts = [];
-        chips.forEach(c => parts.push(c.innerText));
-        
-        // Unisce tutto in una stringa separata da virgole
-        // Es: "Lunedì 14:00-15:00, Martedì 09:00-11:00"
-        availHiddenInput.value = parts.join(', ');
-    }
+    });
 
     // --- 4. INVIO NUOVA CANDIDATURA ---
-    if(form) {
+    if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if(existingRequestId) return; 
+            if (existingRequestId) return; 
 
-            // Validazione campi obbligatori (Avviso interno)
+            syncSelectedSubjects();
+
             const phone = document.getElementById('phone').value;
-            if(!phone || phone.trim() === "") {
-                showAlert("Dati Mancanti", "Per favore, inserisci il tuo numero di telefono per essere ricontattato.");
+            if (!phone || phone.trim() === "") {
+                showAlert("Dati Mancanti", "Inserisci il tuo numero di telefono per essere ricontattato.");
                 return;
             }
 
-            // CONTROLLO FONDAMENTALE: Verifica che ci siano orari
-            const availValue = document.getElementById('availability').value;
-            if(!availValue || availValue.trim() === "") {
-                showAlert("Disponibilità Mancante", "Per favore, aggiungi almeno una fascia oraria disponibile usando il tasto +.");
-                return;
-            }
-
-            // Controllo competenze
             const classValue = document.getElementById('classInfo').value;
-            if(!classValue || classValue.trim() === "") {
-                showAlert("Competenze Mancanti", "Per favore, aggiungi almeno una classe e le relative materie.");
+            const subjectsValue = document.getElementById('subjects').value;
+            if (!classValue || classValue.trim() === "" || !subjectsValue || subjectsValue.trim() === "") {
+                showAlert("Competenze Mancanti", "Seleziona la tua classe e almeno una materia che desideri insegnare.");
+                return;
+            }
+
+            const availValue = document.getElementById('availability').value;
+            if (!availValue || availValue.trim() === "") {
+                showAlert("Disponibilità Mancante", "Aggiungi almeno una fascia oraria settimanale usando il tasto + Aggiungi.");
                 return;
             }
 
             setLoading(btnSubmitNew, true, 'Invio in corso...');
             const formData = getFormData();
-            
-            // Aggiungi dati sistema
             formData.user_id = user.id;
             formData.status = 'pending';
 
             try {
-                // Inserimento su Supabase
                 const { error } = await sb.from('tutor_requests').insert([formData]);
                 if (error) throw error;
-                showModal("Candidatura Inviata! 🚀", "Grazie per esserti proposto. Valuteremo la tua richiesta al più presto.");
+                showModal("Candidatura Inviata! 🚀", "Grazie per esserti proposto come Tutor. Valuteremo la tua richiesta al più presto.");
             } catch (err) {
-                showAlert("Errore di Invio", "Si è verificato un problema durante l'invio. " + err.message);
-                setLoading(btnSubmitNew, false, 'Invia Candidatura <i class="fas fa-arrow-right"></i>');
+                showAlert("Errore di Invio", "Si è verificato un problema durante l'invio: " + err.message);
+                setLoading(btnSubmitNew, false, '<span>Invia Candidatura</span> <i class="fas fa-paper-plane"></i>');
             }
         });
     }
 
     // --- 5. AGGIORNA CANDIDATURA ESISTENTE ---
     const btnUpdate = document.getElementById('btnUpdate');
-    if(btnUpdate) {
+    if (btnUpdate) {
         btnUpdate.addEventListener('click', async () => {
-            if(!existingRequestId) return;
+            if (!existingRequestId) return;
 
-            const availValue = document.getElementById('availability').value;
-            if(!availValue || availValue.trim() === "") {
-                showAlert("Disponibilità Mancante", "Per favore, inserisci almeno una fascia oraria.");
+            syncSelectedSubjects();
+
+            const classValue = document.getElementById('classInfo').value;
+            const subjectsValue = document.getElementById('subjects').value;
+            if (!classValue || !subjectsValue) {
+                showAlert("Competenze Mancanti", "Seleziona almeno una materia dalla lista.");
                 return;
             }
 
-            const classValue = document.getElementById('classInfo').value;
-            if(!classValue || classValue.trim() === "") {
-                showAlert("Competenze Mancanti", "Per favore, aggiungi almeno una classe.");
+            const availValue = document.getElementById('availability').value;
+            if (!availValue || availValue.trim() === "") {
+                showAlert("Disponibilità Mancante", "Inserisci almeno una fascia oraria settimanale.");
                 return;
             }
 
@@ -423,35 +390,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const { error } = await sb.from('tutor_requests').update(getFormData()).eq('id', existingRequestId);
                 if (error) throw error;
-                showModal("Informazioni Aggiornate", "I dati sono stati modificati con successo.");
+                showModal("Informazioni Aggiornate", "I dati della tua candidatura sono stati aggiornati con successo.");
             } catch (err) {
-                showAlert("Errore di Aggiornamento", "Si è verificato un problema. " + err.message);
-                setLoading(btnUpdate, false, '<i class="fas fa-sync-alt"></i> Aggiorna');
+                showAlert("Errore di Aggiornamento", "Si è verificato un problema: " + err.message);
+                setLoading(btnUpdate, false, '<i class="fas fa-sync-alt"></i> Aggiorna Informazioni');
             }
         });
     }
 
-    // --- 6. ALTRE FUNZIONI (RITIRA, RIPROVA, UTILS) ---
-    
+    // --- 6. RITIRA / RIPROVA ---
     const btnWithdraw = document.getElementById('btnWithdraw');
-    if(btnWithdraw) {
+    if (btnWithdraw) {
         btnWithdraw.addEventListener('click', async () => {
-            if(!existingRequestId || !confirm("Sei sicuro di voler ritirare la tua candidatura?")) return;
+            if (!existingRequestId || !confirm("Sei sicuro di voler ritirare la tua candidatura?")) return;
             setLoading(btnWithdraw, true, '...');
             try {
                 const { error } = await sb.from('tutor_requests').delete().eq('id', existingRequestId);
                 if (error) throw error;
                 showModal("Candidatura Ritirata", "La tua richiesta è stata cancellata.");
             } catch (err) {
-                showAlert("Errore", "Impossibile ritirare la candidatura. " + err.message);
-                setLoading(btnWithdraw, false, '<i class="fas fa-trash-alt"></i> Ritira');
+                showAlert("Errore", "Impossibile ritirare la candidatura: " + err.message);
+                setLoading(btnWithdraw, false, '<i class="fas fa-trash-alt"></i> Ritira Candidatura');
             }
         });
     }
 
-    if(btnTryAgain) {
+    if (btnTryAgain) {
         btnTryAgain.addEventListener('click', async () => {
-            if(!existingRequestId) return;
+            if (!existingRequestId) return;
             btnTryAgain.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparazione...';
             btnTryAgain.disabled = true;
             try {
@@ -459,30 +425,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
                 window.location.reload(); 
             } catch (err) {
-                showAlert("Errore", "Si è verificato un problema. " + err.message);
-                btnTryAgain.innerHTML = '<i class="fas fa-redo"></i> Riprova e Invia Nuova Candidatura';
+                showAlert("Errore", "Si è verificato un problema: " + err.message);
+                btnTryAgain.innerHTML = '<i class="fas fa-redo"></i> Compila Nuova Candidatura';
                 btnTryAgain.disabled = false;
             }
         });
     }
 
     function getFormData() {
+        syncSelectedSubjects();
         return {
-            // SICUREZZA: Usiamo i dati dell'oggetto user (da Google) invece dei campi input
-            full_name: user.user_metadata.full_name || document.getElementById('fullName').value,
+            full_name: user.user_metadata?.full_name || document.getElementById('fullName').value,
             email: user.email || document.getElementById('email').value,
             phone: document.getElementById('phone').value,
             class_info: document.getElementById('classInfo').value,
             subjects: document.getElementById('subjects').value,
-            availability: document.getElementById('availability').value // Prende il valore aggiornato dai chip
+            availability: document.getElementById('availability').value
         };
     }
 
     function setLoading(btn, isLoading, text) {
-        if(isLoading) {
+        if (!btn) return;
+        if (isLoading) {
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
             btn.disabled = true;
-            btn.style.opacity = "0.7";
+            btn.style.opacity = "0.75";
         } else {
             btn.innerHTML = text;
             btn.disabled = false;

@@ -590,7 +590,7 @@
   /* ═════════════════════════════════════════════════════════════════════════
      5. CONTROLLI TOUCH (INPUT, BOTTONI, FORM)
      ═════════════════════════════════════════════════════════════════════════ */
-  input, select, textarea {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
     font-size: 16px !important; /* Previene lo zoom automatico su iOS Safari */
     min-height: 48px !important;
     border-radius: var(--radius-m) !important;
@@ -602,7 +602,13 @@
     transition: border-color var(--t), box-shadow var(--t);
   }
 
-  input:focus, select:focus, textarea:focus {
+  textarea {
+    padding: 12px 16px !important;
+    min-height: 88px !important;
+    line-height: 1.5 !important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
     border-color: var(--c-primary) !important;
     box-shadow: 0 0 0 3px var(--c-primary-l) !important;
     background: var(--c-surface) !important;
@@ -614,7 +620,23 @@
     font-weight: 700;
   }
 
-  button:active, .cta-btn:active, .card-box:active {
+  /* Compact pills, chips, and inline action buttons keep their natural height */
+  .q-pill,
+  .time-pill-btn,
+  .note-suggestion-chip,
+  .mc-subject-chip,
+  .slot-preset-btn,
+  .btn-collapse-toggle,
+  .btn-sync-mc,
+  .btn-mini,
+  .view-switch-btn,
+  .login-tab-btn,
+  .tabs-nav .tab-btn,
+  .btn-pwa-action {
+    min-height: auto !important;
+  }
+
+  button:active, .cta-btn:active {
     transform: scale(0.98);
   }
 
@@ -708,7 +730,8 @@
     transform: none !important;
   }
 
-  .hero-visual .circle-bg {
+  .hero-visual .circle-bg,
+  .hero-visual .circle-bg-inner {
     display: none !important;
   }
 

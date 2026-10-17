@@ -114,12 +114,9 @@
     
     .feature-card h3 { font-size: 1rem !important; margin-bottom: 5px; }
     .feature-card p { 
-        font-size: 0.8rem !important; 
+        font-size: 0.82rem !important; 
         margin-bottom: 10px;
-        display: -webkit-box;
-        -webkit-line-clamp: 3; /* Limit text lines */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        line-height: 1.45;
     }
 
     /* STATS - FORCE 2 COLUMNS */
@@ -143,6 +140,9 @@
         grid-template-columns: 1fr 1fr !important;
         gap: 10px !important;
     }
+    .info-card.highlight-card {
+        grid-column: 1 / -1 !important;
+    }
     
     .info-card { padding: 15px !important; }
     .card-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
@@ -153,8 +153,8 @@
     /* --- 4. PRENOTA (prenota.html) --- */
     
     .page-header {
-        margin-bottom: 30px !important;
-        margin-top: 20px !important;
+        margin-bottom: 24px !important;
+        margin-top: 16px !important;
     }
 
     .split-layout {
@@ -162,25 +162,9 @@
         gap: 20px !important;
     }
 
-    /* Input Data/Ora: mantieni 2 colonne ma con meno gap */
-    .row-group {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px !important;
-    }
-
     .card-box { 
         padding: 20px !important; 
         border-radius: 16px !important;
-    }
-    
-    /* Pillole Durata Mobile */
-    .duration-pills {
-        gap: 8px !important;
-    }
-    .duration-pills label {
-        padding: 12px 5px !important;
-        font-size: 0.9rem !important;
-        flex: 1 1 30% !important; /* 3 per riga o wrap */
     }
 
     /* Card Lezione Mobile - Ridisegnata */

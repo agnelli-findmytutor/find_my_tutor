@@ -3,26 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pannello Staff - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Staff FSL - FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#D32F2F">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/mobile-app.css">
+    <script src="js/pwa-init.js"></script>
     <style>
-        .staff-wrapper { max-width: 1300px; margin: 80px auto 40px; padding: 20px; }
-        .staff-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .fsl-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        .table th { background: #f8f9fa; font-weight: 600; }
-        .btn-register { background: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .btn-register:disabled { opacity: 0.5; cursor: not-allowed; }
+        .staff-wrapper { max-width: 1150px; margin: 110px auto 60px; padding: 0 24px; }
+        .staff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .staff-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .staff-header h1 i {
+            color: var(--red-main);
+            background: var(--red-soft);
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        .fsl-card {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+            border-top: 5px solid var(--red-main);
+            margin-bottom: 24px;
+        }
+        .fsl-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+        .fsl-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .table th, .table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        .table th {
+            background: #fff5f5;
+            color: var(--red-dark);
+            font-weight: 700;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .table tr:hover td { background: #fafafa; }
+        .btn-register {
+            background: linear-gradient(135deg, #D32F2F, #9A0007);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.25);
+        }
+        .btn-register:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.35);
+        }
+        .btn-register:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        @media (max-width: 900px) {
+            .staff-wrapper { margin-top: 20px; padding: 0 16px; }
+            .fsl-card { padding: 20px; }
+        }
     </style>
 </head>
 <body>
-        <header>
+    <header>
         <div class="logo">
-            <a href="index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center;">
+            <a href="index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px;">
                 <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
                 <span>FindMyTutor</span>
             </a>
@@ -30,22 +115,24 @@
         <nav class="desktop-nav">
             <ul class="nav-links">
                 <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="dashboard.html"><i class="fas fa-columns"></i> Dashboard</a></li>
             </ul>
         </nav>
         <div class="header-actions">
             <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
 
-    <div class="staff-wrapper">
+    <div class="staff-wrapper fade-wrapper">
         <div class="staff-header">
-            <h1><i class="fas fa-user-tie"></i> Dashboard Staff</h1>
+            <h1><i class="fas fa-user-tie"></i> Dashboard Staff FSL</h1>
         </div>
         
         <div class="fsl-card">
-            <h3>Ore FSL Tutor</h3>
-            <p>Visualizza e registra le ore FSL dei tutor. Le ore registrate vengono azzerate in questa vista, ma il tutor vedr‡ sempre il totale storico.</p>
-            <div style="overflow-x: auto; margin-top: 15px;">
+            <h3>Certificazione Ore FSL Tutor</h3>
+            <p>Visualizza e registra le ore FSL svolte dai tutor. Le ore registrate vengono azzerate in questa vista operativa, ma il tutor vedr√† sempre il totale storico maturato.</p>
+            <div style="overflow-x: auto; margin-top: 18px;">
                 <table class="table" id="tutorsTable">
                     <thead>
                         <tr>
@@ -66,7 +153,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/api_config.js"></script>
+    <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
+    <script src="js/mobile-nav.js"></script>
     <script>
         const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
@@ -79,13 +168,10 @@
                 return;
             }
 
-            
-
             await loadTutors();
 
             async function loadTutors() {
                 try {
-                    // Fetch tutors from Supabase
                     const { data: tutorsData, error: tutorsError } = await sb.from('profiles').select('*').eq('role', 'tutor');
                     if (tutorsError) throw tutorsError;
                     
@@ -96,7 +182,6 @@
 
                     if (tutorsData && tutorsData.length > 0) {
                         for (let t of tutorsData) {
-                            // Fetch appointments for this tutor
                             const { data: apps } = await sb.from('appointments')
                                 .select('duration, status, date')
                                 .eq('tutor_id', t.id)
@@ -119,12 +204,12 @@
                             const btnDisabled = unacknowledgedHours <= 0 ? 'disabled' : '';
                             tr.innerHTML = `
                                 <td><strong>${t.full_name || 'N.D.'}</strong></td>
-                                <td>${t.class_info || '-'}</td>
+                                <td><span style="background:#fff5f5; color:#c62828; padding:3px 10px; border-radius:99px; font-weight:600; font-size:0.82rem;">${t.class_info || '-'}</span></td>
                                 <td>${totalHours.toFixed(2)} h</td>
-                                <td><span style="color:#d32f2f; font-weight:bold;">${unacknowledgedHours.toFixed(2)} h</span></td>
+                                <td><span style="color:#d32f2f; font-weight:700;">${unacknowledgedHours.toFixed(2)} h</span></td>
                                 <td>
                                     <button class="btn-register" ${btnDisabled} onclick="registerHours('${t.id}', ${fslAck}, ${unacknowledgedHours})">
-                                        <i class="fas fa-check"></i> Registra
+                                        <i class="fas fa-check-circle"></i> Registra Ore
                                     </button>
                                 </td>
                             `;
@@ -159,6 +244,3 @@
     </script>
 </body>
 </html>
-
-
-

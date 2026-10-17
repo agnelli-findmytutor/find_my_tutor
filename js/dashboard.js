@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    const isMastercomUser = !sbUser && !!fmtUser;
+
     // UI Setup
     const displayName = user.user_metadata?.full_name || fmtUser?.full_name || "Studente";
     const displayEmail = fmtUser?.google_email || user.email || fmtUser?.email || "";
@@ -349,7 +351,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.innerHTML = '';
             grouped.slice(0, 3).forEach(l => {
                 const isGroup = l.is_group;
-                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #4a148c;';
+                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #D32F2F;';
                 
                 const studentText = isGroup 
                     ? `Org: ${escapeHtml(l.organizer_name)} (+${l.all_students.length - 1})`
@@ -361,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <h4>${escapeHtml(l.subject)}</h4>
                             <p>${studentText}</p>
                         </div>
-                        <div class="time-tag" style="background: #f3e5f5; color: #4a148c;">${l.time_slot}</div>
+                        <div class="time-tag" style="background: #FFEBEE; color: #B71C1C;">${l.time_slot}</div>
                     </div>`;
             });
         }
