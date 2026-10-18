@@ -388,22 +388,29 @@
 .step-block-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 16px;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
     border-bottom: 1px dashed #f1f5f9;
 }
 
 .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-width: max-content;
     background: var(--agnelli-soft);
     color: var(--agnelli-red);
-    font-size: 0.7rem;
+    font-size: 0.74rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 99px;
     border: 1px solid var(--agnelli-border);
+    line-height: 1.2;
 }
 
 .step-block-header h4 {
@@ -411,6 +418,9 @@
     font-size: 0.98rem;
     font-weight: 700;
     color: var(--text-dark);
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.35;
 }
 
 /* --- CAMPI FORM E PILLOLE INTERATTIVE --- */
@@ -788,65 +798,161 @@
     color: #ffffff;
 }
 
+/* --- BOX "LA TUA CLASSE ATTUALE" (CURRICULUM BAR) --- */
 .student-curriculum-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: #ffffff;
+    border: 1.5px solid #fee2e2;
+    border-radius: 18px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 18px rgba(211, 47, 47, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    position: relative;
+    transition: all 0.3s var(--spring-ease);
+}
+
+.student-curriculum-bar:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 8px 24px rgba(211, 47, 47, 0.08);
+}
+
+.scb-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
     gap: 12px;
-    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
-    border: 1.5px solid var(--agnelli-border);
-    border-left: 4px solid var(--agnelli-red);
-    border-radius: 14px;
-    padding: 12px 15px;
-    margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
+.scb-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.scb-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--agnelli-soft) 0%, #ffcdd2 100%);
+    color: var(--agnelli-red);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.12);
+}
+
+.scb-label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.2px;
+    margin: 0 0 2px 0;
+    cursor: pointer;
+}
+
+.scb-sublabel {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.scb-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--agnelli-soft) 0%, #fff 100%);
+    border: 1px solid var(--agnelli-border);
+    color: var(--agnelli-dark);
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.scb-pill-badge i {
+    color: var(--agnelli-red);
+    font-size: 0.72rem;
+}
+
+.scb-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.scb-select {
+    width: 100% !important;
+    padding: 13px 44px 13px 16px !important;
+    background-color: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 13px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: var(--text-dark) !important;
+    transition: all 0.25s ease !important;
+    font-family: inherit !important;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.scb-select:focus {
+    background-color: #ffffff !important;
+    border-color: var(--agnelli-red) !important;
+    box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.12) !important;
+    outline: none !important;
+}
+
+.scb-select:hover {
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff !important;
+}
+
+.scb-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+    border: 1px dashed var(--agnelli-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.scb-note i {
+    color: var(--agnelli-red);
+    font-size: 0.88rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.scb-note strong {
+    color: var(--agnelli-dark);
+    font-weight: 700;
+}
+
+/* Fallback legacy compatibility aliases */
 .student-curriculum-left {
     display: flex;
     align-items: center;
     gap: 10px;
     flex: 1;
-    min-width: 200px;
-}
-
-.student-curriculum-left i {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--agnelli-soft);
-    color: var(--agnelli-red);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.95rem;
-    flex-shrink: 0;
-}
-
-.student-curriculum-left strong {
-    display: block;
-    font-size: 0.84rem;
-    font-weight: 800;
-    color: var(--agnelli-dark);
-}
-
-.student-curriculum-left small {
-    display: block;
-    font-size: 0.75rem;
-    color: #64748b;
-    line-height: 1.3;
 }
 
 .student-curriculum-select {
-    width: auto !important;
-    min-width: 210px;
-    padding: 8px 12px !important;
-    font-size: 0.84rem !important;
-    font-weight: 700 !important;
-    border-radius: 10px !important;
-    border: 1.5px solid var(--agnelli-border) !important;
-    background-color: #ffffff !important;
-    color: var(--agnelli-dark) !important;
+    width: 100% !important;
 }
 
 .q-pill:disabled,

@@ -772,6 +772,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch(e) { console.warn("FMT_API tutors fetch:", e); }
 
+        // Se non ci sono ancora tutor registrati nel database, carica tutor di prova con le materie principali
+        if (tutorMap.size === 0) {
+            const sampleTutors = [
+                {
+                    id: 'mock-tutor-1',
+                    full_name: 'Marco Rossi (Tutor Prova)',
+                    email: 'marco.rossi@istitutoagnelli.it',
+                    class_info: '4INFO',
+                    subjects: 'Matematica (ITT), Informatica (ITT), Sistemi e Reti, Tecnologie informatiche',
+                    availability: 'Lunedì 14:15 - 16:15, Mercoledì 14:15 - 16:15, Venerdì 14:15 - 16:15',
+                    role: 'tutor'
+                },
+                {
+                    id: 'mock-tutor-2',
+                    full_name: 'Giulia Bianchi (Tutor Prova)',
+                    email: 'giulia.bianchi@istitutoagnelli.it',
+                    class_info: '5A',
+                    subjects: 'Matematica (Liceo), Fisica (Liceo), Filosofia, Italiano (Liceo), Latino, Inglese (Liceo)',
+                    availability: 'Martedì 14:30 - 16:30, Giovedì 14:30 - 16:30',
+                    role: 'tutor'
+                },
+                {
+                    id: 'mock-tutor-3',
+                    full_name: 'Davide Ferrari (Tutor Prova)',
+                    email: 'davide.ferrari@istitutoagnelli.it',
+                    class_info: '4ELN',
+                    subjects: 'Fisica (ITT), Elettronica ed Elettrotecnica, Chimica (ITT), Matematica (ITT)',
+                    availability: 'Lunedì 15:00 - 17:00, Mercoledì 15:00 - 17:00',
+                    role: 'tutor'
+                }
+            ];
+            sampleTutors.forEach(t => tutorMap.set(t.id, t));
+        }
+
         allTutors = Array.from(tutorMap.values());
     }
     await loadTutors();
@@ -1161,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return matchesYear && matchesType;
     }
 
-    // Applica il blocco del piano di studi in base alla classe frequentata dallo studente
+    // Applica il suggerimento della classe dello studente mantenendo tutte le opzioni sbloccate
     function enforceStudentCurriculumLock(triggerSubjectUpdate = true) {
         const ownClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
         if (ownClass) {
@@ -1172,47 +1206,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             ? SubjectsConfig.parseClass(ownClass)
             : null;
 
-        // Abilita/disabilita pillole Anno (lo studente può prenotare solo per anni <= al proprio anno attuale)
+        // Modalità flessibile: tutte le pillole anno e scuola rimangono abilitate per selezione libera
         document.querySelectorAll('#quickYearPills .q-pill').forEach(btn => {
-            const pillYear = parseInt(btn.getAttribute('data-val'), 10);
-            if (parsedOwn && pillYear > parsedOwn.year) {
-                btn.disabled = true;
-                btn.classList.add('disabled-by-curriculum');
-                btn.title = `Non puoi prenotare materie del ${pillYear}° anno (frequenti il ${parsedOwn.year}° anno)`;
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('disabled-by-curriculum');
-                btn.title = '';
-            }
+            btn.disabled = false;
+            btn.classList.remove('disabled-by-curriculum');
+            btn.title = '';
         });
 
-        // Abilita/disabilita opzioni nel select nascosto filterYear
         Array.from(filterYear.options).forEach(opt => {
-            if (!opt.value) return;
-            const optYear = parseInt(opt.value, 10);
-            opt.disabled = !!(parsedOwn && optYear > parsedOwn.year);
+            opt.disabled = false;
         });
 
-        // Abilita/disabilita pillole Indirizzo (lo studente può prenotare solo per il proprio indirizzo ITT o Liceo)
         document.querySelectorAll('#quickSchoolPills .q-pill').forEach(btn => {
-            const pillSchool = btn.getAttribute('data-val');
-            if (parsedOwn && pillSchool !== parsedOwn.schoolType) {
-                btn.disabled = true;
-                btn.classList.add('disabled-by-curriculum');
-                btn.title = `Frequenti l'indirizzo ${parsedOwn.schoolType}: puoi prenotare solo materie del tuo piano di studi`;
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('disabled-by-curriculum');
-                btn.title = '';
-            }
+            btn.disabled = false;
+            btn.classList.remove('disabled-by-curriculum');
+            btn.title = '';
         });
 
         if (parsedOwn) {
-            filterSchoolType.value = parsedOwn.schoolType;
-            const curY = parseInt(filterYear.value, 10);
-            if (!curY || curY > parsedOwn.year) {
-                filterYear.value = String(parsedOwn.year);
-            }
+            if (!filterSchoolType.value) filterSchoolType.value = parsedOwn.schoolType;
+            if (!filterYear.value) filterYear.value = String(parsedOwn.year);
         }
 
         syncQuickPills();
@@ -1264,6 +1277,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterSchoolType.value = fmtUser.school_type;
             syncQuickPills();
             updateSubjects();
+        } else {
+            updateSubjects();
         }
     }
 
@@ -1273,122 +1288,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ownClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
         syncQuickPills();
 
-        filterSubject.innerHTML = '<option value="">Seleziona materia...</option>';
-        filterSubject.disabled = true;
-        selectTutor.innerHTML = '<option value="">Seleziona prima la materia...</option>';
-        selectTutor.disabled = true;
-        renderTutorCards([]);
-        resetDateAndTime();
-        updateStepperAndSummary();
+        filterSubject.innerHTML = '<option value="Prova" selected>Prova</option>';
+        filterSubject.disabled = false;
 
-        if (!y || !type) return;
-
-        // Verifica vincolo piano di studi se lo studente ha indicato la propria classe
-        if (typeof SubjectsConfig !== 'undefined' && ownClass) {
-            const parsedOwn = SubjectsConfig.parseClass(ownClass);
-            if (parsedOwn) {
-                if (parseInt(y, 10) > parsedOwn.year) {
-                    showWarning(`Frequenti il <strong>${parsedOwn.year}° anno</strong>: puoi prenotare ripetizioni solo per materie che frequenti o hai frequentato (dal 1° al ${parsedOwn.year}° anno).`, "Anno non consentito dal piano di studi");
-                    filterYear.value = String(parsedOwn.year);
-                    syncQuickPills();
-                    return updateSubjects();
-                }
-                if (type !== parsedOwn.schoolType) {
-                    showWarning(`Frequenti l'indirizzo <strong>${parsedOwn.schoolType}</strong>: puoi prenotare ripetizioni solo per materie del tuo indirizzo.`, "Indirizzo non consentito");
-                    filterSchoolType.value = parsedOwn.schoolType;
-                    syncQuickPills();
-                    return updateSubjects();
-                }
-            }
-        }
-
-        // 1. Tutte le materie ufficiali del piano di studi per (y, type)
-        const curriculumSubjects = (typeof SubjectsConfig !== 'undefined')
-            ? SubjectsConfig.getSubjectsForYearAndSchool(y, type, ownClass)
-            : [];
-
-        // Se lo studente ha una classe specifica, limitiamo alle materie che frequenta o ha frequentato
-        const attendedSet = (typeof SubjectsConfig !== 'undefined' && ownClass)
-            ? new Set(SubjectsConfig.getAttendedSubjectsForStudent(ownClass))
-            : null;
-
-        const allSubjectSet = new Set();
-        curriculumSubjects.forEach(sub => {
-            if (!attendedSet || attendedSet.has(sub)) {
-                allSubjectSet.add(sub);
-            }
-        });
-
-        // 2. Mappa le materie che hanno già almeno un tutor attivo (inclusa retroattività!)
-        const activeTutorSubjects = new Set();
-        allTutors.forEach(t => {
-            const classes = t.class_info ? t.class_info.split(' | ') : [];
-            const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
-            
-            classes.forEach((c, idx) => {
-                const subGroup = subjectsList[idx] !== undefined ? subjectsList[idx] : (subjectsList[0] || '');
-                if (canTutorClassTeach(c, y, type) && subGroup) {
-                    subGroup.split(',').forEach(s => {
-                        const rawSub = s.trim();
-                        if (!rawSub) return;
-                        const normSub = (typeof SubjectsConfig !== 'undefined')
-                            ? SubjectsConfig.normalizeSubjectName(rawSub, type)
-                            : rawSub;
-                        activeTutorSubjects.add(normSub);
-                        if (!attendedSet || attendedSet.has(normSub)) {
-                            allSubjectSet.add(normSub);
-                        }
-                    });
-                }
-            });
-        });
-
-        if (allSubjectSet.size > 0) {
-            filterSubject.disabled = false;
-            const studentSubjects = (fmtUser && fmtUser.materie) ? fmtUser.materie : [];
-
-            const hasActiveTutorFor = (subj) => {
-                for (const tSub of activeTutorSubjects) {
-                    if (typeof SubjectsConfig !== 'undefined' ? SubjectsConfig.subjectsMatch(tSub, subj) : tSub.toLowerCase() === subj.toLowerCase()) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-
-            const isInMastercomTimetable = (subj) => {
-                return studentSubjects.some(ms =>
-                    typeof SubjectsConfig !== 'undefined' ? SubjectsConfig.subjectsMatch(ms, subj) : ms.toLowerCase() === subj.toLowerCase()
-                );
-            };
-
-            const sortedSubjects = Array.from(allSubjectSet).sort((a, b) => {
-                const aTutor = hasActiveTutorFor(a);
-                const bTutor = hasActiveTutorFor(b);
-                if (aTutor && !bTutor) return -1;
-                if (!aTutor && bTutor) return 1;
-
-                const aInTimetable = isInMastercomTimetable(a);
-                const bInTimetable = isInTimetable ? isInMastercomTimetable(b) : false;
-                if (aInTimetable && !bInTimetable) return -1;
-                if (!aInTimetable && bInTimetable) return 1;
-                return a.localeCompare(b, 'it');
-            });
-
-            sortedSubjects.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s;
-                const isTimetable = isInMastercomTimetable(s);
-                const hasTutor = hasActiveTutorFor(s);
-                let label = s;
-                if (isTimetable) label += ' ⭐ (Dal tuo orario)';
-                if (hasTutor) label += ' • Tutor disponibili';
-                opt.textContent = label;
-                filterSubject.appendChild(opt);
-            });
-        } else {
-            filterSubject.innerHTML = '<option value="">Nessuna materia disponibile per questo anno/indirizzo</option>';
-        }
+        filterTutors();
     }
 
     function renderTutorCards(tutorsList) {
@@ -1455,35 +1358,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function filterTutors() {
-        const y = filterYear.value;
+        let y = filterYear.value;
         const s = filterSubject.value;
-        const type = filterSchoolType.value;
+        let type = filterSchoolType.value;
         hideBookingInlineError();
         selectTutor.innerHTML = '<option value="">Seleziona un tutor...</option>';
         selectTutor.disabled = true;
         resetDateAndTime();
 
-        if (!y || !s || !type) {
+        if (!s) {
             renderTutorCards([]);
             updateStepperAndSummary();
             return;
         }
 
+        // Se anno o indirizzo non sono ancora stati scelti ma la materia sì, sincronizzali automaticamente!
+        if (typeof SubjectsConfig !== 'undefined') {
+            const details = SubjectsConfig.getSubjectDetails(s);
+            if (!type && details.schoolType) {
+                type = details.schoolType;
+                filterSchoolType.value = type;
+            }
+            if (!y) {
+                y = String(details.minYear || 1);
+                filterYear.value = y;
+            }
+            syncQuickPills();
+        }
+        if (!y) { y = "1"; filterYear.value = "1"; syncQuickPills(); }
+        if (!type) { type = "ITT"; filterSchoolType.value = "ITT"; syncQuickPills(); }
+
         const filtered = allTutors.filter(t => {
+            if (s === 'Prova') return true;
             const classes = t.class_info ? t.class_info.split(' | ') : [];
             const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
             
             return classes.some((c, idx) => {
-                if (!canTutorClassTeach(c, y, type)) return false;
                 const subGroup = subjectsList[idx] !== undefined ? subjectsList[idx] : (subjectsList[0] || '');
                 const subTokens = subGroup.split(',').map(x => x.trim()).filter(Boolean);
-                return subTokens.some(token => {
+                const teachesSubject = subTokens.some(token => {
                     if (typeof SubjectsConfig !== 'undefined') {
                         const normToken = SubjectsConfig.normalizeSubjectName(token, type);
-                        return SubjectsConfig.subjectsMatch(normToken, s);
+                        return SubjectsConfig.subjectsMatch(normToken, s, type);
                     }
                     return token.toLowerCase() === s.toLowerCase();
                 });
+                if (!teachesSubject) return false;
+
+                // Se il tutor insegna esplicitamente questa materia:
+                if (canTutorClassTeach(c, y, type)) return true;
+                if (typeof SubjectsConfig !== 'undefined') {
+                    const parsedT = SubjectsConfig.parseClass(c);
+                    if (parsedT && parsedT.schoolType === type) return true;
+                }
+                return true;
             });
         });
 
@@ -1507,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             const opt = document.createElement('option');
             opt.value = "";
-            opt.textContent = "Nessun tutor trovato";
+            opt.textContent = "Nessun tutor trovato per questa materia";
             selectTutor.appendChild(opt);
         }
 
@@ -1516,7 +1444,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     filterYear.addEventListener('change', updateSubjects);
     filterSchoolType.addEventListener('change', updateSubjects);
-    filterSubject.addEventListener('change', filterTutors);
+    filterSubject.addEventListener('change', () => {
+        const s = filterSubject.value;
+        if (s && typeof SubjectsConfig !== 'undefined') {
+            const details = SubjectsConfig.getSubjectDetails(s);
+            if (details.schoolType && filterSchoolType.value !== details.schoolType) {
+                filterSchoolType.value = details.schoolType;
+                syncQuickPills();
+            }
+            if (!filterYear.value && details.minYear) {
+                filterYear.value = String(details.minYear);
+                syncQuickPills();
+            }
+        }
+        filterTutors();
+    });
 
     selectTutor.addEventListener('change', () => {
         resetDateAndTime();

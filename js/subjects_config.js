@@ -800,5 +800,164 @@ const SubjectsConfig = {
             return `ITT – ${parsed.section} (${parsed.year}° anno)`;
         }
         return `Liceo Scientifico – Sez. ${parsed.section} (${parsed.year}° anno)`;
+    },
+
+    /**
+     * Returns array of checked subject values from an interactive grid.
+     * @param {HTMLElement} containerElement
+     * @returns {string[]}
+     */
+    getSelectedSubjects(containerElement) {
+        if (!containerElement) return [];
+        const checked = containerElement.querySelectorAll('input[type="checkbox"]:checked');
+        return Array.from(checked).map(cb => cb.value);
+    },
+
+    /**
+     * Populates a class selector element with standard school classes if empty,
+     * and selects the option matching selectedValue.
+     * @param {HTMLSelectElement} selectElement
+     * @param {string} [selectedValue]
+     */
+    populateClassSelect(selectElement, selectedValue = '') {
+        if (!selectElement) return;
+        if (selectElement.options.length <= 1) {
+            selectElement.innerHTML = `
+                <option value="">-- Seleziona classe --</option>
+                <optgroup label="ITT – Biennio Comune">
+                    <option value="1ITT">1° ITT (Biennio)</option>
+                    <option value="2ITT">2° ITT (Biennio)</option>
+                </optgroup>
+                <optgroup label="ITT – Informatica">
+                    <option value="3INFO">3° INFO</option>
+                    <option value="4INFO">4° INFO</option>
+                    <option value="5INFO">5° INFO</option>
+                </optgroup>
+                <optgroup label="ITT – Elettronica">
+                    <option value="3ELN">3° ELN</option>
+                    <option value="4ELN">4° ELN</option>
+                    <option value="5ELN">5° ELN</option>
+                </optgroup>
+                <optgroup label="ITT – Energia">
+                    <option value="3ENE">3° ENE</option>
+                    <option value="4ENE">4° ENE</option>
+                    <option value="5ENE">5° ENE</option>
+                </optgroup>
+                <optgroup label="ITT – Meccanica">
+                    <option value="3MEC">3° MEC</option>
+                    <option value="4MEC">4° MEC</option>
+                    <option value="5MEC">5° MEC</option>
+                </optgroup>
+                <optgroup label="Liceo Scientifico – Sez. A">
+                    <option value="1A">1° A Liceo</option>
+                    <option value="2A">2° A Liceo</option>
+                    <option value="3A">3° A Liceo</option>
+                    <option value="4A">4° A Liceo</option>
+                    <option value="5A">5° A Liceo</option>
+                </optgroup>
+                <optgroup label="Liceo Scientifico – Sez. B">
+                    <option value="1B">1° B Liceo</option>
+                    <option value="2B">2° B Liceo</option>
+                    <option value="3B">3° B Liceo</option>
+                    <option value="4B">4° B Liceo</option>
+                    <option value="5B">5° B Liceo</option>
+                </optgroup>
+                <optgroup label="Liceo Scientifico – Sez. C">
+                    <option value="1C">1° C Liceo</option>
+                    <option value="2C">2° C Liceo</option>
+                    <option value="3C">3° C Liceo</option>
+                    <option value="4C">4° C Liceo</option>
+                    <option value="5C">5° C Liceo</option>
+                </optgroup>
+            `;
+        }
+        if (selectedValue) {
+            const parsed = this.parseClass(selectedValue);
+            const targetKey = parsed ? parsed.classKey : selectedValue.trim().toUpperCase();
+            let matched = false;
+            for (let i = 0; i < selectElement.options.length; i++) {
+                const opt = selectElement.options[i];
+                if (opt.value === targetKey || opt.value.toUpperCase() === selectedValue.trim().toUpperCase()) {
+                    selectElement.selectedIndex = i;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched && parsed) {
+                for (let i = 0; i < selectElement.options.length; i++) {
+                    const opt = selectElement.options[i];
+                    const optParsed = this.parseClass(opt.value);
+                    if (optParsed && optParsed.year === parsed.year && optParsed.schoolType === parsed.schoolType) {
+                        selectElement.selectedIndex = i;
+                        matched = true;
+                        break;
+                    }
+                }
+            }
+        }
+    },
+
+    /**
+     * Restituisce tutte le materie censite nella scuola.
+     * @param {'ITT'|'Liceo'|null} [schoolType] - opzionale, filtra per ITT o Liceo
+     * @returns {string[]}
+     */
+    getAllSubjects(schoolType = null) {
+        const set = new Set();
+        Object.entries(SCHOOL_SUBJECTS).forEach(([classKey, list]) => {
+            const parsed = this.parseClass(classKey);
+            if (!parsed) return;
+            if (!schoolType || parsed.schoolType === schoolType) {
+                list.forEach(s => set.add(s));
+            }
+        });
+        return Array.from(set).sort((a, b) => a.localeCompare(b, 'it'));
+    },
+
+    /**
+     * Ritorna l'indirizzo probabile ('ITT' o 'Liceo') e l'anno indicativo (1..5) per una materia.
+     * @param {string} subject
+     * @returns {{ schoolType: 'ITT'|'Liceo'|null, minYear: number }}
+     */
+    getSubjectDetails(subject) {
+        if (!subject) return { schoolType: null, minYear: 1 };
+        const norm = subject.trim();
+        if (/\(itt\)$/i.test(norm)) {
+            for (let y = 1; y <= 5; y++) {
+                const subs = this.getSubjectsForYearAndSchool(y, 'ITT');
+                if (subs.some(s => this.subjectsMatch(s, norm, 'ITT'))) {
+                    return { schoolType: 'ITT', minYear: y };
+                }
+            }
+            return { schoolType: 'ITT', minYear: 1 };
+        }
+        if (/\(liceo\)$/i.test(norm) || norm.includes('Liceo')) {
+            for (let y = 1; y <= 5; y++) {
+                const subs = this.getSubjectsForYearAndSchool(y, 'Liceo');
+                if (subs.some(s => this.subjectsMatch(s, norm, 'Liceo'))) {
+                    return { schoolType: 'Liceo', minYear: y };
+                }
+            }
+            return { schoolType: 'Liceo', minYear: 1 };
+        }
+        for (let y = 1; y <= 5; y++) {
+            const ittSubs = this.getSubjectsForYearAndSchool(y, 'ITT');
+            if (ittSubs.some(s => this.subjectsMatch(s, norm, 'ITT'))) {
+                return { schoolType: 'ITT', minYear: y };
+            }
+            const liceoSubs = this.getSubjectsForYearAndSchool(y, 'Liceo');
+            if (liceoSubs.some(s => this.subjectsMatch(s, norm, 'Liceo'))) {
+                return { schoolType: 'Liceo', minYear: y };
+            }
+        }
+        return { schoolType: null, minYear: 1 };
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.SubjectsConfig = SubjectsConfig;
+    window.SCHOOL_SUBJECTS = SCHOOL_SUBJECTS;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { SubjectsConfig, SCHOOL_SUBJECTS };
+}
