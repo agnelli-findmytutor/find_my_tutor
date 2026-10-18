@@ -23,9 +23,17 @@
 
     const STAFF_EMAIL = 'staff.findmytutor@istitutoagnelli.it';
     const SENDER_NAME = 'FindMyTutor • Istituto Edoardo Agnelli';
+    const NATIVE_GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyte02Tuoxl4HNvwSXLn90INJ9JF567UJBjyNdCiUOKVxlGq_kEseOotS99I52utTCLMQ/exec';
     const STORAGE_KEY_SCRIPT_URL = 'fmt_google_script_url';
     const STORAGE_KEY_EMAIL_ENABLED = 'fmt_email_notifications_enabled';
     const STORAGE_KEY_CC_STAFF = 'fmt_email_cc_staff';
+
+    // Persistenza nativa permanente dell'URL Google Apps Script
+    try {
+        if (!localStorage.getItem(STORAGE_KEY_SCRIPT_URL)) {
+            localStorage.setItem(STORAGE_KEY_SCRIPT_URL, NATIVE_GOOGLE_SCRIPT_URL);
+        }
+    } catch (e) {}
 
     // Cache in-memory per evitare query duplicate a Supabase per gli indirizzi email
     const emailCacheByUserId = new Map();
@@ -33,7 +41,7 @@
     const emailCacheByName = new Map();
 
     let remoteConfigLoaded = false;
-    let cachedGoogleScriptUrl = localStorage.getItem(STORAGE_KEY_SCRIPT_URL) || '';
+    let cachedGoogleScriptUrl = localStorage.getItem(STORAGE_KEY_SCRIPT_URL) || NATIVE_GOOGLE_SCRIPT_URL;
 
     function getApiBase() {
         if (window.FMT_API && window.FMT_API.BASE) return window.FMT_API.BASE;
@@ -132,13 +140,14 @@
     }
 
     function getConfig() {
-        const scriptUrl = cachedGoogleScriptUrl || localStorage.getItem(STORAGE_KEY_SCRIPT_URL) || '';
+        const storedUrl = localStorage.getItem(STORAGE_KEY_SCRIPT_URL);
+        const scriptUrl = cachedGoogleScriptUrl || storedUrl || NATIVE_GOOGLE_SCRIPT_URL;
         const enabledRaw = localStorage.getItem(STORAGE_KEY_EMAIL_ENABLED);
         const ccStaffRaw = localStorage.getItem(STORAGE_KEY_CC_STAFF);
         return {
             staffEmail: STAFF_EMAIL,
             senderName: SENDER_NAME,
-            googleScriptUrl: scriptUrl.trim(),
+            googleScriptUrl: (scriptUrl || NATIVE_GOOGLE_SCRIPT_URL).trim(),
             enabled: enabledRaw === null ? true : enabledRaw !== 'false',
             ccStaff: ccStaffRaw === null ? true : ccStaffRaw !== 'false'
         };
@@ -1438,6 +1447,7 @@
 
     window.FMTEmailService = {
         STAFF_EMAIL,
+        NATIVE_GOOGLE_SCRIPT_URL,
         getConfig,
         loadConfig,
         saveConfig,

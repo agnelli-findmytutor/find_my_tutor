@@ -262,7 +262,7 @@ async function initEmailSettingsControl(adminUser) {
 
     try {
         const cfg = await window.FMTEmailService.loadConfig();
-        if (urlInput) urlInput.value = cfg.googleScriptUrl || '';
+        if (urlInput) urlInput.value = cfg.googleScriptUrl || (window.FMTEmailService && window.FMTEmailService.NATIVE_GOOGLE_SCRIPT_URL) || 'https://script.google.com/macros/s/AKfycbyte02Tuoxl4HNvwSXLn90INJ9JF567UJBjyNdCiUOKVxlGq_kEseOotS99I52utTCLMQ/exec';
         if (chkEnabled) chkEnabled.checked = cfg.enabled !== false;
         if (chkCcStaff) chkCcStaff.checked = cfg.ccStaff !== false;
     } catch (e) {}

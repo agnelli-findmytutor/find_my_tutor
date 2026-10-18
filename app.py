@@ -2012,12 +2012,13 @@ def fmt_ack_cancellation():
 # ==============================================================================
 FMT_STAFF_EMAIL = os.environ.get("FMT_STAFF_EMAIL", "staff.findmytutor@istitutoagnelli.it")
 FMT_SENDER_NAME = "FindMyTutor • Istituto Edoardo Agnelli"
+NATIVE_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyte02Tuoxl4HNvwSXLn90INJ9JF567UJBjyNdCiUOKVxlGq_kEseOotS99I52utTCLMQ/exec"
 
 
 def get_fmt_email_settings():
     cfg = {
         "staff_email": FMT_STAFF_EMAIL,
-        "google_script_url": os.environ.get("FMT_GOOGLE_SCRIPT_URL") or os.environ.get("GOOGLE_APPS_SCRIPT_URL", ""),
+        "google_script_url": os.environ.get("FMT_GOOGLE_SCRIPT_URL") or os.environ.get("GOOGLE_APPS_SCRIPT_URL") or NATIVE_GOOGLE_SCRIPT_URL,
         "gmail_app_password": os.environ.get("FMT_GMAIL_APP_PASSWORD") or os.environ.get("GMAIL_APP_PASSWORD", ""),
         "enabled": True,
         "cc_staff": True
@@ -2037,6 +2038,8 @@ def get_fmt_email_settings():
                     cfg["cc_staff"] = (str(v).lower() != "false")
     except Exception as e:
         app.logger.warning(f"Errore lettura fmt_email_settings: {e}")
+    if not cfg.get("google_script_url"):
+        cfg["google_script_url"] = NATIVE_GOOGLE_SCRIPT_URL
     return cfg
 
 
