@@ -272,6 +272,24 @@ def init_db():
                     created_at TEXT DEFAULT (datetime('now','localtime'))
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS fmt_email_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS fmt_email_logs (
+                    id TEXT PRIMARY KEY,
+                    event_type TEXT,
+                    recipients TEXT,
+                    subject TEXT,
+                    status TEXT,
+                    method TEXT,
+                    error TEXT,
+                    created_at TEXT DEFAULT (datetime('now','localtime'))
+                )
+            """)
 
             # Migration colonne account unificato (Mastercom + Google)
             for col in ["google_id TEXT", "google_email TEXT", "linked_account_id TEXT"]:
@@ -1987,6 +2005,244 @@ def fmt_ack_cancellation():
         conn.execute("UPDATE fmt_appointments SET cancellation_notified = 1 WHERE id = ? AND user_id = ?", (app_id, get_current_fmt_user_from_request()["id"]))
         conn.commit()
     return jsonify({"success": True})
+
+
+# ==============================================================================
+# FIND MY TUTOR: SISTEMA EMAIL GOOGLE (staff.findmytutor@istitutoagnelli.it)
+# ==============================================================================
+FMT_STAFF_EMAIL = os.environ.get("FMT_STAFF_EMAIL", "staff.findmytutor@istitutoagnelli.it")
+FMT_SENDER_NAME = "FindMyTutor • Istituto Edoardo Agnelli"
+
+
+def get_fmt_email_settings():
+    cfg = {
+        "staff_email": FMT_STAFF_EMAIL,
+        "google_script_url": os.environ.get("FMT_GOOGLE_SCRIPT_URL") or os.environ.get("GOOGLE_APPS_SCRIPT_URL", ""),
+        "gmail_app_password": os.environ.get("FMT_GMAIL_APP_PASSWORD") or os.environ.get("GMAIL_APP_PASSWORD", ""),
+        "enabled": True,
+        "cc_staff": True
+    }
+    try:
+        with get_db() as conn:
+            rows = conn.execute("SELECT key, value FROM fmt_email_settings").fetchall()
+            for r in rows:
+                k, v = r["key"], r["value"]
+                if k == "google_script_url" and v:
+                    cfg["google_script_url"] = v.strip()
+                elif k == "gmail_app_password" and v:
+                    cfg["gmail_app_password"] = v.strip()
+                elif k == "enabled" and v is not None:
+                    cfg["enabled"] = (str(v).lower() != "false")
+                elif k == "cc_staff" and v is not None:
+                    cfg["cc_staff"] = (str(v).lower() != "false")
+    except Exception as e:
+        app.logger.warning(f"Errore lettura fmt_email_settings: {e}")
+    return cfg
+
+
+def log_fmt_email(event_type, recipients, subject, status, method, error_msg=""):
+    try:
+        with get_db() as conn:
+            conn.execute("""
+                INSERT INTO fmt_email_logs (id, event_type, recipients, subject, status, method, error)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (str(uuid.uuid4()), event_type, str(recipients), str(subject), status, method, str(error_msg or "")))
+            conn.commit()
+    except Exception as e:
+        app.logger.warning(f"Impossibile salvare log email FMT: {e}")
+
+
+def dispatch_single_fmt_email(msg_obj, cfg=None, override_script_url=None, event_type="generic"):
+    """
+    Invia un messaggio email da staff.findmytutor@istitutoagnelli.it usando:
+    1) Funzione Google Apps Script Web App collegata a staff.findmytutor@istitutoagnelli.it
+    2) Fallback/Alternativa SMTP Google (smtp.gmail.com) con App Password dell'account
+    """
+    if cfg is None:
+        cfg = get_fmt_email_settings()
+
+    if not cfg.get("enabled", True):
+        return {"ok": False, "skipped": True, "reason": "Notifiche email disabilitate"}
+
+    to_raw = msg_obj.get("to") or msg_obj.get("recipient") or ""
+    if isinstance(to_raw, list):
+        recipients = [str(x).strip() for x in to_raw if x and "@" in str(x)]
+    else:
+        recipients = [x.strip() for x in str(to_raw).split(",") if x.strip() and "@" in x]
+
+    if not recipients:
+        return {"ok": False, "error": "Destinatario non valido"}
+
+    to_str = ",".join(dict.fromkeys(recipients))
+    subject = msg_obj.get("subject") or "Notifica FindMyTutor - Istituto Agnelli"
+    html_body = msg_obj.get("htmlBody") or msg_obj.get("html") or ""
+    text_body = msg_obj.get("textBody") or msg_obj.get("text") or re.sub(r"<[^>]+>", "", html_body).strip()
+    reply_to = msg_obj.get("replyTo") or FMT_STAFF_EMAIL
+    cc_str = msg_obj.get("cc") or ""
+
+    script_url = (override_script_url or cfg.get("google_script_url") or "").strip()
+    last_error = ""
+
+    # 1. Invio tramite Funzione Google Apps Script collegata a staff.findmytutor@istitutoagnelli.it
+    if script_url and script_url.startswith("https://script.google.com/"):
+        try:
+            resp = requests.post(
+                script_url,
+                json={
+                    "sender": FMT_STAFF_EMAIL,
+                    "to": to_str,
+                    "cc": cc_str,
+                    "replyTo": reply_to,
+                    "subject": subject,
+                    "htmlBody": html_body,
+                    "textBody": text_body,
+                    "eventType": event_type
+                },
+                timeout=12
+            )
+            if resp.status_code in (200, 201, 302):
+                log_fmt_email(event_type, to_str, subject, "sent", "google_apps_script")
+                return {"ok": True, "method": "google_apps_script", "to": to_str}
+            else:
+                last_error = f"Google Apps Script HTTP {resp.status_code}"
+        except Exception as e:
+            last_error = f"Google Apps Script error: {str(e)}"
+
+    # 2. Invio tramite Google SMTP (smtp.gmail.com) con l'account staff.findmytutor@istitutoagnelli.it
+    gmail_pwd = (cfg.get("gmail_app_password") or "").strip()
+    if gmail_pwd:
+        try:
+            mime_msg = MIMEMultipart("alternative")
+            mime_msg["From"] = f"{FMT_SENDER_NAME} <{FMT_STAFF_EMAIL}>"
+            mime_msg["To"] = to_str
+            if cc_str:
+                mime_msg["Cc"] = cc_str
+            mime_msg["Reply-To"] = reply_to
+            mime_msg["Subject"] = subject
+
+            if text_body:
+                mime_msg.attach(MIMEText(text_body, "plain", "utf-8"))
+            if html_body:
+                mime_msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+            all_rcpts = list(recipients)
+            if cc_str:
+                all_rcpts.extend([x.strip() for x in cc_str.split(",") if "@" in x])
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=12) as server:
+                server.login(FMT_STAFF_EMAIL, gmail_pwd)
+                server.sendmail(FMT_STAFF_EMAIL, all_rcpts, mime_msg.as_string())
+
+            log_fmt_email(event_type, to_str, subject, "sent", "google_smtp")
+            return {"ok": True, "method": "google_smtp", "to": to_str}
+        except Exception as e:
+            last_error = f"Google SMTP error: {str(e)}"
+
+    log_fmt_email(event_type, to_str, subject, "queued_or_unconfigured", "none", last_error or "Configurare Google Apps Script URL o App Password")
+    return {
+        "ok": False,
+        "to": to_str,
+        "error": last_error or "URL Google Apps Script o App Password non ancora configurati"
+    }
+
+
+@app.route("/api/fmt/email_config", methods=["GET", "POST"])
+def fmt_email_config():
+    if request.method == "GET":
+        cfg = get_fmt_email_settings()
+        logs = []
+        try:
+            with get_db() as conn:
+                rows = conn.execute("""
+                    SELECT id, event_type, recipients, subject, status, method, error, created_at
+                    FROM fmt_email_logs
+                    ORDER BY created_at DESC
+                    LIMIT 25
+                """).fetchall()
+                logs = [dict(r) for r in rows]
+        except Exception:
+            pass
+        return jsonify({
+            "ok": True,
+            "staff_email": FMT_STAFF_EMAIL,
+            "google_script_url": cfg.get("google_script_url", ""),
+            "has_smtp_password": bool(cfg.get("gmail_app_password")),
+            "enabled": cfg.get("enabled", True),
+            "cc_staff": cfg.get("cc_staff", True),
+            "logs": logs
+        })
+
+    data = request.json or {}
+    try:
+        with get_db() as conn:
+            if "google_script_url" in data and data["google_script_url"] is not None:
+                conn.execute("""
+                    INSERT INTO fmt_email_settings (key, value) VALUES ('google_script_url', ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """, (str(data["google_script_url"]).strip(),))
+            if "gmail_app_password" in data and data["gmail_app_password"]:
+                conn.execute("""
+                    INSERT INTO fmt_email_settings (key, value) VALUES ('gmail_app_password', ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """, (str(data["gmail_app_password"]).strip(),))
+            if "enabled" in data:
+                conn.execute("""
+                    INSERT INTO fmt_email_settings (key, value) VALUES ('enabled', ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """, ("true" if data["enabled"] else "false",))
+            if "cc_staff" in data:
+                conn.execute("""
+                    INSERT INTO fmt_email_settings (key, value) VALUES ('cc_staff', ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """, ("true" if data["cc_staff"] else "false",))
+            conn.commit()
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    cfg = get_fmt_email_settings()
+    return jsonify({
+        "ok": True,
+        "staff_email": FMT_STAFF_EMAIL,
+        "google_script_url": cfg.get("google_script_url", ""),
+        "has_smtp_password": bool(cfg.get("gmail_app_password")),
+        "enabled": cfg.get("enabled", True),
+        "cc_staff": cfg.get("cc_staff", True)
+    })
+
+
+@app.route("/api/fmt/send_email", methods=["POST"])
+def fmt_send_email_endpoint():
+    data = request.json or {}
+    event_type = str(data.get("event_type") or "generic")
+    override_url = str(data.get("google_script_url") or "").strip()
+    messages = data.get("messages")
+    if not isinstance(messages, list):
+        messages = [data]
+
+    cfg = get_fmt_email_settings()
+    results = []
+    sent_count = 0
+
+    for msg in messages:
+        if not isinstance(msg, dict):
+            continue
+        res = dispatch_single_fmt_email(
+            msg,
+            cfg=cfg,
+            override_script_url=override_url,
+            event_type=msg.get("eventType") or event_type
+        )
+        if res.get("ok"):
+            sent_count += 1
+        results.append(res)
+
+    return jsonify({
+        "ok": sent_count > 0,
+        "staff_email": FMT_STAFF_EMAIL,
+        "sent_count": sent_count,
+        "total": len(results),
+        "results": results
+    })
 
 @app.route("/api/login", methods=["POST"])
 def login():

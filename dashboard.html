@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Dashboard - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Area Personale - Find My Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="theme-color" content="#D32F2F">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,46 +26,54 @@
     <div class="dashboard-layout">
         <!-- SIDEBAR -->
         <aside class="dashboard-sidebar">
-            <div class="sidebar-brand">
-                <i class="fas fa-graduation-cap"></i>
+            <a href="index.html" class="sidebar-brand" style="text-decoration:none;">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
                 <span>FindMyTutor</span>
-            </div>
+            </a>
 
             <div class="sidebar-profile">
                 <div class="profile-avatar">
                     <img src="https://via.placeholder.com/150" alt="Profilo" id="userAvatar">
                     <span id="profileRoleBadge" class="role-status-dot"></span>
                 </div>
-                <h2 id="userName">Caricamento...</h2>
-                <p id="userEmail">...</p>
+                <div class="sidebar-profile-meta">
+                    <span id="sidebarRolePill" class="sidebar-role-pill">Studente</span>
+                    <h2 id="userName">Caricamento...</h2>
+                    <p id="userEmail">...</p>
+                </div>
             </div>
 
             <nav class="sidebar-nav">
-                <a href="index.html" class="nav-item"><i class="fas fa-home"></i> Home Sito</a>
-                <a href="#" class="nav-item active" id="navDashboard"><i class="fas fa-th-large"></i> Dashboard</a>
-                <a href="prenota.html" class="nav-item"><i class="fas fa-calendar-day"></i> Agenda Studente</a>
-                <a href="appuntamenti.html" id="btnAgendaTutor" class="nav-item hidden"><i
-                        class="fas fa-chalkboard-teacher"></i> Agenda Tutor</a>
-                <a href="#" id="navFSL" class="nav-item hidden"><i class="fas fa-medal"></i> FSL</a>
+                <a href="index.html" class="nav-item"><i class="fas fa-home"></i> <span>Home Sito</span></a>
+                <a href="#" class="nav-item active" id="navDashboard"><i class="fas fa-th-large"></i> <span>Panoramica</span></a>
+                <a href="prenota.html" class="nav-item"><i class="fas fa-calendar-check"></i> <span>Agenda Studente</span></a>
+                <a href="appuntamenti.html" id="btnAgendaTutor" class="nav-item hidden"><i class="fas fa-chalkboard-teacher"></i> <span>Agenda Tutor</span></a>
+                <a href="#" id="navFSL" class="nav-item hidden"><i class="fas fa-medal"></i> <span>Ore FSL</span></a>
+                <a href="diventa_tutor.html" id="btnBecomeTutorNav" class="nav-item"><i class="fas fa-user-graduate"></i> <span>Diventa Tutor</span></a>
+                <a href="staff.html" id="btnStaffArea" class="nav-item hidden"><i class="fas fa-user-tie"></i> <span>Area Staff FSL</span></a>
+                <a href="admin.html" id="btnAdminArea" class="nav-item hidden"><i class="fas fa-user-shield"></i> <span>Pannello Admin</span></a>
                 <div class="nav-spacer"></div>
-                <button id="logoutBtn" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i>
-                    Disconnetti</button>
+                <button id="logoutBtn" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> <span>Disconnetti</span></button>
             </nav>
         </aside>
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
-            <header class="content-header">
+            <div class="content-header">
                 <div class="welcome-text">
-                    <h1>Bentornato, <span id="welcomeName">...</span>!</h1>
-                    <p>Ecco il riepilogo delle tue attività.</p>
+                    <div class="dash-header-badge">
+                        <span class="dash-pulse-dot"></span>
+                        <span>Area Personale &bull; Istituto Agnelli</span>
+                    </div>
+                    <h1>Bentornato, <span id="welcomeName" class="highlight-red">...</span>!</h1>
+                    <p>Gestisci il tuo profilo scolastico, le tue prenotazioni e le certificazioni FSL.</p>
                 </div>
                 <div class="header-actions">
                     <button id="btnSyncDashboard" class="btn-sync-registry" title="Sincronizza con il Registro Elettronico Mastercom">
-                        <i class="fas fa-sync-alt" id="dashSyncIcon"></i> Sincronizza Registro
+                        <i class="fas fa-sync-alt" id="dashSyncIcon"></i> <span>Sincronizza Registro</span>
                     </button>
                     <button id="btnDowngrade" class="btn-outline-warning hidden">
-                        <i class="fas fa-user-minus"></i> Torna Studente
+                        <i class="fas fa-user-minus"></i> <span>Torna Studente</span>
                     </button>
                     <button id="mobileLogoutBtn" class="btn-outline-danger" title="Disconnetti">
                         <i class="fas fa-sign-out-alt"></i> <span>Esci</span>
@@ -74,10 +82,39 @@
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
-            </header>
+            </div>
 
             <!-- SEZIONE PANORAMICA (DEFAULT) -->
             <div id="tab-overview" class="dashboard-tab-content">
+
+                <!-- KPI SUMMARY BAR -->
+                <div class="dash-kpi-grid">
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="dash-kpi-info">
+                            <span class="dash-kpi-label">Prossime Lezioni</span>
+                            <h3 id="kpiStudentCount">0</h3>
+                            <small>Prenotazioni confermate</small>
+                        </div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon"><i class="fas fa-id-badge"></i></div>
+                        <div class="dash-kpi-info">
+                            <span class="dash-kpi-label">Qualifica Profilo</span>
+                            <h3 id="kpiAccountRole">Studente</h3>
+                            <small id="kpiAccountProvider">Account Verificato</small>
+                        </div>
+                    </div>
+                    <div class="dash-kpi-card">
+                        <div class="dash-kpi-icon" id="kpiThirdIcon"><i class="fas fa-book-open"></i></div>
+                        <div class="dash-kpi-info">
+                            <span class="dash-kpi-label" id="kpiThirdLabel">Materie Sincronizzate</span>
+                            <h3 id="kpiThirdValue">0</h3>
+                            <small id="kpiThirdSub">Dal tuo piano di studi</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SCHEDA PROFILO REGISTRO ELETTRONICO -->
                 <section id="mastercomProfileSection" class="mastercom-profile-card hidden">
                     <div class="mc-profile-header">
@@ -106,12 +143,12 @@
                 </section>
 
                 <!-- SCHEDA PROFILO GOOGLE WORKSPACE -->
-                <section id="googleProfileSection" class="mastercom-profile-card hidden">
-                    <div class="mc-profile-header">
+                <section id="googleProfileSection" class="mastercom-profile-card google-variant hidden">
+                    <div class="mc-profile-header" style="border-bottom:none; padding-bottom:0;">
                         <div class="mc-profile-user-info">
                             <img id="googleProfilePhoto" src="https://via.placeholder.com/150" alt="Foto Profilo Google" class="mc-avatar-large">
                             <div>
-                                <div class="mc-status-pill" style="background:#e8f0fe; color:#1a73e8; border-color:#d2e3fc;"><i class="fab fa-google"></i> Connesso con Google Workspace</div>
+                                <div class="mc-status-pill google-pill"><i class="fab fa-google"></i> Connesso con Google Workspace</div>
                                 <h2 id="googleStudentName">--</h2>
                                 <p class="mc-student-meta">
                                     <span id="googleStudentEmail"><i class="fas fa-envelope"></i> --</span> &bull; 
@@ -146,25 +183,37 @@
 
                 <section class="activity-overview">
                     <div class="section-title-main">
-                        <h2><i class="fas fa-stream"></i> Attività e Feedback</h2>
+                        <h2><i class="fas fa-stream"></i> Attività in Programma &amp; Feedback</h2>
                     </div>
                     <div class="dashboard-grid">
                         <!-- LEZIONI STUDENTE -->
                         <section class="grid-card">
                             <div class="card-title">
-                                <i class="fas fa-book-reader"></i>
-                                <h3>Lezioni da Frequentare (Studente)</h3>
+                                <div class="card-title-left">
+                                    <div class="card-title-icon"><i class="fas fa-book-reader"></i></div>
+                                    <div>
+                                        <h3>Lezioni da Frequentare</h3>
+                                        <small>Come Studente</small>
+                                    </div>
+                                </div>
+                                <a href="prenota.html?view=list" class="card-link-pill">Vedi tutte <i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div id="studentLessonsList" class="lesson-mini-grid">
-                                <p class="empty-msg">Nessuna lezione prenotata.</p>
+                                <p class="empty-msg">Nessuna lezione prenotata in programma.</p>
                             </div>
                         </section>
 
                         <!-- LEZIONI TUTOR -->
                         <section id="tutorLessonsSection" class="grid-card hidden">
                             <div class="card-title">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <h3>Lezioni da Svolgere (Tutor)</h3>
+                                <div class="card-title-left">
+                                    <div class="card-title-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                                    <div>
+                                        <h3>Lezioni da Svolgere</h3>
+                                        <small>Come Studente Tutor</small>
+                                    </div>
+                                </div>
+                                <a href="appuntamenti.html" class="card-link-pill">Agenda Tutor <i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div id="tutorLessonsList" class="lesson-mini-grid">
                                 <p class="empty-msg">Nessuna lezione in programma.</p>
@@ -174,8 +223,13 @@
                         <!-- VALUTAZIONE TUTOR -->
                         <section id="tutorRatingSection" class="grid-card rating-card hidden">
                             <div class="card-title">
-                                <i class="fas fa-star"></i>
-                                <h3>Feedback e Valutazioni</h3>
+                                <div class="card-title-left">
+                                    <div class="card-title-icon"><i class="fas fa-star"></i></div>
+                                    <div>
+                                        <h3>Feedback e Valutazioni</h3>
+                                        <small>Reputazione Tutor</small>
+                                    </div>
+                                </div>
                             </div>
                             <div class="rating-display">
                                 <div id="tutorStars" class="stars"></div>
@@ -186,27 +240,67 @@
                 </section>
             </div>
 
-            <!-- NUOVA SEZIONE FSL (SOLO TUTOR) -->
+            <!-- SEZIONE FSL (SOLO TUTOR) -->
             <div id="tab-FSL" class="dashboard-tab-content hidden">
                 <section class="FSL-section">
                     <div class="section-title-main">
-                        <h2><i class="fas fa-medal"></i> Ore FSL Accumulate</h2>
-                        <p>Le ore vengono conteggiate automaticamente al termine di ogni lezione.</p>
+                        <h2><i class="fas fa-medal"></i> Certificazione Ore FSL (ex PCTO)</h2>
+                        <p>Le ore di tutoraggio svolte vengono conteggiate automaticamente al termine di ogni lezione confermata.</p>
                     </div>
 
                     <div class="FSL-display-card">
+                        <div class="fsl-conversion-pill">
+                            <i class="fas fa-award"></i> Conversione Ufficiale: <strong>1h Ripetizione = 1h FSL</strong>
+                        </div>
+
                         <div class="FSL-main-stat">
                             <span id="FSLHours" class="FSL-number">0</span>
-                            <span class="FSL-unit">Ore Totali</span>
+                            <span class="FSL-unit">Ore Totali Maturate</span>
                         </div>
 
                         <div id="FSLExtraMinutes" class="FSL-extra-box hidden">
-                            <div class="extra-badge">+30 min</div>
-                            <p>Hai una mezza ora in attesa di essere completata.</p>
+                            <div class="extra-badge"><i class="fas fa-clock"></i> +30 min</div>
+                            <p>Hai una mezz'ora accumulata in attesa di completare la prossima ora intera.</p>
+                        </div>
+
+                        <div class="fsl-info-note">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Lo Staff FSL d'Istituto verifica periodicamente il registro delle lezioni svolte e accredita le ore direttamente sul tuo curriculum scolastico.</span>
                         </div>
                     </div>
                 </section>
             </div>
+
+            <!-- FOOTER INTEGRATO NELLA DASHBOARD -->
+            <footer class="app-footer" style="border-radius: 24px; margin-top: 3.5rem;">
+                <div class="footer-wrapper" style="padding: 2.2rem 24px 1.6rem;">
+                    <div class="footer-top-strip" style="margin-bottom: 1.5rem;">
+                        <div class="footer-brand-lockup">
+                            <div class="footer-logo-badge"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="footer-brand-info">
+                                <span class="footer-brand-name">FindMyTutor</span>
+                                <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
+                            </div>
+                        </div>
+                        <div class="footer-status-tag">
+                            <span class="status-pulse-dot"></span>
+                            <span>Piattaforma Attiva &bull; A.S. 2025/2026</span>
+                        </div>
+                    </div>
+                    <div class="footer-bottom-bar">
+                        <div class="footer-copy">&copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Portale Peer-Tutoring &amp; Certificazione Ore FSL.</div>
+                        <div class="footer-legal-links">
+                            <a href="index.html">Home</a>
+                            <span class="sep">&bull;</span>
+                            <a href="prenota.html">Prenota</a>
+                            <span class="sep">&bull;</span>
+                            <a href="progetto.html">Il Progetto</a>
+                            <span class="sep">&bull;</span>
+                            <span class="security-chip"><i class="fas fa-lock"></i> SSL / TLS Protetto</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </main>
     </div>
 
@@ -316,11 +410,13 @@
             </form>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/api_config.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/global_maintenance.js"></script>
     <script src="script.js"></script>
+    <script src="js/email_service.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/mobile-nav.js"></script>
 

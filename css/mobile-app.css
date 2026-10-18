@@ -82,7 +82,7 @@
   }
 
   /* Nascondi header e sidebar desktop tradizionali */
-  header:not(.login-topbar):not(.topbar) {
+  header:not(.content-header):not(.login-topbar):not(.topbar) {
     display: none !important;
   }
 

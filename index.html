@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Find My Tutor - Agnelli Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="theme-color" content="#D32F2F">
@@ -22,42 +22,73 @@
 </head>
 
 <body>
-    <div class="overlay-menu">
-    </div>
+    <div class="overlay-menu"></div>
     <header>
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration: none;">
             <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
             <span>FindMyTutor</span>
-        </div>
+        </a>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="progetto.html">Il nostro progetto</a></li>
-                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+                <li><a href="index.html" class="active"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="progetto.html"><i class="fas fa-project-diagram"></i> Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html"><i class="fas fa-user-graduate"></i> Diventa Tutor</a></li>
             </ul>
         </nav>
         <div class="header-actions">
-            <a href="login.html" class="cta-btn" id="loginBtn">Accedi</a>
+            <a href="login.html" class="cta-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Accedi</a>
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
 
+    <!-- ======================================================================
+         1. HERO SECTION — SHOWCASE INTERATTIVO ISTITUTO AGNELLI
+         ====================================================================== -->
     <section class="hero">
         <div class="hero-bg-accent"></div>
+        <div class="hero-bg-grid"></div>
+
         <div class="hero-content reveal">
-            <span class="badge">Istituto Agnelli</span>
+            <div class="hero-pill-badge">
+                <span class="hero-pulse-dot"></span>
+                <span>Istituto Agnelli &bull; Peer-Tutoring Ufficiale</span>
+            </div>
+
             <h1>Eccellenza nello studio,<br> <span class="text-gradient">a portata di mano.</span></h1>
+
             <p>La piattaforma ufficiale di peer-tutoring. Trova compagni preparati, migliora i tuoi voti e costruisci il
                 tuo futuro accademico.</p>
+
             <div class="hero-btns">
-                <a href="prenota.html" class="cta-btn big">Trova un Tutor</a>
-                <a href="progetto.html" class="btn-outline">Scopri di più <i class="fas fa-arrow-right"></i></a>
+                <a href="prenota.html" class="cta-btn big">
+                    <i class="fas fa-calendar-check"></i> Trova un Tutor
+                </a>
+                <a href="progetto.html" class="btn-outline">
+                    Scopri di più <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="hero-trust-strip">
+                <div class="trust-pill">
+                    <i class="fas fa-check-circle"></i>
+                    <span>100% Gratuito</span>
+                </div>
+                <div class="trust-pill">
+                    <i class="fas fa-school"></i>
+                    <span>Liceo &amp; ITT</span>
+                </div>
+                <div class="trust-pill">
+                    <i class="fas fa-award"></i>
+                    <span>1h Lezione = 1h FSL</span>
+                </div>
             </div>
         </div>
 
-        <div class="hero-visual reveal delay-200">
+        <div class="hero-visual reveal delay-100">
             <div class="circle-bg"></div>
             <div class="circle-bg-inner"></div>
+
+            <!-- 3 Card Fluttuanti -->
             <div class="floating-card card-top">
                 <div class="icon-box"><i class="fas fa-laptop-code"></i></div>
                 <div class="card-text">
@@ -82,11 +113,14 @@
         </div>
     </section>
 
+    <!-- ======================================================================
+         2. DIVENTA TUTOR — SPLIT BENTO SHOWCASE
+         ====================================================================== -->
     <section class="become-tutor-section reveal">
         <div class="tutor-wrapper">
 
             <div class="tutor-text-col">
-                <span class="badge-outline">Opportunità</span>
+                <span class="badge-outline"><i class="fas fa-sparkles"></i> Opportunità</span>
                 <h2>Diventa membro del <br><span class="text-gradient">nostro staff</span></h2>
 
                 <p class="main-description">
@@ -97,12 +131,18 @@
 
                 <div class="benefits-list">
                     <div class="benefit-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Conferma rapida in <strong>48 ore</strong> lavorative.</span>
+                        <div class="benefit-icon-box"><i class="fas fa-bolt"></i></div>
+                        <div class="benefit-text">
+                            <strong>Attivazione Veloce</strong>
+                            <span>Conferma rapida in <strong>48 ore</strong> lavorative.</span>
+                        </div>
                     </div>
                     <div class="benefit-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Gestione flessibile tramite la tua area personale.</span>
+                        <div class="benefit-icon-box"><i class="fas fa-sliders-h"></i></div>
+                        <div class="benefit-text">
+                            <strong>Massima Autonomia</strong>
+                            <span>Gestione flessibile tramite la tua area personale.</span>
+                        </div>
                     </div>
                 </div>
 
@@ -113,6 +153,7 @@
 
             <div class="tutor-visual-col">
                 <div class="fsl-card">
+                    <div class="fsl-card-ribbon">Certificazione Ufficiale</div>
                     <div class="card-top-icon"><i class="fas fa-award"></i></div>
                     <h3>FSL Garantito</h3>
                     <p>Il tuo tempo ha valore. Le ore di lezione vengono convertite automaticamente.</p>
@@ -122,11 +163,16 @@
                             <span class="big-num">1h</span>
                             <span class="label">Lezione</span>
                         </div>
-                        <div class="arrow-icon"><i class="fas fa-arrow-right"></i></div>
+                        <div class="arrow-icon"><i class="fas fa-exchange-alt"></i></div>
                         <div class="time-unit highlight">
                             <span class="big-num">1h</span>
                             <span class="label">FSL</span>
                         </div>
+                    </div>
+
+                    <div class="fsl-card-checks">
+                        <span><i class="fas fa-check-circle"></i> Valido per il Triennio</span>
+                        <span><i class="fas fa-check-circle"></i> Registro digitale</span>
                     </div>
                 </div>
 
@@ -138,85 +184,123 @@
         </div>
     </section>
 
+    <!-- ======================================================================
+         3. MATERIE IN EVIDENZA — BENTO GRID CON FILTRI RAPIDI
+         ====================================================================== -->
     <section class="features">
         <div class="section-header reveal">
-            <h2>Materie in evidenza</h2>
+            <span class="section-pill-kicker"><i class="fas fa-book-open"></i> Piano di Studi Completo</span>
+            <h2>Materie in <span class="text-gradient">evidenza</span></h2>
             <div class="line-red"></div>
-            <p class="section-subtitle" style="margin-top: 12px; color: var(--text-light);">Supporto mirato per tutti gli indirizzi del Liceo Scientifico e dell'Istituto Tecnico Tecnologico.</p>
+            <p class="section-subtitle">Supporto mirato per tutti gli indirizzi del Liceo Scientifico e dell'Istituto Tecnico Tecnologico.</p>
+
+            <div class="home-subject-filters" role="tablist" aria-label="Filtra materie per indirizzo">
+                <button type="button" class="subject-filter-btn active" data-filter="all">Tutte le materie</button>
+                <button type="button" class="subject-filter-btn" data-filter="scientific">Area Scientifica</button>
+                <button type="button" class="subject-filter-btn" data-filter="itt">Indirizzo ITT</button>
+                <button type="button" class="subject-filter-btn" data-filter="humanities">Umanistiche &amp; Lingue</button>
+            </div>
         </div>
 
-        <div class="grid-container">
-            <div class="feature-card reveal">
-                <div class="card-icon-bg"><i class="fas fa-square-root-alt"></i></div>
+        <div class="grid-container" id="homeSubjectsGrid">
+            <div class="feature-card reveal" data-category="scientific">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-square-root-alt"></i></div>
+                    <span class="subject-track-pill">Liceo &amp; ITT</span>
+                </div>
                 <h3>Matematica</h3>
                 <p>Dal calcolo algebrico all'analisi matematica: preparati al meglio per verifiche e interrogazioni.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
+                <div class="subject-topic-tags">
+                    <span>Algebra</span>
+                    <span>Geometria</span>
+                    <span>Analisi</span>
+                </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="feature-card reveal delay-100">
-                <div class="card-icon-bg"><i class="fas fa-atom"></i></div>
+            <div class="feature-card reveal delay-100" data-category="scientific">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-atom"></i></div>
+                    <span class="subject-track-pill">Liceo &amp; ITT</span>
+                </div>
                 <h3>Fisica &amp; Scienze</h3>
                 <p>Cinematica, dinamica, elettromagnetismo, chimica e scienze applicate spiegate con chiarezza.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
+                <div class="subject-topic-tags">
+                    <span>Meccanica</span>
+                    <span>Elettromagnetismo</span>
+                    <span>Chimica</span>
+                </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="feature-card reveal delay-200">
-                <div class="card-icon-bg"><i class="fas fa-laptop-code"></i></div>
+            <div class="feature-card reveal delay-200" data-category="itt">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-laptop-code"></i></div>
+                    <span class="subject-track-pill itt">Indirizzo ITT</span>
+                </div>
                 <h3>Informatica &amp; Sistemi</h3>
                 <p>Programmazione, algoritmi, basi di dati, reti e telecomunicazioni con tutor specializzati.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
+                <div class="subject-topic-tags">
+                    <span>C / Python / Java</span>
+                    <span>Database</span>
+                    <span>Sistemi e Reti</span>
+                </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="feature-card reveal">
-                <div class="card-icon-bg"><i class="fas fa-landmark"></i></div>
+            <div class="feature-card reveal" data-category="humanities">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-landmark"></i></div>
+                    <span class="subject-track-pill">Liceo &amp; Comuni</span>
+                </div>
                 <h3>Latino &amp; Lettere</h3>
                 <p>Versioni, sintassi, letteratura, filosofia e metodo di traduzione per superare ogni ostacolo.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
+                <div class="subject-topic-tags">
+                    <span>Versioni Latino</span>
+                    <span>Italiano</span>
+                    <span>Storia &amp; Filosofia</span>
+                </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="feature-card reveal delay-100">
-                <div class="card-icon-bg"><i class="fas fa-microchip"></i></div>
+            <div class="feature-card reveal delay-100" data-category="itt">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-microchip"></i></div>
+                    <span class="subject-track-pill itt">Indirizzo ITT</span>
+                </div>
                 <h3>Elettronica &amp; Meccanica</h3>
                 <p>Elettrotecnica, sistemi automatici, meccanica, macchine e disegno tecnico progettuale.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
+                <div class="subject-topic-tags">
+                    <span>Elettrotecnica</span>
+                    <span>Meccanica</span>
+                    <span>Disegno Tecnico</span>
+                </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="feature-card reveal delay-200">
-                <div class="card-icon-bg"><i class="fas fa-globe-europe"></i></div>
+            <div class="feature-card reveal delay-200" data-category="humanities">
+                <div class="feature-card-top">
+                    <div class="card-icon-bg"><i class="fas fa-globe-europe"></i></div>
+                    <span class="subject-track-pill">Biennio &amp; Triennio</span>
+                </div>
                 <h3>Inglese &amp; Diritto</h3>
                 <p>Grammatica, conversazione, inglese tecnico, diritto ed economia per il biennio e triennio.</p>
-                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-chevron-right"></i></a>
-            </div>
-        </div>
-    </section>
-    <section class="join-us-section reveal">
-        <div class="join-us-container">
-            <div class="join-us-content">
-                <h2 class="section-title"><span class="highlight-red">Unisciti</span> al nostro staff!</h2>
-                <p class="section-description">
-                    Se sei interessato a tenere lezioni di una o più materie non esitare a contattarci.
-                    Puoi diventare membro del nostro staff compilando un modulo nella pagina "Unisciti a noi" o
-                    cliccando il bottone qui sotto.
-                    <span class="highlight-text">Riceverai un'ora di alternanza scuola lavoro per ogni ora di
-                        lezione.</span>
-                </p>
-                <a href="diventa_tutor.html" class="cta-btn innovative-btn">
-                    <span class="btn-text">Unisciti a noi</span>
-                    <span class="btn-icon"><i class="fas fa-arrow-right"></i></span>
-                </a>
-            </div>
-            <div class="join-us-visual">
-                <div class="floating-shape shape-1"></div>
-                <div class="floating-shape shape-2"></div>
-                <div class="floating-shape shape-3"></div>
-                <div class="visual-icon">
-                    <i class="fas fa-users-cog"></i>
+                <div class="subject-topic-tags">
+                    <span>Grammar &amp; Speaking</span>
+                    <span>Inglese Tecnico</span>
+                    <span>Diritto</span>
                 </div>
+                <a href="prenota.html" class="card-link">Prenota ora <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
     </section>
+
+    <!-- ======================================================================
+         4. I NOSTRI CORSI INDIVIDUALI — BENTO GRID A 5 CARD
+         ====================================================================== -->
     <section class="courses-info-section reveal">
         <div class="section-header">
+            <span class="section-pill-kicker"><i class="fas fa-compass"></i> Guida alle Ripetizioni</span>
             <h2>I nostri <span class="text-gradient">Corsi Individuali</span></h2>
             <div class="line-red"></div>
             <p class="section-subtitle">Tutto quello che devi sapere sulle ripetizioni all'Istituto Agnelli.</p>
@@ -224,6 +308,7 @@
 
         <div class="info-grid">
             <div class="info-card">
+                <span class="info-card-num">01</span>
                 <div class="card-header">
                     <div class="icon-circle"><i class="fas fa-users"></i></div>
                     <h4>A chi sono indirizzati?</h4>
@@ -233,6 +318,7 @@
             </div>
 
             <div class="info-card">
+                <span class="info-card-num">02</span>
                 <div class="card-header">
                     <div class="icon-circle"><i class="fas fa-chalkboard-teacher"></i></div>
                     <h4>Chi tiene i corsi?</h4>
@@ -242,6 +328,7 @@
             </div>
 
             <div class="info-card">
+                <span class="info-card-num">03</span>
                 <div class="card-header">
                     <div class="icon-circle"><i class="far fa-calendar-alt"></i></div>
                     <h4>Quando sono attivi?</h4>
@@ -251,6 +338,7 @@
             </div>
 
             <div class="info-card">
+                <span class="info-card-num">04</span>
                 <div class="card-header">
                     <div class="icon-circle"><i class="far fa-clock"></i></div>
                     <h4>Quanto dura una lezione?</h4>
@@ -260,17 +348,24 @@
             </div>
 
             <div class="info-card highlight-card">
-                <div class="card-header">
-                    <div class="icon-circle white-icon"><i class="fas fa-id-card"></i></div>
-                    <h4>Come partecipare?</h4>
+                <span class="info-card-num">05</span>
+                <div class="highlight-card-inner">
+                    <div>
+                        <div class="card-header">
+                            <div class="icon-circle white-icon"><i class="fas fa-id-card"></i></div>
+                            <h4>Come partecipare?</h4>
+                        </div>
+                        <p>Per partecipare alle lezioni si deve effettuare l'accesso con la propria <strong>mail
+                                istituzionale</strong> (o Registro Mastercom) e prenotare nell'apposita pagina.</p>
+                    </div>
+                    <a href="login.html" class="highlight-card-btn">Accedi al Portale <i class="fas fa-arrow-right"></i></a>
                 </div>
-                <p>Per partecipare alle lezioni si deve effettuare l'accesso con la propria <strong>mail
-                        istituzionale</strong> e prenotare nell'apposita pagina.</p>
             </div>
         </div>
 
         <div class="booking-banner reveal">
             <div class="banner-content">
+                <span class="banner-kicker"><i class="fas fa-bolt"></i> Prenotazione Immediata</span>
                 <h3>Pronto a migliorare i tuoi voti?</h3>
                 <p>Prenota subito il tuo slot con uno dei nostri tutor.</p>
             </div>
@@ -278,11 +373,16 @@
                     class="fas fa-calendar-check"></i></a>
         </div>
     </section>
+
+    <!-- ======================================================================
+         5. CORSI DI GRUPPO — WORKFLOW SINCRONIZZATO A 3 STEP
+         ====================================================================== -->
     <section class="group-courses-section reveal">
         <div class="group-container">
             <div class="group-header">
                 <div class="big-icon"><i class="fas fa-users"></i></div>
                 <div class="header-text">
+                    <span class="section-pill-kicker" style="margin-bottom: 8px;"><i class="fas fa-user-friends"></i> Studio Collaborativo</span>
                     <h2>Corsi di <span class="text-gradient">Gruppo</span></h2>
                     <p>Studiare insieme è più efficace. Perfetto per compagni di classe che devono affrontare lo stesso
                         argomento o verifica.</p>
@@ -291,30 +391,39 @@
 
             <div class="process-wrapper">
                 <div class="process-step">
-                    <div class="step-number">01</div>
                     <div class="step-content">
+                        <div class="step-top-bar">
+                            <span class="step-badge-num">PASSO 01</span>
+                            <div class="step-mini-icon"><i class="fas fa-comments"></i></div>
+                        </div>
                         <h3>Mettetevi d'accordo</h3>
                         <p>Prima di prenotare, è fondamentale che entrambi i partecipanti decidano materia, orario e
                             tutor. La sincronizzazione è tutto!</p>
                     </div>
                 </div>
 
-                <div class="step-connector"></div>
+                <div class="step-connector"><i class="fas fa-chevron-right"></i></div>
 
                 <div class="process-step">
-                    <div class="step-number">02</div>
                     <div class="step-content">
+                        <div class="step-top-bar">
+                            <span class="step-badge-num">PASSO 02</span>
+                            <div class="step-mini-icon"><i class="fas fa-crown"></i></div>
+                        </div>
                         <h3>Il "Leader" prenota</h3>
                         <p>Una persona prenota per prima, impostando materia, data, durata e tutor preferito. Questi
                             criteri diventano la "regola" della lezione.</p>
                     </div>
                 </div>
 
-                <div class="step-connector"></div>
+                <div class="step-connector"><i class="fas fa-chevron-right"></i></div>
 
                 <div class="process-step">
-                    <div class="step-number">03</div>
                     <div class="step-content">
+                        <div class="step-top-bar">
+                            <span class="step-badge-num">PASSO 03</span>
+                            <div class="step-mini-icon"><i class="fas fa-user-plus"></i></div>
+                        </div>
                         <h3>Il secondo si unisce</h3>
                         <p>Chi si unisce deve cercare la lezione inserendo <strong>gli stessi identici criteri</strong>
                             (inclusa la durata) usati dal primo.</p>
@@ -323,65 +432,34 @@
             </div>
 
             <div class="info-alert-box">
-                <i class="fas fa-info-circle"></i>
+                <div class="alert-icon-wrap"><i class="fas fa-info-circle"></i></div>
                 <p><strong>Nota Bene:</strong> Ogni partecipante può disdire la propria presenza individualmente, sempre
                     con un preavviso di <strong>24 ore</strong>.</p>
             </div>
 
             <div class="group-cta-wrapper">
-                <a href="prenota.html" class="cta-btn pulse-btn">Prenota lezione di gruppo</a>
-            </div>
-        </div>
-    </section>
-    <section class="stats-dashboard reveal">
-        <div class="stats-bg-pattern"></div>
-
-        <div class="stats-container">
-            <div class="stats-header">
-                <h2>I numeri di <span class="text-white-highlight">FindMyTutor</span></h2>
-                <p>Una community in continua crescita.</p>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-box-modern">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="stat-data">
-                        <h3 class="counter" data-target="106">106</h3>
-                        <p>Utenti Iscritti</p>
-                    </div>
-                    <div class="stat-progress-bar" style="width: 80%"></div>
-                </div>
-
-                <div class="stat-box-modern">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                    </div>
-                    <div class="stat-data">
-                        <h3 class="counter" data-target="16">16</h3>
-                        <p>Tutor Attivi</p>
-                    </div>
-                    <div class="stat-progress-bar" style="width: 45%"></div>
-                </div>
-
-                <div class="stat-box-modern extra-stat">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-book-reader"></i>
-                    </div>
-                    <div class="stat-data">
-                        <h3 class="counter" data-target="250">250</h3>
-                        <p>Ore di Lezione</p>
-                    </div>
-                    <div class="stat-progress-bar" style="width: 90%"></div>
-                </div>
+                <a href="prenota.html" class="cta-btn pulse-btn"><i class="fas fa-users"></i> Prenota lezione di gruppo</a>
             </div>
         </div>
     </section>
 
+    <!-- ======================================================================
+         FOOTER GLOBALE
+         ====================================================================== -->
     <footer class="app-footer">
         <div class="footer-wrapper">
-            <!-- Top Banner: Brand Lockup & Status Tag -->
+            <div class="footer-cta-banner">
+                <div class="footer-cta-text">
+                    <span class="footer-cta-kicker"><i class="fas fa-graduation-cap"></i> Peer-Tutoring Istituto Agnelli</span>
+                    <h3>Pronto a migliorare i tuoi voti o certificare ore FSL?</h3>
+                    <p>Prenota una lezione gratuita con un tutor verificato o entra nello staff studentesco.</p>
+                </div>
+                <div class="footer-cta-actions">
+                    <a href="prenota.html" class="footer-btn-primary"><i class="fas fa-calendar-check"></i> Prenota Lezione</a>
+                    <a href="diventa_tutor.html" class="footer-btn-secondary"><i class="fas fa-chalkboard-teacher"></i> Diventa Tutor</a>
+                </div>
+            </div>
+            <!-- Top Banner: Brand Lockup -->
             <div class="footer-top-strip">
                 <div class="footer-brand-lockup">
                     <div class="footer-logo-badge">
@@ -391,10 +469,6 @@
                         <span class="footer-brand-name">FindMyTutor</span>
                         <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
                     </div>
-                </div>
-                <div class="footer-status-tag">
-                    <span class="status-pulse-dot"></span>
-                    <span>Piattaforma Attiva &bull; A.S. 2025/2026</span>
                 </div>
             </div>
 
@@ -437,7 +511,7 @@
 
                 <!-- Col 4: Contatti & Canali -->
                 <div class="footer-grid-col col-contact">
-                    <h4 class="footer-col-title">Assistenza & Social</h4>
+                    <h4 class="footer-col-title">Assistenza &amp; Social</h4>
                     <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
                         <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
                         <div class="f-contact-details">
@@ -463,8 +537,6 @@
                     <a href="#">Privacy Policy</a>
                     <span class="sep">&bull;</span>
                     <a href="#">Termini d'Uso</a>
-                    <span class="sep">&bull;</span>
-                    <span class="security-chip"><i class="fas fa-lock"></i> SSL / TLS Protetto</span>
                 </div>
             </div>
         </div>

@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const options = { day: 'numeric', month: 'long' };
                 const dateLabel = checkDate.toLocaleDateString('it-IT', options);
+                const linkedLesson = myFutureLessons.find(l => String(l.id) === String(linkedLessonId)) || {};
 
                 // Inserimento prenotazione aula
                 const { error: roomError } = await sbClient.from('room_bookings').insert([{ 
@@ -247,7 +248,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .update({ room_name: room }).eq('id', linkedLessonId);
                 if(updateError) console.error("Errore aggiornamento lezione:", updateError);
 
-                showSuccess("Aula Prenotata!", `Hai prenotato ${room} per il ${dateLabel} (${time}).`);
+                if (window.FMTEmailService) {
+                    const tutorDisplayName = user.user_metadata?.full_name || (fmtUser && fmtUser.full_name) || user.email;
+                    window.FMTEmailService.notifyRoomBooked({
+                        tutorId: user.id,
+                        tutorUserId: user.id,
+                        tutorName: tutorDisplayName,
+                        tutorEmail: user.email,
+                        roomNumber: room,
+                        floor: 'Istituto Agnelli',
+                        subject: linkedLesson.subject || 'Ripetizione',
+                        date: dateVal
+                    }).catch(console.warn);
+                }
+
+                showSuccess("Aula Prenotata!", `Hai prenotato ${room} per il ${dateLabel} (${time}). Lo studente è stato avvisato via email.`);
                 
                 bookingForm.reset();
                 if(lessonLinkSelect) {
@@ -268,15 +283,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- LOGICHE CANCELLAZIONE (Invariate) ---
+    // --- LOGICHE CANCELLAZIONE ---
     if(btnCancelDelete) btnCancelDelete.addEventListener('click', () => { closeModal(deleteModal); bookingIdToDelete = null; });
     if(btnConfirmDelete) btnConfirmDelete.addEventListener('click', async () => {
         if (!bookingIdToDelete) return;
         const originalText = btnConfirmDelete.innerText;
         btnConfirmDelete.innerText = "Attendere...";
         try {
+            let roomRow = null;
+            try {
+                const { data: rData } = await sbClient.from('room_bookings').select('*').eq('id', bookingIdToDelete).maybeSingle();
+                roomRow = rData;
+            } catch (e) {}
+
             const { error } = await sbClient.from('room_bookings').delete().eq('id', bookingIdToDelete);
             if (error) throw error;
+
+            if (window.FMTEmailService && roomRow) {
+                const tutorDisplayName = user.user_metadata?.full_name || (fmtUser && fmtUser.full_name) || user.email;
+                window.FMTEmailService.notifyRoomCancelled({
+                    tutorId: user.id,
+                    tutorUserId: user.id,
+                    tutorName: tutorDisplayName,
+                    tutorEmail: user.email,
+                    roomNumber: roomRow.room_name || '-',
+                    date: roomRow.day_label || '',
+                    actorRole: 'Tutor'
+                }).catch(console.warn);
+            }
+
             closeModal(deleteModal);
             showSuccess("Cancellata", "La prenotazione aula è stata rimossa.");
             fetchRoomBookings();
@@ -305,13 +340,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnExecCancel.innerText = "Processing...";
         btnExecCancel.disabled = true;
         try {
-            const { error } = await sbClient.rpc('cancel_group_lesson', {
-                p_lesson_id: lessonIdToCancel,
-                p_reason: reason
-            });
-            if(error) throw error;
+            const lessonObj = myFutureLessons.find(l => String(l.id) === String(lessonIdToCancel)) || {};
+            const tutorDisplayName = user.user_metadata?.full_name || (fmtUser && fmtUser.full_name) || lessonObj.tutor_name_cache || user.email;
+
+            let cancelledOk = false;
+            try {
+                const { error } = await sbClient.rpc('cancel_group_lesson', {
+                    p_lesson_id: lessonIdToCancel,
+                    p_reason: reason
+                });
+                if (!error) cancelledOk = true;
+            } catch (sbErr) {}
+
+            if (!cancelledOk && typeof FMT_API !== 'undefined' && FMT_API.cancelAppointment) {
+                const apiRes = await FMT_API.cancelAppointment(lessonIdToCancel, reason);
+                if (apiRes && apiRes.success === false) throw new Error(apiRes.message || "Errore cancellazione");
+                cancelledOk = true;
+            }
+
+            if (window.FMTEmailService) {
+                window.FMTEmailService.notifyLessonCancelled({
+                    cancelledByRole: 'Tutor',
+                    cancelledByName: tutorDisplayName,
+                    reason: reason,
+                    studentId: lessonObj.user_id,
+                    studentName: lessonObj.student_name || 'Studente',
+                    studentEmail: lessonObj.student_email || '',
+                    tutorId: user.id,
+                    tutorUserId: user.id,
+                    tutorName: tutorDisplayName,
+                    tutorEmail: user.email,
+                    subject: lessonObj.subject || 'Lezione',
+                    date: lessonObj.date || '',
+                    time: lessonObj.time_slot || ''
+                }).catch(console.warn);
+            }
+
             closeModal(cancelLessonModal);
-            showSuccess("Lezione Cancellata", "Status aggiornato per tutto il gruppo.");
+            showSuccess("Lezione Cancellata", "Lo studente e lo staff sono stati avvisati via email.");
+            await loadFutureLessons();
             fetchAppointments(); 
         } catch(err) { alert("Errore: " + err.message); } 
         finally { btnExecCancel.innerText = originalText; btnExecCancel.disabled = false; lessonIdToCancel = null; }
@@ -331,6 +398,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { data, error } = await sbClient.from('room_bookings').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
             if (error) throw error;
             roomBookingsList.innerHTML = '';
+
+            const kpiRooms = document.getElementById('tutorKpiRooms');
+            if (kpiRooms) kpiRooms.textContent = data ? data.length : 0;
+
             if (!data || data.length === 0) {
                 roomBookingsList.innerHTML = `<p style="color:#888;">Nessuna aula prenotata.</p>`;
                 return;
@@ -340,9 +411,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 card.className = 'room-card';
                 card.innerHTML = `
                     <div class="room-info">
-                        <h4>${booking.room_name}</h4>
-                        <p><i class="far fa-calendar-alt"></i> ${booking.day_label}</p>
-                        <p><i class="far fa-clock"></i> ${booking.time_slot}</p>
+                        <h4>${escapeHtml(booking.room_name)}</h4>
+                        <p><i class="far fa-calendar-alt"></i> ${escapeHtml(booking.day_label)}</p>
+                        <p><i class="far fa-clock"></i> ${escapeHtml(booking.time_slot)}</p>
                     </div>
                     <button class="btn-delete-booking" onclick="window.openDeleteModal('${booking.id}')"><i class="fas fa-trash-alt"></i></button>
                 `;
@@ -358,9 +429,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         upcomingList.innerHTML = '<p>Caricamento agenda...</p>';
         
         try {
-            const { data, error } = await sbClient.from('appointments').select('*').eq('tutor_id', user.id).order('date', { ascending: true });
-            if (error) throw error;
-            processAppointments(data);
+            let list = [];
+            try {
+                const { data, error } = await sbClient.from('appointments').select('*').eq('tutor_id', user.id).order('date', { ascending: true });
+                if (!error && Array.isArray(data)) list = data;
+            } catch (sbErr) {}
+
+            if (typeof FMT_API !== 'undefined' && FMT_API.getAppointments) {
+                try {
+                    const apiRes = await FMT_API.getAppointments(null, user.id);
+                    const arr = Array.isArray(apiRes) ? apiRes : (apiRes && Array.isArray(apiRes.appointments) ? apiRes.appointments : []);
+                    const existingIds = new Set(list.map(l => l.id));
+                    arr.forEach(item => { if (!existingIds.has(item.id)) list.push(item); });
+                } catch (apiErr) {}
+            }
+
+            processAppointments(list);
         } catch (err) { console.error(err); upcomingList.innerHTML = `<p style="color:red">Errore: ${err.message}</p>`; }
     }
 
@@ -416,6 +500,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 past.push(app);
             }
         });
+
+        // Aggiorna contatori KPI e badge Tabs
+        const kpiUpcoming = document.getElementById('tutorKpiUpcoming');
+        const kpiPast = document.getElementById('tutorKpiPast');
+        const tabUpcoming = document.getElementById('tabCountUpcoming');
+        const tabPast = document.getElementById('tabCountPast');
+        const tabCancelled = document.getElementById('tabCountCancelled');
+
+        if (kpiUpcoming) kpiUpcoming.textContent = upcoming.length;
+        if (kpiPast) kpiPast.textContent = past.length;
+        if (tabUpcoming) tabUpcoming.textContent = upcoming.length;
+        if (tabPast) tabPast.textContent = past.length;
+        if (tabCancelled) tabCancelled.textContent = cancelled.length;
 
         // Renderizza le liste
         renderList(document.getElementById('upcomingList'), upcoming, 'Nessuna lezione in programma.');

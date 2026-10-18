@@ -33,7 +33,31 @@ body {
 /* --- TITOLO PAGINA --- */
 .page-title {
     text-align: center;
-    margin-bottom: 38px;
+    margin-bottom: 32px;
+}
+
+.page-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--agnelli-light);
+    color: var(--agnelli-red);
+    border: 1px solid var(--agnelli-border);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--agnelli-red);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
 }
 
 .page-title h1 {
@@ -44,10 +68,93 @@ body {
     margin-bottom: 6px;
 }
 
+.page-title h1 .highlight-red {
+    color: var(--agnelli-red);
+}
+
 .page-title p {
     color: var(--text-light);
     font-size: 1.02rem;
     margin: 0;
+}
+
+/* --- TUTOR KPI SUMMARY GRID --- */
+.tutor-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.tutor-kpi-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px 22px;
+    border: 1px solid rgba(211, 47, 47, 0.12);
+    border-top: 4px solid var(--agnelli-red);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tutor-kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, var(--agnelli-light) 0%, #ffcdd2 100%);
+    color: var(--agnelli-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.tutor-kpi-info span {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+}
+
+.tutor-kpi-info h3 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    margin: 2px 0;
+    color: var(--text-main);
+}
+
+.tutor-kpi-info small {
+    font-size: 0.76rem;
+    color: #94a3b8;
+}
+
+.tab-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 50px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    margin-left: 6px;
+    background: rgba(15, 23, 42, 0.08);
+    color: inherit;
+}
+
+.tab-btn.active .tab-count-pill {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+@media (max-width: 900px) {
+    .tutor-kpi-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* --- 1. BOX LINEE GUIDA DISDETTA --- */
@@ -206,6 +313,11 @@ body {
 
 .section-header-main {
     margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .section-header-main h3 {

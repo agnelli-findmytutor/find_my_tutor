@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ANIMAZIONI E VISIBILITÀ (PRIORITÀ MASSIMA)
     // ============================================================
     
-    // Gestione Scroll Reveal (Fa apparire gli elementi nascosti)
+    // Gestione Scroll Reveal (Attivazione immediata per gli elementi già visibili a schermo)
     const observerOptions = {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px"
+        threshold: 0.02,
+        rootMargin: "0px 0px -15px 0px"
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -24,9 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    // Attiva l'osservatore su tutti gli elementi .reveal
+    // Attiva subito gli elementi già nel viewport per evitare qualsiasi ritardo al cambio pagina
     document.querySelectorAll('.reveal').forEach(el => {
-        observer.observe(el);
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.95) {
+            el.classList.add('active');
+            if (el.classList.contains('stats') || el.classList.contains('stats-dashboard')) {
+                startCounters();
+            }
+        } else {
+            observer.observe(el);
+        }
     });
 
     // ============================================================
@@ -103,6 +111,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         scrollToTopBtn.addEventListener("click", () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+
+    // Filtro Rapido Materie in Evidenza (Home Page)
+    const subjectFilterBtns = document.querySelectorAll('.subject-filter-btn');
+    const homeSubjectCards = document.querySelectorAll('#homeSubjectsGrid .feature-card');
+    if (subjectFilterBtns.length > 0 && homeSubjectCards.length > 0) {
+        subjectFilterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                subjectFilterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.getAttribute('data-filter') || 'all';
+                homeSubjectCards.forEach(card => {
+                    const cat = card.getAttribute('data-category');
+                    if (filter === 'all' || cat === filter) {
+                        card.style.display = 'flex';
+                        card.classList.add('active');
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
         });
     }
 

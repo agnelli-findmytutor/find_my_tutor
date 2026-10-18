@@ -27,15 +27,15 @@
 <body>
 
     <header>
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration:none; color:inherit;">
             <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
             <span>FindMyTutor</span>
-        </div>
+        </a>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="progetto.html">Il nostro progetto</a></li>
-                <li><a href="diventa_tutor.html" class="active">Diventa Tutor</a></li>
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="progetto.html"><i class="fas fa-project-diagram"></i> Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html" class="active"><i class="fas fa-user-graduate"></i> Diventa Tutor</a></li>
             </ul>
         </nav>
         <div class="header-actions">
@@ -43,6 +43,7 @@
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
+    <div class="overlay-menu"></div>
 
     <main class="application-wrapper fade-wrapper">
 
@@ -107,10 +108,22 @@
                         </div>
                     </div>
 
+                    <!-- BANNER ERRORE VISIBILE (MAI NASCOSTO) -->
+                    <div id="formInlineErrorBanner" class="form-inline-error hidden" role="alert" aria-live="assertive">
+                        <div class="fie-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="fie-body">
+                            <strong id="formInlineErrorTitle">Attenzione: verifica i dati inseriti</strong>
+                            <p id="formInlineErrorMsg">Compila tutti i campi obbligatori evidenziati.</p>
+                        </div>
+                        <button type="button" id="btnCloseInlineError" class="fie-close" aria-label="Chiudi avviso">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
                     <div id="formContent">
 
                         <!-- SEZIONE 1: DATI PERSONALI -->
-                        <div class="form-section">
+                        <div class="form-section" id="secPersonalData">
                             <div class="section-title-row">
                                 <h3><span class="sec-num">1</span> <i class="far fa-id-card"></i> Dati Personali</h3>
                             </div>
@@ -143,21 +156,33 @@
 
                         <div class="divider"></div>
 
-                        <!-- SEZIONE 2: CLASSE E MATERIE -->
-                        <div class="form-section">
+                        <!-- SEZIONE 2: CLASSE E MATERIE (SOLO SELEZIONE & RETROATTIVE) -->
+                        <div class="form-section" id="secCompetencies">
                             <div class="section-title-row">
                                 <h3><span class="sec-num">2</span> <i class="fas fa-book-open"></i> Le tue Competenze</h3>
                                 <span id="selectedSubjectsCount" class="subject-counter-badge">0 selezionate</span>
                             </div>
                             <p class="section-desc">
-                                Seleziona la tua classe attuale e tocca le materie in cui ti senti pronto ad aiutare gli altri studenti.
+                                Seleziona la tua classe attuale e tocca le materie che <strong>frequenti o hai già frequentato</strong> nel tuo piano di studi. Il blocco di competenze viene generato <strong>in automatico</strong>.
                             </p>
+
+                            <!-- AVVISO ESPLICITO REGOLA DI RETROATTIVITÀ -->
+                            <div class="retroactive-rule-banner">
+                                <div class="rrb-icon"><i class="fas fa-layer-group"></i></div>
+                                <div class="rrb-content">
+                                    <strong>Materie Retroattive in Automatico (Es. Matematica 4° anno vale anche per 1°, 2° e 3° anno)</strong>
+                                    <p>
+                                        Puoi dare ripetizioni solo delle materie che frequenti o che hai frequentato nel tuo indirizzo (separate tra <strong>ITT</strong> e <strong>Liceo</strong>).
+                                        Ogni materia selezionata è <strong>automaticamente retroattiva</strong> per tutti gli anni precedenti: se frequenti il <strong>4° anno</strong> e selezioni <em>Matematica</em>, sarai abilitato a spiegarla agli studenti di <strong>1°, 2°, 3° e 4° anno</strong> del tuo indirizzo.
+                                    </p>
+                                </div>
+                            </div>
 
                             <div id="classDetectedBanner" class="class-detected-banner" style="display:none;">
                                 <div class="cdb-icon"><i class="fas fa-graduation-cap"></i></div>
                                 <div class="cdb-text">
                                     Classe rilevata: <strong id="classDetectedLabel">–</strong>
-                                    <span>&bull; Materie abilitate per il tuo piano di studi</span>
+                                    <span>&bull; Mostrate solo le materie che frequenti o hai frequentato</span>
                                 </div>
                             </div>
 
@@ -167,28 +192,28 @@
                                 <select id="manualClassSelect">
                                     <option value="">-- Seleziona la tua classe --</option>
                                     <optgroup label="ITT – Biennio Comune">
-                                        <option value="1ITT">1° ITT</option>
-                                        <option value="2ITT">2° ITT</option>
+                                        <option value="1ITT">1° ITT (Biennio Comune)</option>
+                                        <option value="2ITT">2° ITT (Biennio Comune)</option>
                                     </optgroup>
-                                    <optgroup label="ITT – Informatica">
-                                        <option value="3INFO">3° INFO</option>
-                                        <option value="4INFO">4° INFO</option>
-                                        <option value="5INFO">5° INFO</option>
+                                    <optgroup label="ITT – Informatica e Telecomunicazioni">
+                                        <option value="3INFO">3° INFO (ITT Informatica)</option>
+                                        <option value="4INFO">4° INFO (ITT Informatica)</option>
+                                        <option value="5INFO">5° INFO (ITT Informatica)</option>
                                     </optgroup>
-                                    <optgroup label="ITT – Elettronica">
-                                        <option value="3ELN">3° ELN</option>
-                                        <option value="4ELN">4° ELN</option>
-                                        <option value="5ELN">5° ELN</option>
+                                    <optgroup label="ITT – Elettronica ed Elettrotecnica">
+                                        <option value="3ELN">3° ELN (ITT Elettronica)</option>
+                                        <option value="4ELN">4° ELN (ITT Elettronica)</option>
+                                        <option value="5ELN">5° ELN (ITT Elettronica)</option>
                                     </optgroup>
                                     <optgroup label="ITT – Energia">
-                                        <option value="3ENE">3° ENE</option>
-                                        <option value="4ENE">4° ENE</option>
-                                        <option value="5ENE">5° ENE</option>
+                                        <option value="3ENE">3° ENE (ITT Energia)</option>
+                                        <option value="4ENE">4° ENE (ITT Energia)</option>
+                                        <option value="5ENE">5° ENE (ITT Energia)</option>
                                     </optgroup>
-                                    <optgroup label="ITT – Meccanica">
-                                        <option value="3MEC">3° MEC</option>
-                                        <option value="4MEC">4° MEC</option>
-                                        <option value="5MEC">5° MEC</option>
+                                    <optgroup label="ITT – Meccanica e Meccatronica">
+                                        <option value="3MEC">3° MEC (ITT Meccanica)</option>
+                                        <option value="4MEC">4° MEC (ITT Meccanica)</option>
+                                        <option value="5MEC">5° MEC (ITT Meccanica)</option>
                                     </optgroup>
                                     <optgroup label="Liceo Scientifico – Sezione A">
                                         <option value="1A">1° A Liceo</option>
@@ -216,8 +241,17 @@
 
                             <div id="subjectCheckboxesGrid" class="subjects-interactive-grid">
                                 <p style="color:#94a3b8; font-size:0.88rem; grid-column: 1 / -1; text-align:center; padding: 16px;">
-                                    Seleziona la tua classe sopra per visualizzare le materie insegnabili.
+                                    Seleziona la tua classe sopra per visualizzare le materie che frequenti o hai frequentato.
                                 </p>
+                            </div>
+
+                            <!-- BLOCCO DI COMPETENZE GENERATO IN AUTOMATICO -->
+                            <div id="autoCompetencyBlock" class="auto-competency-box hidden">
+                                <div class="acb-header">
+                                    <span><i class="fas fa-magic"></i> Blocco di Competenze Generato in Automatico</span>
+                                    <span id="acbYearsTag" class="acb-years-tag">Retroattivo</span>
+                                </div>
+                                <div id="acbSummaryText" class="acb-body"></div>
                             </div>
 
                             <!-- Campi nascosti per Supabase -->
@@ -227,13 +261,14 @@
 
                         <div class="divider"></div>
 
-                        <!-- SEZIONE 3: DISPONIBILITÀ ORARIA -->
-                        <div class="form-section">
+                        <!-- SEZIONE 3: DISPONIBILITÀ ORARIA CON AUTO-SNAPPING -->
+                        <div class="form-section" id="secAvailability">
                             <div class="section-title-row">
                                 <h3><span class="sec-num">3</span> <i class="far fa-clock"></i> Disponibilità Oraria</h3>
+                                <span class="auto-snap-pill"><i class="fas fa-magnet"></i> Auto-Snapping Attivo</span>
                             </div>
                             <p class="section-desc">
-                                Scegli i pomeriggi (dal <strong>Lunedì al Venerdì</strong>, tra le <strong>14:45 e le 18:00</strong>) in cui sei disponibile per fare ripetizioni.
+                                Scegli i pomeriggi (dal <strong>Lunedì al Venerdì</strong>, tra le <strong>14:15 e le 18:00</strong>) in cui sei disponibile. Gli orari inseriti vengono <strong>allineati automaticamente</strong> a fasce valide di 1h, 1h 30m, 2h, 2h 30m o 3h anche direttamente all'invio.
                             </p>
 
                             <div class="avail-builder-card">
@@ -251,12 +286,12 @@
 
                                     <div class="avail-field time-col">
                                         <label for="tempStart">Dalle</label>
-                                        <input type="time" id="tempStart" step="900" min="14:45" max="18:00" value="14:45">
+                                        <input type="time" id="tempStart" step="900" min="14:15" max="17:00" value="14:45">
                                     </div>
 
                                     <div class="avail-field time-col">
                                         <label for="tempEnd">Alle</label>
-                                        <input type="time" id="tempEnd" step="900" min="14:45" max="18:00" value="16:15">
+                                        <input type="time" id="tempEnd" step="900" min="15:15" max="18:00" value="16:15">
                                     </div>
 
                                     <button type="button" id="btnAddSlot" class="btn-add-slot" title="Aggiungi fascia oraria">
@@ -267,27 +302,29 @@
                                 <!-- Fasce orarie rapide con 1 click -->
                                 <div class="quick-slot-presets">
                                     <span class="preset-label"><i class="fas fa-magic"></i> Orari rapidi:</span>
+                                    <button type="button" class="slot-preset-btn" data-start="14:15" data-end="15:45">14:15 – 15:45 (1h 30m)</button>
                                     <button type="button" class="slot-preset-btn" data-start="14:45" data-end="15:45">14:45 – 15:45 (1h)</button>
                                     <button type="button" class="slot-preset-btn" data-start="14:45" data-end="16:15">14:45 – 16:15 (1h 30m)</button>
                                     <button type="button" class="slot-preset-btn" data-start="15:00" data-end="16:30">15:00 – 16:30 (1h 30m)</button>
                                     <button type="button" class="slot-preset-btn" data-start="16:00" data-end="17:30">16:00 – 17:30 (1h 30m)</button>
                                 </div>
 
+                                <div id="slotSnapFeedback" class="slot-snap-feedback hidden"></div>
+
                                 <div id="slotsContainer" class="slots-chips-container"></div>
 
                                 <small class="slot-helper-note">
-                                    <i class="fas fa-info-circle"></i> Imposta il giorno e l'orario e premi <strong>+ Aggiungi</strong> per inserire una o più fasce settimanali.
+                                    <i class="fas fa-info-circle"></i> Puoi aggiungere più giorni con <strong>+ Aggiungi</strong>; se imposti un orario e premi direttamente <em>Invia Candidatura</em>, la fascia verrà <strong>allineata e inclusa in automatico</strong>.
                                 </small>
 
-                                <input type="text" id="availability" required readonly
-                                    style="width:1px; height:1px; opacity:0; position:absolute; pointer-events:none;">
+                                <input type="hidden" id="availability">
                             </div>
                         </div>
 
                         <div class="form-footer">
 
                             <button type="submit" id="btnSubmitNew" class="btn-apply">
-                                <span>Invia Candidatura</span> <i class="fas fa-paper-plane"></i>
+                                <span>Verifica e Invia Candidatura</span> <i class="fas fa-paper-plane"></i>
                             </button>
 
                             <div id="btnGroupExisting" class="btn-group-action hidden">
@@ -309,6 +346,17 @@
 
     <footer class="app-footer">
         <div class="footer-wrapper">
+            <div class="footer-cta-banner">
+                <div class="footer-cta-text">
+                    <span class="footer-cta-kicker"><i class="fas fa-calendar-check"></i> Peer-Tutoring Istituto Agnelli</span>
+                    <h3>Cerchi invece supporto in una materia?</h3>
+                    <p>Prenota gratuitamente una lezione individuale o di gruppo con gli studenti tutor dell'Istituto.</p>
+                </div>
+                <div class="footer-cta-actions">
+                    <a href="prenota.html" class="footer-btn-primary"><i class="fas fa-calendar-plus"></i> Prenota Ripetizione</a>
+                    <a href="progetto.html" class="footer-btn-secondary"><i class="fas fa-rocket"></i> Scopri il Progetto</a>
+                </div>
+            </div>
             <div class="footer-top-strip">
                 <div class="footer-brand-lockup">
                     <div class="footer-logo-badge">
@@ -318,10 +366,6 @@
                         <span class="footer-brand-name">FindMyTutor</span>
                         <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
                     </div>
-                </div>
-                <div class="footer-status-tag">
-                    <span class="status-pulse-dot"></span>
-                    <span>Piattaforma Attiva &bull; A.S. 2025/2026</span>
                 </div>
             </div>
 
@@ -384,8 +428,6 @@
                     <a href="#">Privacy Policy</a>
                     <span class="sep">&bull;</span>
                     <a href="#">Termini d'Uso</a>
-                    <span class="sep">&bull;</span>
-                    <span class="security-chip"><i class="fas fa-lock"></i> SSL / TLS Protetto</span>
                 </div>
             </div>
         </div>
@@ -395,10 +437,32 @@
         </button>
     </footer>
 
+    <!-- MODALE DI CONFERMA E RIEPILOGO CANDIDATURA -->
+    <div id="confirmSubmitModal" class="modal-overlay hidden">
+        <div class="modal-card modal-card-confirm">
+            <div class="modal-icon confirm-icon">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3 id="confirmModalTitle">Conferma Invio Candidatura</h3>
+            <p class="confirm-subtitle">Verifica il riepilogo del blocco competenze e delle fasce orarie prima dell'invio definitivo:</p>
+
+            <div id="confirmModalSummary" class="confirm-summary-box"></div>
+
+            <div class="confirm-modal-actions">
+                <button type="button" id="btnCancelConfirmModal" class="btn-modal secondary-btn">
+                    <i class="fas fa-pen"></i> Modifica
+                </button>
+                <button type="button" id="btnConfirmFinalSubmit" class="btn-modal confirm-btn">
+                    <i class="fas fa-check-circle"></i> Conferma e Invia
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="feedbackModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon success">
-                <i class="fas fa-paper-plane"></i>
+                <i class="fas fa-check-circle"></i>
             </div>
             <h3 id="modalTitle">Candidatura Inviata!</h3>
             <p id="modalMessage">
@@ -427,6 +491,7 @@
     <script src="js/api_config.js"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
+    <script src="js/email_service.js"></script>
     <script src="js/diventa_tutor.js"></script>
     <script src="js/global_maintenance.js"></script>
     <script src="js/mobile-nav.js"></script>

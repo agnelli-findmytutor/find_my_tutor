@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadBanHistory(); // Carica lo storico dei ban
     loadActiveBans();  // Carica i ban attivi
     initMaintenanceControl(); // Inizializza il controllo manutenzione
+    initEmailSettingsControl(user); // Inizializza il pannello Sistema Email Google
 
     // --- SETUP MODALI ---
     const editModal = document.getElementById('adminEditModal');
@@ -110,6 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- SALVATAGGIO MODALI LEZIONI ---
     document.getElementById('adminEditForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const existingLesson = [...currentLessons, ...allCancelledLessons].find(l => String(l.id) === String(selectedId)) || {};
         const newData = {
             date: document.getElementById('editDate').value,
             time_slot: document.getElementById('editTime').value,
@@ -119,30 +121,97 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         const { error } = await sb.from('appointments').update(newData).eq('id', selectedId);
         if(error) alert("Errore: " + error.message);
-        else { editModal.classList.add('hidden'); loadAllAppointments(); loadCancelledLessons(); alert("Salvato."); }
+        else {
+            if (window.FMTEmailService) {
+                window.FMTEmailService.notifyLessonUpdated({
+                    actorRole: 'Amministrazione',
+                    actorName: user.user_metadata?.full_name || 'Staff FindMyTutor',
+                    studentId: existingLesson.user_id,
+                    studentName: existingLesson.student_name || 'Studente',
+                    studentEmail: existingLesson.student_email || '',
+                    tutorId: existingLesson.tutor_id,
+                    tutorName: existingLesson.tutor_name_cache || 'Tutor',
+                    subject: existingLesson.subject || 'Lezione',
+                    date: newData.date,
+                    time: newData.time_slot,
+                    status: newData.status,
+                    note: newData.notes,
+                    previousDate: existingLesson.date,
+                    previousTime: existingLesson.time_slot,
+                    previousNote: existingLesson.notes
+                }).catch(console.warn);
+            }
+            editModal.classList.add('hidden');
+            loadAllAppointments();
+            loadCancelledLessons();
+            alert("Modifiche salvate e notificate via email.");
+        }
     });
 
     document.getElementById('btnExecCancel').addEventListener('click', async () => {
         const reason = document.getElementById('adminCancelReason').value;
         if(!reason) { alert("Motivo obbligatorio."); return; }
+        const existingLesson = [...currentLessons, ...allCancelledLessons].find(l => String(l.id) === String(selectedId)) || {};
         const { error } = await sb.rpc('cancel_group_lesson', { 
             p_lesson_id: selectedId, 
             p_reason: reason 
         });
         if(error) alert(error.message);
-        else { cancelModal.classList.add('hidden'); loadAllAppointments(); loadCancelledLessons(); alert("Lezione annullata per tutto il gruppo."); }
+        else {
+            if (window.FMTEmailService) {
+                window.FMTEmailService.notifyLessonCancelled({
+                    cancelledByRole: 'Amministrazione',
+                    cancelledByName: user.user_metadata?.full_name || 'Staff FindMyTutor',
+                    reason: reason,
+                    studentId: existingLesson.user_id,
+                    studentName: existingLesson.student_name || 'Studente',
+                    studentEmail: existingLesson.student_email || '',
+                    tutorId: existingLesson.tutor_id,
+                    tutorName: existingLesson.tutor_name_cache || 'Tutor',
+                    subject: existingLesson.subject || 'Lezione',
+                    date: existingLesson.date || '',
+                    time: existingLesson.time_slot || ''
+                }).catch(console.warn);
+            }
+            cancelModal.classList.add('hidden');
+            loadAllAppointments();
+            loadCancelledLessons();
+            alert("Lezione annullata e notificata via email a studente e tutor.");
+        }
     });
 
     document.getElementById('btnExecPerm').addEventListener('click', async () => {
+        const existingLesson = [...currentLessons, ...allCancelledLessons].find(l => String(l.id) === String(selectedId)) || {};
         const { error } = await sb.from('appointments').delete().eq('id', selectedId);
         if(error) alert(error.message);
-        else { permDeleteModal.classList.add('hidden'); loadAllAppointments(); loadCancelledLessons(); alert("Eliminata."); }
+        else {
+            if (window.FMTEmailService && existingLesson.id) {
+                window.FMTEmailService.notifyLessonCancelled({
+                    cancelledByRole: 'Amministrazione',
+                    cancelledByName: user.user_metadata?.full_name || 'Staff FindMyTutor',
+                    reason: existingLesson.cancellation_reason || 'Prenotazione rimossa dall\'amministrazione',
+                    studentId: existingLesson.user_id,
+                    studentName: existingLesson.student_name || 'Studente',
+                    studentEmail: existingLesson.student_email || '',
+                    tutorId: existingLesson.tutor_id,
+                    tutorName: existingLesson.tutor_name_cache || 'Tutor',
+                    subject: existingLesson.subject || 'Lezione',
+                    date: existingLesson.date || '',
+                    time: existingLesson.time_slot || ''
+                }).catch(console.warn);
+            }
+            permDeleteModal.classList.add('hidden');
+            loadAllAppointments();
+            loadCancelledLessons();
+            alert("Eliminata.");
+        }
     });
 
     // --- SALVATAGGIO DETTAGLI UTENTE ---
     document.getElementById('adminUserDetailForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const uid = document.getElementById('editUserId').value;
+        const targetUser = allUsers.find(u => String(u.id) === String(uid)) || {};
         const updates = {
             class_info: document.getElementById('editUserClass').value,
             subjects: document.getElementById('editUserSubjects').value,
@@ -151,14 +220,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { error } = await sb.from('profiles').update(updates).eq('id', uid);
         if(error) alert("Errore: " + error.message);
         else {
+            if (window.FMTEmailService) {
+                window.FMTEmailService.notifyTutorProfileUpdated({
+                    userId: uid,
+                    fullName: targetUser.full_name || 'Utente',
+                    email: targetUser.email || '',
+                    className: updates.class_info,
+                    subjects: updates.subjects,
+                    availability: updates.availability,
+                    description: 'Aggiornato dal Pannello Admin'
+                }).catch(console.warn);
+            }
             document.getElementById('adminUserDetailModal').classList.add('hidden');
             loadUsers();
-            alert("Profilo aggiornato!");
+            alert("Profilo aggiornato e notificato via email!");
         }
     });
 });
 
 // --- FUNZIONI DI CARICAMENTO ---
+
+// --- GESTIONE SISTEMA EMAIL GOOGLE (staff.findmytutor@istitutoagnelli.it) ---
+async function initEmailSettingsControl(adminUser) {
+    if (!window.FMTEmailService) return;
+    const urlInput = document.getElementById('googleScriptUrlInput');
+    const pwdInput = document.getElementById('gmailAppPasswordInput');
+    const chkEnabled = document.getElementById('chkEmailEnabled');
+    const chkCcStaff = document.getElementById('chkEmailCcStaff');
+    const btnSave = document.getElementById('btnSaveEmailConfig');
+    const btnTest = document.getElementById('btnTestGoogleEmail');
+    const statusBox = document.getElementById('emailConfigStatusMsg');
+
+    const showStatus = (msg, isError = false) => {
+        if (!statusBox) return;
+        statusBox.style.display = 'block';
+        statusBox.style.background = isError ? '#fef2f2' : '#f0fdf4';
+        statusBox.style.color = isError ? '#991b1b' : '#166534';
+        statusBox.style.border = `1px solid ${isError ? '#fecaca' : '#bbf7d0'}`;
+        statusBox.innerHTML = msg;
+    };
+
+    try {
+        const cfg = await window.FMTEmailService.loadConfig();
+        if (urlInput) urlInput.value = cfg.googleScriptUrl || '';
+        if (chkEnabled) chkEnabled.checked = cfg.enabled !== false;
+        if (chkCcStaff) chkCcStaff.checked = cfg.ccStaff !== false;
+    } catch (e) {}
+
+    if (btnSave) {
+        btnSave.addEventListener('click', async () => {
+            const origHtml = btnSave.innerHTML;
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...';
+            try {
+                await window.FMTEmailService.saveConfig({
+                    googleScriptUrl: urlInput ? urlInput.value.trim() : '',
+                    gmailAppPassword: pwdInput && pwdInput.value.trim() ? pwdInput.value.trim() : undefined,
+                    enabled: chkEnabled ? chkEnabled.checked : true,
+                    ccStaff: chkCcStaff ? chkCcStaff.checked : true
+                });
+                if (pwdInput) pwdInput.value = '';
+                showStatus('<i class="fas fa-check-circle"></i> Configurazione email salvata con successo per <strong>staff.findmytutor@istitutoagnelli.it</strong>.');
+            } catch (err) {
+                showStatus('<i class="fas fa-exclamation-triangle"></i> Errore salvataggio: ' + escapeHtml(err.message), true);
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerHTML = origHtml;
+            }
+        });
+    }
+
+    if (btnTest) {
+        btnTest.addEventListener('click', async () => {
+            const origHtml = btnTest.innerHTML;
+            btnTest.disabled = true;
+            btnTest.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio test...';
+            try {
+                if (urlInput) {
+                    await window.FMTEmailService.saveConfig({
+                        googleScriptUrl: urlInput.value.trim(),
+                        gmailAppPassword: pwdInput && pwdInput.value.trim() ? pwdInput.value.trim() : undefined,
+                        enabled: chkEnabled ? chkEnabled.checked : true,
+                        ccStaff: chkCcStaff ? chkCcStaff.checked : true
+                    });
+                }
+                const targetTestEmail = (adminUser && adminUser.email) ? adminUser.email : window.FMTEmailService.STAFF_EMAIL;
+                const res = await window.FMTEmailService.sendTestEmail(targetTestEmail);
+                if (res && res.ok) {
+                    showStatus(`<i class="fas fa-paper-plane"></i> Email di test inviata con successo a <strong>${escapeHtml(targetTestEmail)}</strong> da <strong>staff.findmytutor@istitutoagnelli.it</strong>!`);
+                } else {
+                    showStatus(`<i class="fas fa-info-circle"></i> Per completare l'invio live, incolla l'URL Web App di <code>google_apps_script_mailer.gs</code> (collegato a <strong>staff.findmytutor@istitutoagnelli.it</strong>) oppure inserisci la App Password Gmail e clicca Salva.`, true);
+                }
+            } catch (err) {
+                showStatus('<i class="fas fa-exclamation-triangle"></i> Errore invio test: ' + escapeHtml(err.message), true);
+            } finally {
+                btnTest.disabled = false;
+                btnTest.innerHTML = origHtml;
+            }
+        });
+    }
+}
 
 // --- GESTIONE MANUTENZIONE ---
 async function initMaintenanceControl() {
@@ -328,7 +489,41 @@ window.openUserProfile = (id) => {
 
     document.getElementById('editUserId').value = user.id;
     document.getElementById('editUserClass').value = user.class_info || '';
-    document.getElementById('editUserSubjects').value = user.subjects || '';
+    const classSelect = document.getElementById('editUserClass');
+    const rawClass = user.class_info ? user.class_info.split(' | ')[0].trim() : '';
+    const renderAdminUserSubjectsGrid = (classVal, selectedList = []) => {
+        const grid = document.getElementById('adminSubjectsCheckboxGrid');
+        const hiddenInput = document.getElementById('editUserSubjects');
+        const countBadge = document.getElementById('adminSelectedSubjectsBadge');
+        if (!grid) return;
+        const syncAdminSubjects = () => {
+            const selected = (typeof SubjectsConfig !== 'undefined') ? SubjectsConfig.getSelectedSubjects(grid) : [];
+            if (hiddenInput) hiddenInput.value = selected.join(', ');
+            if (countBadge) countBadge.textContent = `${selected.length} selezionat${selected.length === 1 ? 'a' : 'e'}`;
+        };
+        if (typeof SubjectsConfig !== 'undefined' && classVal) {
+            const availSubs = SubjectsConfig.getSubjectsForClass(classVal);
+            const parsedClass = SubjectsConfig.parseClass(classVal);
+            const normalizedSelected = selectedList.map(s => SubjectsConfig.normalizeSubjectName(s, parsedClass ? parsedClass.schoolType : null));
+            SubjectsConfig.renderCheckboxGrid(grid, availSubs, normalizedSelected, syncAdminSubjects, { classStr: classVal });
+            syncAdminSubjects();
+        } else {
+            grid.innerHTML = '<p style="color:#64748b; font-size:0.82rem; margin:0;">Seleziona una classe per abilitare la selezione delle materie.</p>';
+            if (hiddenInput) hiddenInput.value = selectedList.join(', ');
+            if (countBadge) countBadge.textContent = `${selectedList.length} selezionate`;
+        }
+    };
+    if (typeof SubjectsConfig !== 'undefined' && classSelect) {
+        SubjectsConfig.populateClassSelect(classSelect, rawClass);
+        classSelect.onchange = () => {
+            const currentSelected = (typeof SubjectsConfig !== 'undefined') ? SubjectsConfig.getSelectedSubjects(document.getElementById('adminSubjectsCheckboxGrid')) : [];
+            renderAdminUserSubjectsGrid(classSelect.value, currentSelected);
+        };
+    } else if (classSelect) {
+        classSelect.value = rawClass;
+    }
+    const existingSubjects = user.subjects ? user.subjects.split(/[|,]/).map(s => s.trim()).filter(Boolean) : [];
+    renderAdminUserSubjectsGrid(classSelect ? classSelect.value : rawClass, existingSubjects);
     
     // Pulisci il costruttore
     document.getElementById('slotsContainer').innerHTML = '';
@@ -368,11 +563,22 @@ window.updateUserRole = async (userId) => {
     const newRole = document.getElementById(`role-${userId}`).value;
     if(!confirm(`Cambiare ruolo in "${newRole}"?`)) return;
     
+    const targetUser = allUsers.find(u => String(u.id) === String(userId)) || {};
     const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', userId);
     
     if (error) {
         alert("Errore: " + error.message);
     } else {
+        if (window.FMTEmailService) {
+            window.FMTEmailService.notifyUserRoleChanged({
+                userId: userId,
+                fullName: targetUser.full_name || 'Utente',
+                email: targetUser.email || '',
+                newRole: newRole,
+                className: targetUser.class_info || '-'
+            }).catch(console.warn);
+        }
+
         alert("Ruolo aggiornato con successo!");
         
         // Se l'admin ha cambiato il PROPRIO ruolo, dobbiamo aggiornare la cache e ricaricare
@@ -438,7 +644,6 @@ window.processRequest = async (reqId, email, action) => {
 
     try {
         // 2. RECUPERA I DATI DELLA RICHIESTA (Serve per copiare materie/orari)
-        // Dobbiamo leggere cosa ha scritto l'utente nel form
         const { data: requestData, error: fetchError } = await sb
             .from('tutor_requests')
             .select('*')
@@ -460,7 +665,6 @@ window.processRequest = async (reqId, email, action) => {
 
         // 4. SE APPROVATO -> TRASFERISCI I DATI NEL PROFILO PUBBLICO
         if (action === 'approved') {
-            // Usiamo l'ID utente dalla richiesta per trovare il profilo giusto
             const userId = requestData.user_id; 
 
             if (userId) {
@@ -477,13 +681,23 @@ window.processRequest = async (reqId, email, action) => {
 
                 if (profileError) throw profileError;
                 
-                alert(`Candidatura approvata! ${email} è ora un Tutor visibile nelle prenotazioni.`);
+                alert(`Candidatura approvata! ${email} è ora un Tutor visibile nelle prenotazioni e ha ricevuto l'email di conferma.`);
             } else {
-                // Fallback se per qualche motivo user_id è nullo (caso raro)
                 alert("Attenzione: Richiesta approvata ma ID utente non trovato. Controllare database.");
             }
         } else {
-            alert("Candidatura rifiutata.");
+            alert("Candidatura rifiutata e notificata via email.");
+        }
+
+        if (window.FMTEmailService) {
+            window.FMTEmailService.notifyTutorApplicationProcessed({
+                userId: requestData.user_id,
+                fullName: requestData.full_name || 'Candidato',
+                email: requestData.email || email,
+                status: action,
+                subjects: requestData.subjects,
+                availability: requestData.availability
+            }).catch(console.warn);
         }
 
         // 5. RICARICA LE TABELLE
@@ -551,8 +765,25 @@ window.openTab = (evt, tabName) => {
 
 window.deleteBooking = async (bookingId) => {
     if(!confirm("Cancellare?")) return;
+    let roomRow = null;
+    try {
+        const { data: rData } = await sb.from('room_bookings').select('*').eq('id', bookingId).maybeSingle();
+        roomRow = rData;
+    } catch (e) {}
     const { error } = await sb.from('room_bookings').delete().eq('id', bookingId);
-    if (error) alert("Errore"); else { alert("Cancellata."); loadBookings(); }
+    if (error) alert("Errore");
+    else {
+        if (window.FMTEmailService && roomRow) {
+            window.FMTEmailService.notifyRoomCancelled({
+                tutorUserId: roomRow.user_id,
+                roomNumber: roomRow.room_name || '-',
+                date: roomRow.day_label || '',
+                actorRole: 'Amministrazione'
+            }).catch(console.warn);
+        }
+        alert("Prenotazione aula cancellata.");
+        loadBookings();
+    }
 };
 
 async function loadAllAppointments() {
@@ -789,13 +1020,31 @@ window.confirmBan = async () => {
         }
 
         // 2. Se è un tutor, degrada a Studente e logga
-        const user = allUsers.find(u => u.id === selectedId);
-        if (user && user.role === 'tutor') {
+        const targetUser = allUsers.find(u => u.id === selectedId) || {};
+        if (targetUser && targetUser.role === 'tutor') {
             await sb.from('profiles').update({ role: 'studente' }).eq('id', selectedId);
             await sb.from('banned_tutors_log').insert([{ user_id: selectedId, reason: reason }]);
         }
 
-        alert("Operazione completata con successo.");
+        if (window.FMTEmailService) {
+            const durationLabels = {
+                degrade: 'Rimozione ruolo Tutor',
+                '24': '24 Ore',
+                '168': '7 Giorni',
+                '720': '30 Giorni',
+                permanent: 'Permanente'
+            };
+            window.FMTEmailService.notifyUserBanStatusChanged({
+                userId: selectedId,
+                fullName: targetUser.full_name || 'Utente',
+                email: targetUser.email || '',
+                actionType: banType === 'degrade' ? 'degrade' : 'ban',
+                untilText: durationLabels[banType] || banType,
+                reason: reason
+            }).catch(console.warn);
+        }
+
+        alert("Operazione completata con successo e notificata via email.");
     } catch (err) {
         alert("Errore durante il ban: " + err.message);
     }
@@ -810,6 +1059,7 @@ window.revokeBan = async (userId) => {
     if(!confirm("Vuoi revocare la sospensione per questo utente? Potrà accedere immediatamente.")) return;
     
     try {
+        const targetUser = allUsers.find(u => String(u.id) === String(userId)) || {};
         // Chiamiamo la funzione esistente con 0 ore per rimuovere il ban
         const { error } = await sb.rpc('admin_manage_ban', { 
             target_user_id: userId, 
@@ -817,6 +1067,16 @@ window.revokeBan = async (userId) => {
         });
         
         if (error) throw error;
+
+        if (window.FMTEmailService) {
+            window.FMTEmailService.notifyUserBanStatusChanged({
+                userId: userId,
+                fullName: targetUser.full_name || 'Utente',
+                email: targetUser.email || '',
+                actionType: 'revoked',
+                reason: 'Riabilitazione account disposta dall\'amministrazione'
+            }).catch(console.warn);
+        }
         
         alert("Sospensione revocata con successo.");
         loadActiveBans();
@@ -905,5 +1165,20 @@ async function loadBanHistory() {
         tbody.appendChild(row);
     });
 }
+window.filterAdminUsers = (query) => {
+    const q = (query || '').trim().toLowerCase();
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        row.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+};
+
+window.filterAdminLessons = (query) => {
+    const q = (query || '').trim().toLowerCase();
+    document.querySelectorAll('#adminAppointmentsList .lesson-card').forEach(card => {
+        const text = (card.textContent || '').toLowerCase();
+        card.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+};
 })();
 

@@ -22,9 +22,76 @@ let isGroupMode = false;
 let allStudents = [];
 let selectedStudents = [];
 
-// --- HELPER TIME FUNCTIONS ---
-const timeToMin = (t) => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-const minToTime = (m) => { const h = Math.floor(m/60); const mn = m%60; return `${h.toString().padStart(2,'0')}:${mn.toString().padStart(2,'0')}`; };
+// --- HELPER TIME & AVAILABILITY FUNCTIONS ---
+const timeToMin = (t) => {
+    if (!t || typeof t !== 'string') return 0;
+    const match = t.match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 0;
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+};
+const minToTime = (m) => {
+    const safeM = Math.max(0, Math.round(Number(m) || 0));
+    const h = Math.floor(safeM / 60);
+    const mn = safeM % 60;
+    return `${h.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`;
+};
+
+function parseLocalDateDayOfWeek(dateStr) {
+    if (!dateStr) return -1;
+    const parts = dateStr.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return -1;
+    return new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+}
+
+function formatLocalDateISO(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function getNextDateForDayIndex(targetDayIndex) {
+    const now = new Date();
+    const startOffset = now.getHours() >= 17 ? 1 : 0;
+    for (let offset = startOffset; offset <= 14; offset++) {
+        const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+        if (candidate.getDay() === targetDayIndex) {
+            return formatLocalDateISO(candidate);
+        }
+    }
+    return formatLocalDateISO(now);
+}
+
+function parseTutorAvailability(rawAvail) {
+    const parsed = [];
+    if (rawAvail && typeof rawAvail === 'string') {
+        const regex = /(domenica|luned[iì]|marted[iì]|mercoled[iì]|gioved[iì]|venerd[iì]|sabato)\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/gi;
+        let match;
+        while ((match = regex.exec(rawAvail)) !== null) {
+            const dayName = match[1].toLowerCase();
+            const startStr = match[2];
+            const endStr = match[3];
+            if (DAY_MAP.hasOwnProperty(dayName)) {
+                const capDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                parsed.push({
+                    dayIndex: DAY_MAP[dayName],
+                    dayLabel: capDay,
+                    range: `${startStr} - ${endStr}`,
+                    label: `${capDay} ${startStr} - ${endStr}`
+                });
+            }
+        }
+    }
+    if (parsed.length === 0) {
+        // Fallback standard pomeridiano se il tutor ha un formato legacy non standard
+        [
+            { dayIndex: 1, dayLabel: 'Lunedì', range: '14:15 - 17:15', label: 'Lunedì 14:15 - 17:15' },
+            { dayIndex: 3, dayLabel: 'Mercoledì', range: '14:15 - 17:15', label: 'Mercoledì 14:15 - 17:15' },
+            { dayIndex: 5, dayLabel: 'Venerdì', range: '14:15 - 17:15', label: 'Venerdì 14:15 - 17:15' }
+        ].forEach(item => parsed.push(item));
+    }
+    return parsed;
+}
 
 const escapeHtml = (unsafe) => {
     if (typeof unsafe !== 'string') return unsafe || '';
@@ -42,6 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterYear = document.getElementById('filterYear');
     const filterSchoolType = document.getElementById('filterSchoolType');
     const filterSubject = document.getElementById('filterSubject');
+    const studentOwnClassSelect = document.getElementById('studentOwnClassSelect');
     const selectTutor = document.getElementById('selectTutor');
     const tutorCardsContainer = document.getElementById('tutorCardsContainer');
     const bookingForm = document.getElementById('bookingForm');
@@ -57,11 +125,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dateError = document.getElementById('dateError');
     const lessonNotes = document.getElementById('lessonNotes');
 
-    // Modali
+    // Modali & Error Banner
     const editModal = document.getElementById('editModal');
     const deleteModal = document.getElementById('deleteModal');
     const successModal = document.getElementById('successModal');
     const warningModal = document.getElementById('warningModal');
+    const bookingInlineErrorBanner = document.getElementById('bookingInlineErrorBanner');
+    const bookingInlineErrorTitle = document.getElementById('bookingInlineErrorTitle');
+    const bookingInlineErrorText = document.getElementById('bookingInlineErrorText');
+    const btnCloseBookingError = document.getElementById('btnCloseBookingError');
 
     // --- SWITCHER VISTA MOBILE (PRENOTA vs LE MIE LEZIONI) ---
     const btnViewBooking = document.getElementById('btnViewBooking');
@@ -430,13 +502,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function showWarning(msg) {
+    function hideBookingInlineError() {
+        if (bookingInlineErrorBanner) bookingInlineErrorBanner.classList.add('hidden');
+    }
+
+    if (btnCloseBookingError) {
+        btnCloseBookingError.addEventListener('click', hideBookingInlineError);
+    }
+
+    function showWarning(msg, title = "Attenzione") {
+        // 1. Mostra sempre il banner inline ben visibile in cima al form
+        if (bookingInlineErrorBanner && bookingInlineErrorText) {
+            if (bookingInlineErrorTitle) bookingInlineErrorTitle.textContent = title;
+            bookingInlineErrorText.innerHTML = msg;
+            bookingInlineErrorBanner.classList.remove('hidden');
+            try {
+                bookingInlineErrorBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (e) {}
+        }
+        // 2. Mostra anche il modale di avviso con z-index elevato
         const wMsg = document.getElementById('warningMessage');
         if (wMsg) wMsg.innerHTML = msg;
         if (warningModal) warningModal.classList.remove('hidden');
     }
 
     function showSuccess(title, msg) {
+        hideBookingInlineError();
         const sTitle = document.getElementById('successTitle');
         const sMsg = document.getElementById('successMessage');
         if (sTitle) sTitle.textContent = title;
@@ -446,6 +537,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function closeModal(modal) { 
         if (modal) modal.classList.add('hidden'); 
+    }
+
+    // Popola il menu <select id="editSubject"> con le sole materie frequentate dallo studente
+    function populateEditSubjectSelect(currentSubj) {
+        const subjSelect = document.getElementById('editSubject');
+        if (!subjSelect) return;
+
+        const ownClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
+        let allowedSubjects = [];
+
+        if (typeof SubjectsConfig !== 'undefined') {
+            if (ownClass) {
+                allowedSubjects = SubjectsConfig.getAttendedSubjectsForStudent(ownClass);
+            } else {
+                const y = filterYear.value || 5;
+                const st = filterSchoolType.value || 'ITT';
+                const ittSubs = SubjectsConfig.getSubjectsForYearAndSchool(y, 'ITT');
+                const liceoSubs = SubjectsConfig.getSubjectsForYearAndSchool(y, 'Liceo');
+                allowedSubjects = Array.from(new Set([...(st === 'Liceo' ? liceoSubs : ittSubs), ...ittSubs, ...liceoSubs]));
+            }
+        }
+
+        if (currentSubj && !allowedSubjects.includes(currentSubj)) {
+            allowedSubjects = [currentSubj, ...allowedSubjects];
+        }
+
+        subjSelect.innerHTML = '<option value="">-- Seleziona materia --</option>';
+        allowedSubjects.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            if (s === currentSubj) opt.selected = true;
+            subjSelect.appendChild(opt);
+        });
     }
 
     // --- 2. GESTIONE CLICK SULLA LISTA (EVENT DELEGATION) ---
@@ -491,8 +616,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let dur = String(lesson.duration || '60').replace(' min', '').trim();
         document.getElementById('editDuration').value = dur + " min";
 
-        const subjInput = document.getElementById('editSubject');
-        if (subjInput) subjInput.value = lesson.subject || '';
+        populateEditSubjectSelect(lesson.subject || '');
 
         await updateEditTimeSlots();
         
@@ -511,61 +635,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!dateVal || !tutorId || !editTimeEl) return;
 
-        const selectedDate = new Date(dateVal);
-        const dayOfWeek = selectedDate.getDay();
-        
-        const tutor = allTutors.find(t => t.id === tutorId);
-        if (!tutor || !tutor.availability) return;
-
-        const tutorAvail = [];
-        tutor.availability.split(',').forEach(part => {
-            part = part.trim();
-            const spaceIndex = part.indexOf(' ');
-            if (spaceIndex === -1) return;
-            const dayName = part.substring(0, spaceIndex).trim().toLowerCase();
-            const timeRange = part.substring(spaceIndex + 1).trim();
-            if (DAY_MAP.hasOwnProperty(dayName)) {
-                tutorAvail.push({ dayIndex: DAY_MAP[dayName], range: timeRange });
-            }
-        });
+        const dayOfWeek = parseLocalDateDayOfWeek(dateVal);
+        const tutor = allTutors.find(t => String(t.id) === String(tutorId));
+        const tutorAvail = parseTutorAvailability(tutor ? tutor.availability : '');
 
         const validRanges = tutorAvail.filter(item => item.dayIndex === dayOfWeek);
 
         if (validRanges.length === 0) {
-            editTimeEl.innerHTML = '<option value="">-- Tutor non disponibile --</option>';
+            editTimeEl.innerHTML = '<option value="">-- Tutor non disponibile in questo giorno --</option>';
             editTimeEl.disabled = true;
             return;
         }
 
         editTimeEl.innerHTML = '<option value="">Caricamento...</option>';
         
-        const { data: existingApps } = await sbClient
-            .from('appointments')
-            .select('id, time_slot, duration')
-            .eq('tutor_id', tutorId)
-            .eq('date', dateVal)
-            .neq('status', 'Cancellata')
-            .neq('id', currentAppId); 
+        let existingApps = [];
+        try {
+            if (isMastercomUser && typeof FMT_API !== 'undefined') {
+                const occRes = await FMT_API.getAppointments(null, tutorId, dateVal);
+                const list = Array.isArray(occRes) ? occRes : (occRes && occRes.appointments ? occRes.appointments : []);
+                existingApps = list.filter(a => a.status !== 'Cancellata' && String(a.id) !== String(currentAppId));
+            } else {
+                const { data: sbApps } = await sbClient
+                    .from('appointments')
+                    .select('id, time_slot, duration')
+                    .eq('tutor_id', tutorId)
+                    .eq('date', dateVal)
+                    .neq('status', 'Cancellata')
+                    .neq('id', currentAppId);
+                existingApps = sbApps || [];
+            }
+        } catch (err) {
+            console.warn("Errore controllo slot modifica:", err);
+            existingApps = [];
+        }
 
         const occupiedSet = new Set();
         (existingApps || []).forEach(app => {
             const start = timeToMin(app.time_slot);
-            const dur = parseInt(app.duration) || 60; 
-            for (let i = 0; i < dur; i += 30) occupiedSet.add(start + i);
+            const dur = parseInt(app.duration, 10) || 60; 
+            for (let i = 0; i < dur; i += 15) occupiedSet.add(start + i);
         });
 
         const availableOptions = [];
+        const seenTimes = new Set();
         validRanges.forEach(slot => {
             const [sStr, eStr] = slot.range.split('-');
             if (!sStr || !eStr) return;
             const startRange = timeToMin(sStr.trim());
             const endRange = timeToMin(eStr.trim());
 
-            for (let t = startRange; t < endRange; t += 30) {
-                if (!occupiedSet.has(t) && !occupiedSet.has(t + 30) && (t + 60 <= endRange)) {
+            for (let t = startRange; t + 60 <= endRange; t += 15) {
+                const free60 = !occupiedSet.has(t) && !occupiedSet.has(t + 15) && !occupiedSet.has(t + 30) && !occupiedSet.has(t + 45);
+                if (free60) {
                     let maxDur = 60;
-                    if (!occupiedSet.has(t + 60) && (t + 90 <= endRange)) maxDur = 90;
-                    availableOptions.push({ time: minToTime(t), maxDur: maxDur });
+                    const free90 = !occupiedSet.has(t + 60) && !occupiedSet.has(t + 75) && (t + 90 <= endRange);
+                    if (free90) maxDur = 90;
+                    const tFormatted = minToTime(t);
+                    if (!seenTimes.has(tFormatted)) {
+                        seenTimes.add(tFormatted);
+                        availableOptions.push({ time: tFormatted, maxDur: maxDur });
+                    }
                 }
             }
         });
@@ -576,7 +706,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             availableOptions.forEach(optData => {
                 const opt = document.createElement('option');
                 opt.value = optData.time;
-                opt.textContent = optData.time;
+                opt.textContent = `${optData.time} (fino a ${optData.maxDur} min)`;
                 opt.setAttribute('data-max-duration', optData.maxDur);
                 editTimeEl.appendChild(opt);
             });
@@ -646,14 +776,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     await loadTutors();
     initMastercomBanner();
-
-    // Se l'utente Mastercom ha già anno e scuola nel profilo, pre-impostiamo il Passo 1!
-    if (fmtUser && fmtUser.class_year && fmtUser.school_type) {
-        filterYear.value = String(fmtUser.class_year);
-        filterSchoolType.value = fmtUser.school_type;
-        syncQuickPills();
-        updateSubjects();
-    }
 
     // --- CARICAMENTO LEZIONI DELLO STUDENTE ---
     async function fetchLessons() {
@@ -858,6 +980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const subjInput = document.getElementById('editSubject');
             const subject = subjInput ? subjInput.value : null;
 
+            const existingLesson = currentLessons.find(l => String(l.id) === String(idToModify)) || {};
             const updateData = { date: d, time_slot: t, notes: note, duration: dur };
             if (subject) updateData.subject = subject;
 
@@ -869,8 +992,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const { error } = await sbClient.from('appointments').update(updateData).eq('id', idToModify);
                     if (error) throw error;
                 }
+
+                if (window.FMTEmailService) {
+                    const studentDisplayName = user.user_metadata?.full_name || existingLesson.student_name || user.email;
+                    const studentClassVal = (studentOwnClassSelect && studentOwnClassSelect.value) || (fmtUser && fmtUser.class_info) || '';
+                    window.FMTEmailService.notifyLessonUpdated({
+                        actorRole: 'Studente',
+                        actorName: studentDisplayName,
+                        studentId: user.id,
+                        studentName: studentDisplayName,
+                        studentEmail: user.email,
+                        studentClass: studentClassVal,
+                        tutorId: existingLesson.tutor_id,
+                        tutorName: existingLesson.tutor_name_cache || 'Tutor',
+                        tutorEmail: getTutorEmail(existingLesson.tutor_id),
+                        subject: subject || existingLesson.subject,
+                        date: d,
+                        time: t,
+                        duration: parseInt(dur, 10) || 60,
+                        note: note,
+                        previousDate: existingLesson.date,
+                        previousTime: existingLesson.time_slot,
+                        previousDuration: existingLesson.duration ? parseInt(existingLesson.duration, 10) : undefined,
+                        previousNote: existingLesson.notes
+                    }).catch(console.warn);
+                }
+
                 closeModal(editModal);
-                showSuccess("Lezione Aggiornata", "Le modifiche sono state salvate con successo.");
+                showSuccess("Lezione Aggiornata", "Le modifiche sono state salvate e notificate via email al tutor.");
                 fetchLessons();
             } catch(err) { showWarning("Errore: " + err.message); }
         });
@@ -880,23 +1029,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', async () => {
             if (!idToModify) return;
+            const existingLesson = currentLessons.find(l => String(l.id) === String(idToModify)) || {};
+            const studentDisplayName = user.user_metadata?.full_name || existingLesson.student_name || user.email;
+            const cancelReasonText = `Cancellata dallo studente (${studentDisplayName})`;
             try {
                 if (isMastercomUser) {
-                    const res = await FMT_API.cancelAppointment(idToModify, 'Cancellata dallo studente');
+                    const res = await FMT_API.cancelAppointment(idToModify, cancelReasonText);
                     if (res && res.success === false) throw new Error(res.message || "Errore durante la cancellazione.");
-                    closeModal(deleteModal);
-                    fetchLessons();
-                    showSuccess("Lezione Annullata", "La tua prenotazione è stata cancellata.");
                 } else {
                     const { error } = await sbClient.rpc('cancel_group_lesson', {
                         p_lesson_id: idToModify,
-                        p_reason: 'Cancellata dallo studente'
+                        p_reason: cancelReasonText
                     });
                     if (error) throw error;
-                    closeModal(deleteModal);
-                    fetchLessons();
-                    showSuccess("Lezione Annullata", "La lezione è stata annullata per tutti i partecipanti.");
                 }
+
+                if (window.FMTEmailService) {
+                    const studentClassVal = (studentOwnClassSelect && studentOwnClassSelect.value) || (fmtUser && fmtUser.class_info) || '';
+                    window.FMTEmailService.notifyLessonCancelled({
+                        cancelledByRole: 'Studente',
+                        cancelledByName: studentDisplayName,
+                        reason: cancelReasonText,
+                        studentId: user.id,
+                        studentName: studentDisplayName,
+                        studentEmail: user.email,
+                        studentClass: studentClassVal,
+                        tutorId: existingLesson.tutor_id,
+                        tutorName: existingLesson.tutor_name_cache || 'Tutor',
+                        tutorEmail: getTutorEmail(existingLesson.tutor_id),
+                        subject: existingLesson.subject,
+                        date: existingLesson.date,
+                        time: existingLesson.time_slot
+                    }).catch(console.warn);
+                }
+
+                closeModal(deleteModal);
+                fetchLessons();
+                showSuccess("Lezione Annullata", "La lezione è stata annullata e il tutor è stato avvisato via email.");
             } catch(err) {
                 showWarning("Errore: " + err.message);
             }
@@ -915,6 +1084,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!selectedStar) { showWarning("Seleziona da 1 a 5 stelle prima di inviare!"); return; }
             
             const ratingValue = parseInt(selectedStar.value);
+            const ratedLesson = currentLessons.find(l => String(l.id) === String(idToModify)) || {};
             btnSubmitRating.disabled = true;
             btnSubmitRating.innerText = "Invio...";
 
@@ -930,8 +1100,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }]);
                     if (error) throw error;
                 }
+
+                if (window.FMTEmailService) {
+                    window.FMTEmailService.notifyTutorRated({
+                        tutorId: tutorIdToRate,
+                        tutorName: ratedLesson.tutor_name_cache || 'Tutor',
+                        tutorEmail: getTutorEmail(tutorIdToRate),
+                        studentName: user.user_metadata?.full_name || user.email,
+                        subject: ratedLesson.subject || 'Lezione',
+                        score: ratingValue
+                    }).catch(console.warn);
+                }
+
                 document.getElementById('ratingModal').classList.add('hidden');
-                showSuccess("Grazie!", "La tua valutazione anonima è stata registrata.");
+                showSuccess("Grazie!", "La tua valutazione è stata registrata.");
                 fetchLessons();
             } catch(e) { showWarning("Errore: " + e.message); }
             finally { btnSubmitRating.disabled = false; btnSubmitRating.innerText = "Invia Voto"; }
@@ -943,20 +1125,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnSuccessClose')?.addEventListener('click', () => closeModal(successModal));
     document.getElementById('btnWarningClose')?.addEventListener('click', () => closeModal(warningModal));
 
-    // --- 5. LOGICA PRENOTAZIONE (COMPATIBILE CON NUOVO FORMATO CLASSI E LEGACY) ---
+    // --- 5. LOGICA PRENOTAZIONE (PIANO DI STUDI, MATERIE COMPLETE ITT/LICEO, RETROATTIVITÀ & ORARI) ---
 
     // Verifica se una singola stringa di classe tutor (es. "4INFO", "5A", "3 ITT", "4 Liceo")
     // è idonea ad insegnare allo studente di anno `studentYear` (1..5) e indirizzo `studentSchoolType` ("ITT" / "Liceo")
+    // REGOLA RETROATTIVA: Un tutor del 4° anno può insegnare alle classi di 1°, 2°, 3° e 4° anno!
     function canTutorClassTeach(tutorClassStr, studentYear, studentSchoolType) {
         if (!tutorClassStr) return false;
         const clean = tutorClassStr.trim();
         const sYearNum = parseInt(studentYear, 10);
+        if (isNaN(sYearNum)) return false;
 
-        // 1. Formato SubjectsConfig (es. "4INFO", "3ELN", "5A", "2ITT")
+        // 1. Formato SubjectsConfig (es. "4INFO", "3ELN", "5A", "2ITT", "3 ITT", "4 Liceo")
         if (typeof SubjectsConfig !== 'undefined') {
             const parsed = SubjectsConfig.parseClass(clean);
             if (parsed) {
-                // Stesso indirizzo e anno del tutor >= anno dello studente
+                // Stesso indirizzo e anno del tutor >= anno dello studente (Retroattività!)
                 if (parsed.schoolType === studentSchoolType && parsed.year >= sYearNum) {
                     return true;
                 }
@@ -968,16 +1152,125 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // 2. Formato Legacy (es. "3 ITT", "4 Liceo")
+        // 2. Fallback Legacy
         const lowC = clean.toLowerCase();
-        const matchesYear = lowC.startsWith(String(studentYear));
+        const yearMatch = lowC.match(/^([1-5])/);
+        const tYearNum = yearMatch ? parseInt(yearMatch[1], 10) : 0;
+        const matchesYear = tYearNum >= sYearNum;
         const matchesType = studentSchoolType === "Liceo" ? lowC.includes("liceo") : !lowC.includes("liceo");
         return matchesYear && matchesType;
+    }
+
+    // Applica il blocco del piano di studi in base alla classe frequentata dallo studente
+    function enforceStudentCurriculumLock(triggerSubjectUpdate = true) {
+        const ownClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
+        if (ownClass) {
+            try { localStorage.setItem('fmt_student_own_class', ownClass); } catch (e) {}
+        }
+
+        const parsedOwn = (typeof SubjectsConfig !== 'undefined' && ownClass)
+            ? SubjectsConfig.parseClass(ownClass)
+            : null;
+
+        // Abilita/disabilita pillole Anno (lo studente può prenotare solo per anni <= al proprio anno attuale)
+        document.querySelectorAll('#quickYearPills .q-pill').forEach(btn => {
+            const pillYear = parseInt(btn.getAttribute('data-val'), 10);
+            if (parsedOwn && pillYear > parsedOwn.year) {
+                btn.disabled = true;
+                btn.classList.add('disabled-by-curriculum');
+                btn.title = `Non puoi prenotare materie del ${pillYear}° anno (frequenti il ${parsedOwn.year}° anno)`;
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('disabled-by-curriculum');
+                btn.title = '';
+            }
+        });
+
+        // Abilita/disabilita opzioni nel select nascosto filterYear
+        Array.from(filterYear.options).forEach(opt => {
+            if (!opt.value) return;
+            const optYear = parseInt(opt.value, 10);
+            opt.disabled = !!(parsedOwn && optYear > parsedOwn.year);
+        });
+
+        // Abilita/disabilita pillole Indirizzo (lo studente può prenotare solo per il proprio indirizzo ITT o Liceo)
+        document.querySelectorAll('#quickSchoolPills .q-pill').forEach(btn => {
+            const pillSchool = btn.getAttribute('data-val');
+            if (parsedOwn && pillSchool !== parsedOwn.schoolType) {
+                btn.disabled = true;
+                btn.classList.add('disabled-by-curriculum');
+                btn.title = `Frequenti l'indirizzo ${parsedOwn.schoolType}: puoi prenotare solo materie del tuo piano di studi`;
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('disabled-by-curriculum');
+                btn.title = '';
+            }
+        });
+
+        if (parsedOwn) {
+            filterSchoolType.value = parsedOwn.schoolType;
+            const curY = parseInt(filterYear.value, 10);
+            if (!curY || curY > parsedOwn.year) {
+                filterYear.value = String(parsedOwn.year);
+            }
+        }
+
+        syncQuickPills();
+        if (triggerSubjectUpdate) {
+            updateSubjects();
+        }
+    }
+
+    // Inizializzazione selettore classe studente (#studentOwnClassSelect)
+    async function initStudentCurriculumBar() {
+        if (!studentOwnClassSelect || typeof SubjectsConfig === 'undefined') return;
+
+        let detectedClass = '';
+        if (fmtUser && fmtUser.class_info) {
+            detectedClass = fmtUser.class_info.split(' | ')[0].trim();
+        } else if (fmtUser && fmtUser.class_year && fmtUser.school_type) {
+            const y = parseInt(fmtUser.class_year, 10);
+            if (fmtUser.school_type === 'Liceo') detectedClass = `${y}A`;
+            else if (y <= 2) detectedClass = `${y}ITT`;
+            else detectedClass = `${y}INFO`;
+        }
+
+        if (!detectedClass && sbUser) {
+            try {
+                const { data: prof } = await sbClient.from('profiles').select('class_info').eq('id', user.id).single();
+                if (prof && prof.class_info) {
+                    detectedClass = prof.class_info.split(' | ')[0].trim();
+                }
+            } catch (e) {}
+        }
+
+        if (!detectedClass) {
+            try {
+                detectedClass = localStorage.getItem('fmt_student_own_class') || '';
+            } catch (e) {}
+        }
+
+        SubjectsConfig.populateClassSelect(studentOwnClassSelect, detectedClass);
+
+        studentOwnClassSelect.addEventListener('change', () => {
+            hideBookingInlineError();
+            enforceStudentCurriculumLock(true);
+        });
+
+        if (detectedClass && studentOwnClassSelect.value) {
+            enforceStudentCurriculumLock(true);
+        } else if (fmtUser && fmtUser.class_year && fmtUser.school_type) {
+            filterYear.value = String(fmtUser.class_year);
+            filterSchoolType.value = fmtUser.school_type;
+            syncQuickPills();
+            updateSubjects();
+        }
     }
 
     function updateSubjects() {
         const y = filterYear.value;
         const type = filterSchoolType.value;
+        const ownClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
         syncQuickPills();
 
         filterSubject.innerHTML = '<option value="">Seleziona materia...</option>';
@@ -990,7 +1283,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!y || !type) return;
 
-        const subjectSet = new Set();
+        // Verifica vincolo piano di studi se lo studente ha indicato la propria classe
+        if (typeof SubjectsConfig !== 'undefined' && ownClass) {
+            const parsedOwn = SubjectsConfig.parseClass(ownClass);
+            if (parsedOwn) {
+                if (parseInt(y, 10) > parsedOwn.year) {
+                    showWarning(`Frequenti il <strong>${parsedOwn.year}° anno</strong>: puoi prenotare ripetizioni solo per materie che frequenti o hai frequentato (dal 1° al ${parsedOwn.year}° anno).`, "Anno non consentito dal piano di studi");
+                    filterYear.value = String(parsedOwn.year);
+                    syncQuickPills();
+                    return updateSubjects();
+                }
+                if (type !== parsedOwn.schoolType) {
+                    showWarning(`Frequenti l'indirizzo <strong>${parsedOwn.schoolType}</strong>: puoi prenotare ripetizioni solo per materie del tuo indirizzo.`, "Indirizzo non consentito");
+                    filterSchoolType.value = parsedOwn.schoolType;
+                    syncQuickPills();
+                    return updateSubjects();
+                }
+            }
+        }
+
+        // 1. Tutte le materie ufficiali del piano di studi per (y, type)
+        const curriculumSubjects = (typeof SubjectsConfig !== 'undefined')
+            ? SubjectsConfig.getSubjectsForYearAndSchool(y, type, ownClass)
+            : [];
+
+        // Se lo studente ha una classe specifica, limitiamo alle materie che frequenta o ha frequentato
+        const attendedSet = (typeof SubjectsConfig !== 'undefined' && ownClass)
+            ? new Set(SubjectsConfig.getAttendedSubjectsForStudent(ownClass))
+            : null;
+
+        const allSubjectSet = new Set();
+        curriculumSubjects.forEach(sub => {
+            if (!attendedSet || attendedSet.has(sub)) {
+                allSubjectSet.add(sub);
+            }
+        });
+
+        // 2. Mappa le materie che hanno già almeno un tutor attivo (inclusa retroattività!)
+        const activeTutorSubjects = new Set();
         allTutors.forEach(t => {
             const classes = t.class_info ? t.class_info.split(' | ') : [];
             const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
@@ -999,20 +1329,47 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const subGroup = subjectsList[idx] !== undefined ? subjectsList[idx] : (subjectsList[0] || '');
                 if (canTutorClassTeach(c, y, type) && subGroup) {
                     subGroup.split(',').forEach(s => {
-                        const cleanSub = s.trim();
-                        if (cleanSub) subjectSet.add(cleanSub);
+                        const rawSub = s.trim();
+                        if (!rawSub) return;
+                        const normSub = (typeof SubjectsConfig !== 'undefined')
+                            ? SubjectsConfig.normalizeSubjectName(rawSub, type)
+                            : rawSub;
+                        activeTutorSubjects.add(normSub);
+                        if (!attendedSet || attendedSet.has(normSub)) {
+                            allSubjectSet.add(normSub);
+                        }
                     });
                 }
             });
         });
 
-        // Se l'utente ha materie da Mastercom, assicuriamoci che siano visibili se pertinenti
-        if (subjectSet.size > 0) {
+        if (allSubjectSet.size > 0) {
             filterSubject.disabled = false;
             const studentSubjects = (fmtUser && fmtUser.materie) ? fmtUser.materie : [];
-            const sortedSubjects = Array.from(subjectSet).sort((a, b) => {
-                const aInTimetable = studentSubjects.includes(a);
-                const bInTimetable = studentSubjects.includes(b);
+
+            const hasActiveTutorFor = (subj) => {
+                for (const tSub of activeTutorSubjects) {
+                    if (typeof SubjectsConfig !== 'undefined' ? SubjectsConfig.subjectsMatch(tSub, subj) : tSub.toLowerCase() === subj.toLowerCase()) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            const isInMastercomTimetable = (subj) => {
+                return studentSubjects.some(ms =>
+                    typeof SubjectsConfig !== 'undefined' ? SubjectsConfig.subjectsMatch(ms, subj) : ms.toLowerCase() === subj.toLowerCase()
+                );
+            };
+
+            const sortedSubjects = Array.from(allSubjectSet).sort((a, b) => {
+                const aTutor = hasActiveTutorFor(a);
+                const bTutor = hasActiveTutorFor(b);
+                if (aTutor && !bTutor) return -1;
+                if (!aTutor && bTutor) return 1;
+
+                const aInTimetable = isInMastercomTimetable(a);
+                const bInTimetable = isInTimetable ? isInMastercomTimetable(b) : false;
                 if (aInTimetable && !bInTimetable) return -1;
                 if (!aInTimetable && bInTimetable) return 1;
                 return a.localeCompare(b, 'it');
@@ -1021,12 +1378,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             sortedSubjects.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
-                const isTimetable = studentSubjects.includes(s);
-                opt.textContent = isTimetable ? `${s} ⭐ (Dal tuo orario)` : s;
+                const isTimetable = isInMastercomTimetable(s);
+                const hasTutor = hasActiveTutorFor(s);
+                let label = s;
+                if (isTimetable) label += ' ⭐ (Dal tuo orario)';
+                if (hasTutor) label += ' • Tutor disponibili';
+                opt.textContent = label;
                 filterSubject.appendChild(opt);
             });
         } else {
-            filterSubject.innerHTML = '<option value="">Nessun tutor attivo per questo anno/indirizzo</option>';
+            filterSubject.innerHTML = '<option value="">Nessuna materia disponibile per questo anno/indirizzo</option>';
         }
     }
 
@@ -1045,17 +1406,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             tutorCardsContainer.innerHTML = `
                 <div class="step-placeholder" style="border-color:#ffcdd2; background:#fff5f5; color:#c62828;">
                     <i class="fas fa-exclamation-circle" style="color:#d32f2f;"></i>
-                    <span>Nessun tutor disponibile per questa materia al momento.</span>
+                    <span>Nessun tutor attivo per <strong>${escapeHtml(filterSubject.value)}</strong> al momento. Prova un'altra materia!</span>
                 </div>`;
             return;
         }
 
         tutorCardsContainer.innerHTML = '';
+        const selectedStudentYear = parseInt(filterYear.value, 10) || 1;
+
         tutorsList.forEach((t, idx) => {
             const name = t.full_name || (t.email ? t.email.split('@')[0] : 'Tutor');
             const initials = name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || 'T';
             const classBadge = t.class_info ? t.class_info.split(' | ')[0] : 'Tutor';
-            const availPreview = t.availability ? t.availability.split(',')[0].trim() : 'Orari flessibili';
+            const parsedTutorClass = (typeof SubjectsConfig !== 'undefined') ? SubjectsConfig.parseClass(classBadge) : null;
+            const isRetroactiveMatch = parsedTutorClass && parsedTutorClass.year > selectedStudentYear;
+            const retroBadgeHtml = isRetroactiveMatch
+                ? `<span style="background:#ffebee; color:#b71c1c; padding:1px 7px; border-radius:99px; font-size:0.68rem; font-weight:700;">Abilitato 1°–${parsedTutorClass.year}° anno</span>`
+                : '';
+
+            const parsedAvail = parseTutorAvailability(t.availability);
+            const availPreview = parsedAvail.length > 0 ? parsedAvail[0].label : 'Orari pomeridiani';
 
             const card = document.createElement('div');
             card.className = 'tutor-card-option';
@@ -1066,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.innerHTML = `
                 <div class="tutor-avatar-circle">${escapeHtml(initials)}</div>
                 <div class="tutor-card-meta">
-                    <div class="tutor-card-name">${escapeHtml(name)}</div>
+                    <div class="tutor-card-name">${escapeHtml(name)} ${retroBadgeHtml}</div>
                     <div class="tutor-card-sub">
                         <span><i class="fas fa-graduation-cap" style="color:var(--agnelli-red);"></i> ${escapeHtml(classBadge)}</span>
                         <span>&bull; ${escapeHtml(availPreview)}</span>
@@ -1088,6 +1458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const y = filterYear.value;
         const s = filterSubject.value;
         const type = filterSchoolType.value;
+        hideBookingInlineError();
         selectTutor.innerHTML = '<option value="">Seleziona un tutor...</option>';
         selectTutor.disabled = true;
         resetDateAndTime();
@@ -1103,10 +1474,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const subjectsList = t.subjects ? t.subjects.split(' | ') : [];
             
             return classes.some((c, idx) => {
-                const subGroup = (subjectsList[idx] !== undefined ? subjectsList[idx] : (subjectsList[0] || '')).toLowerCase();
-                const subTokens = subGroup.split(',').map(x => x.trim());
-                const matchesSubject = subTokens.includes(s.toLowerCase()) || subGroup.includes(s.toLowerCase());
-                return canTutorClassTeach(c, y, type) && matchesSubject;
+                if (!canTutorClassTeach(c, y, type)) return false;
+                const subGroup = subjectsList[idx] !== undefined ? subjectsList[idx] : (subjectsList[0] || '');
+                const subTokens = subGroup.split(',').map(x => x.trim()).filter(Boolean);
+                return subTokens.some(token => {
+                    if (typeof SubjectsConfig !== 'undefined') {
+                        const normToken = SubjectsConfig.normalizeSubjectName(token, type);
+                        return SubjectsConfig.subjectsMatch(normToken, s);
+                    }
+                    return token.toLowerCase() === s.toLowerCase();
+                });
             });
         });
 
@@ -1143,6 +1520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     selectTutor.addEventListener('change', () => {
         resetDateAndTime();
+        hideBookingInlineError();
 
         // Sincronizza selezione sulle card visive
         document.querySelectorAll('.tutor-card-option').forEach(card => {
@@ -1156,30 +1534,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const rawAvail = selectedOption.getAttribute('data-avail');
-        if (!rawAvail) {
-            availDisplay.style.display = 'none';
-            showWarning("Questo tutor non ha ancora impostato le sue fasce orarie settimanali.");
-            updateStepperAndSummary();
-            return;
-        }
+        currentTutorAvailability = parseTutorAvailability(rawAvail);
 
-        currentTutorAvailability = [];
-        const parts = rawAvail.split(',');
-        parts.forEach(part => {
-            part = part.trim();
-            const spaceIndex = part.indexOf(' ');
-            if (spaceIndex === -1) return;
-            const dayName = part.substring(0, spaceIndex).trim().toLowerCase();
-            const timeRange = part.substring(spaceIndex + 1).trim();
-            if (DAY_MAP.hasOwnProperty(dayName)) {
-                currentTutorAvailability.push({ dayIndex: DAY_MAP[dayName], range: timeRange, label: part });
-            }
+        // Crea badge cliccabili per ciascun giorno disponibile: cliccando il giorno, imposta subito la prossima data utile!
+        availText.innerHTML = '';
+        currentTutorAvailability.forEach((slot, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'avail-day-pill clickable-avail-pill';
+            btn.setAttribute('data-day-index', slot.dayIndex);
+            const nextIso = getNextDateForDayIndex(slot.dayIndex);
+            btn.setAttribute('data-next-date', nextIso);
+            btn.innerHTML = `<i class="far fa-calendar-check"></i> <span>${escapeHtml(slot.label)}</span>`;
+            btn.title = `Clicca per selezionare il prossimo ${slot.dayLabel} (${nextIso})`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.clickable-avail-pill').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                dateInput.value = nextIso;
+                dateInput.dispatchEvent(new Event('change'));
+            });
+            availText.appendChild(btn);
         });
 
-        availText.innerHTML = parts.map(p => `<span class="avail-day-pill"><i class="far fa-clock"></i> ${escapeHtml(p.trim())}</span>`).join('');
         availDisplay.style.display = 'flex';
         dateInput.disabled = false;
-        dateInput.min = new Date().toISOString().split('T')[0];
+        dateInput.min = formatLocalDateISO(new Date());
+
+        // Pre-seleziona automaticamente la prima data disponibile più vicina così gli orari sono subito cliccabili!
+        if (currentTutorAvailability.length > 0) {
+            const sortedByNearest = [...currentTutorAvailability]
+                .map(slot => ({ slot, iso: getNextDateForDayIndex(slot.dayIndex) }))
+                .sort((a, b) => a.iso.localeCompare(b.iso));
+            const nearest = sortedByNearest[0];
+            if (nearest && nearest.iso) {
+                dateInput.value = nearest.iso;
+                document.querySelectorAll('.clickable-avail-pill').forEach(p => {
+                    p.classList.toggle('active', p.getAttribute('data-next-date') === nearest.iso);
+                });
+                dateInput.dispatchEvent(new Event('change'));
+            }
+        }
 
         updateStepperAndSummary();
     });
@@ -1191,13 +1585,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const selectedDate = new Date(dateVal);
-        const dayOfWeek = selectedDate.getDay();
+        const dayOfWeek = parseLocalDateDayOfWeek(dateVal);
         
+        // Sincronizza stato attivo sui badge dei giorni disponibili
+        document.querySelectorAll('.clickable-avail-pill').forEach(p => {
+            p.classList.toggle('active', parseInt(p.getAttribute('data-day-index'), 10) === dayOfWeek);
+        });
+
         const validRanges = currentTutorAvailability.filter(item => item.dayIndex === dayOfWeek);
 
         if (validRanges.length === 0) {
             dateError.style.display = 'block';
+            const availDaysNames = [...new Set(currentTutorAvailability.map(a => a.dayLabel))].join(', ');
+            dateError.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Il tutor non è disponibile in questo giorno. Giorni attivi: <strong>${escapeHtml(availDaysNames)}</strong> (clicca uno dei badge sopra per selezionare subito la data).`;
             timeSelect.innerHTML = '<option value="">-- Giorno non disponibile --</option>';
             timeSelect.disabled = true;
             if (timePillsWrapper) timePillsWrapper.classList.add('hidden');
@@ -1212,48 +1612,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tutorId = selectTutor.value;
         let existingApps = [];
 
-        if (isMastercomUser) {
-            const occRes = await FMT_API.getAppointments(null, tutorId, dateVal);
-            const list = Array.isArray(occRes) ? occRes : (occRes && occRes.appointments ? occRes.appointments : []);
-            existingApps = list.filter(a => a.status !== 'Cancellata');
-        } else {
-            const { data: sbExisting, error } = await sbClient
-                .from('appointments')
-                .select('time_slot, duration')
-                .eq('tutor_id', tutorId)
-                .eq('date', dateVal)
-                .neq('status', 'Cancellata');
-            if (!error) existingApps = sbExisting || [];
+        try {
+            if (isMastercomUser && typeof FMT_API !== 'undefined') {
+                const occRes = await FMT_API.getAppointments(null, tutorId, dateVal);
+                const list = Array.isArray(occRes) ? occRes : (occRes && occRes.appointments ? occRes.appointments : []);
+                existingApps = list.filter(a => a.status !== 'Cancellata');
+            } else {
+                const { data: sbExisting, error } = await sbClient
+                    .from('appointments')
+                    .select('time_slot, duration')
+                    .eq('tutor_id', tutorId)
+                    .eq('date', dateVal)
+                    .neq('status', 'Cancellata');
+                if (!error) existingApps = sbExisting || [];
+            }
+        } catch (err) {
+            console.warn("Controllo appuntamenti esistenti fallito, procedo con gli orari del tutor:", err);
+            existingApps = [];
         }
 
-        // Mappa Occupazione (Mattoncini da 30 min)
+        // Mappa Occupazione (Mattoncini da 15 min)
         const occupiedSet = new Set();
         existingApps.forEach(app => {
             const start = timeToMin(app.time_slot);
-            const dur = parseInt(app.duration) || 60; 
-            for (let i = 0; i < dur; i += 30) {
+            const dur = parseInt(app.duration, 10) || 60; 
+            for (let i = 0; i < dur; i += 15) {
                 occupiedSet.add(start + i);
             }
         });
 
-        // Calcola Slot Disponibili
+        // Calcola Slot Disponibili (step di 15 min: 14:15, 14:30, 14:45, 15:00...)
         const availableOptions = [];
+        const seenTimes = new Set();
         validRanges.forEach(slot => {
             const [sStr, eStr] = slot.range.split('-');
             if (!sStr || !eStr) return;
             const startRange = timeToMin(sStr.trim());
             const endRange = timeToMin(eStr.trim());
 
-            for (let t = startRange; t < endRange; t += 30) {
-                if (!occupiedSet.has(t) && !occupiedSet.has(t + 30) && (t + 60 <= endRange)) {
+            for (let t = startRange; t + 60 <= endRange; t += 15) {
+                const free60 = !occupiedSet.has(t) && !occupiedSet.has(t + 15) && !occupiedSet.has(t + 30) && !occupiedSet.has(t + 45);
+                if (free60) {
                     let maxDur = 60;
-                    if (!occupiedSet.has(t + 60) && (t + 90 <= endRange)) {
+                    const free90 = !occupiedSet.has(t + 60) && !occupiedSet.has(t + 75) && (t + 90 <= endRange);
+                    if (free90) {
                         maxDur = 90;
                     }
-                    availableOptions.push({
-                        time: minToTime(t),
-                        maxDur: maxDur
-                    });
+                    const timeStr = minToTime(t);
+                    if (!seenTimes.has(timeStr)) {
+                        seenTimes.add(timeStr);
+                        availableOptions.push({
+                            time: timeStr,
+                            maxDur: maxDur
+                        });
+                    }
                 }
             }
         });
@@ -1288,13 +1700,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             timeSelect.disabled = false;
             if (timePillsWrapper) timePillsWrapper.classList.remove('hidden');
 
-            // Auto-seleziona il primo slot se ce n'è uno solo
-            if (availableOptions.length === 1) {
-                timeSelect.value = availableOptions[0].time;
-                timeSelect.dispatchEvent(new Event('change'));
-            }
+            // Auto-seleziona il primo slot disponibile in modo che l'orario sia subito pronto e cliccabile
+            timeSelect.value = availableOptions[0].time;
+            timeSelect.dispatchEvent(new Event('change'));
         } else {
             timeSelect.innerHTML = '<option value="">Tutto occupato in questa data</option>';
+            timeSelect.disabled = true;
             if (timePillsWrapper) timePillsWrapper.classList.add('hidden');
         }
         updateStepperAndSummary();
@@ -1348,6 +1759,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     bookingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        hideBookingInlineError();
+
         const tid = selectTutor.value;
         const sub = filterSubject.value;
         const date = dateInput.value;
@@ -1357,8 +1770,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const notes = document.getElementById('lessonNotes').value;
         const submitBtn = document.getElementById('btnSubmitBooking');
 
-        if (!tid || !sub || !date || !time) {
-            showWarning("Completa tutti i passaggi (Materia, Tutor, Data e Orario) prima di confermare la prenotazione.");
+        if (!filterYear.value || !filterSchoolType.value || !sub) {
+            showWarning("Seleziona prima <strong>Anno, Indirizzo e Materia</strong> al Passo 1.", "Passo 1 incompleto");
+            return;
+        }
+        if (!tid) {
+            showWarning("Seleziona un <strong>Tutor disponibile</strong> al Passo 2.", "Passo 2 incompleto");
+            return;
+        }
+        if (!date || !time) {
+            showWarning("Seleziona una <strong>Data e un Orario disponibile</strong> al Passo 3.", "Passo 3 incompleto");
             return;
         }
 
@@ -1410,6 +1831,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     p_subject: sub,
                     p_date: date,
                     p_time_slot: time,
+                    duration: dur,
                     p_duration: dur,
                     p_notes: notes,
                     p_tutor_name: tName,
@@ -1436,20 +1858,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }]);
                 if (error) throw error;
             }
+
+            if (window.FMTEmailService) {
+                const studentClassVal = (studentOwnClassSelect && studentOwnClassSelect.value)
+                    || (fmtUser && fmtUser.class_info)
+                    || `${filterYear.value}° ${filterSchoolType.value}`;
+                window.FMTEmailService.notifyLessonBooked({
+                    studentId: user.id,
+                    studentName: organizerName,
+                    studentEmail: user.email,
+                    studentClass: studentClassVal,
+                    tutorId: tid,
+                    tutorName: tName,
+                    tutorEmail: getTutorEmail(tid),
+                    subject: sub,
+                    date: date,
+                    time: time,
+                    duration: parseInt(dur, 10) || 60,
+                    note: notes,
+                    isGroup: isGroupMode && selectedStudents.length > 0,
+                    groupStudents: (isGroupMode && selectedStudents.length > 0) ? selectedStudents.map(s => s.name) : []
+                }).catch(console.warn);
+            }
             
-            showSuccess("Prenotata! 🎉", `La tua lezione di ${sub} con ${tName} è stata confermata.`);
+            showSuccess("Prenotata! 🎉", `La tua lezione di ${sub} con ${tName} (${date} ore ${time}) è stata confermata. Email di riepilogo inviata!`);
+            const savedOwnClass = studentOwnClassSelect ? studentOwnClassSelect.value : '';
             bookingForm.reset();
+            if (studentOwnClassSelect && savedOwnClass) studentOwnClassSelect.value = savedOwnClass;
             selectedStudents = [];
             renderChips();
             resetDateAndTime();
             selectTutor.innerHTML = '<option value="">Seleziona...</option>';
             selectTutor.disabled = true;
             renderTutorCards([]);
-            syncQuickPills();
+            enforceStudentCurriculumLock(true);
             updateStepperAndSummary();
             fetchLessons();
         } catch(e) {
-            showWarning(e.message || "Errore durante il salvataggio della prenotazione.");
+            showWarning(e.message || "Errore durante il salvataggio della prenotazione.", "Errore Prenotazione");
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -1459,6 +1905,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Avvio iniziale
+    await initStudentCurriculumBar();
     updateStepperAndSummary();
     fetchLessons();
 });

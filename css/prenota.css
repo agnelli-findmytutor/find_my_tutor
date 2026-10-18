@@ -84,10 +84,14 @@
 }
 
 /* --- LAYOUT PRINCIPALE --- */
+.dashboard-wrapper {
+    padding-top: 0;
+}
+
 .container-agenda {
     max-width: 1260px;
     margin: 0 auto;
-    padding: 0 20px 70px;
+    padding: 120px 20px 70px;
 }
 
 .split-layout {
@@ -698,14 +702,161 @@
 .avail-day-pill {
     background: #ffffff;
     color: var(--agnelli-dark);
-    border: 1px solid var(--agnelli-border);
-    padding: 3px 10px;
+    border: 1.5px solid var(--agnelli-border);
+    padding: 5px 12px;
     border-radius: 99px;
-    font-size: 0.76rem;
+    font-family: inherit;
+    font-size: 0.78rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    transition: all 0.2s var(--spring-ease);
+}
+
+.avail-day-pill.clickable-avail-pill {
+    cursor: pointer;
+}
+
+.avail-day-pill.clickable-avail-pill:hover,
+.avail-day-pill.clickable-avail-pill.active {
+    background: var(--agnelli-red);
+    color: #ffffff;
+    border-color: var(--agnelli-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.25);
+}
+
+/* --- BANNER ERRORE INLINE E BARRA PIANO DI STUDI --- */
+.booking-inline-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 2px solid #ef4444;
+    border-left: 6px solid #dc2626;
+    color: #991b1b;
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 24px rgba(220, 38, 38, 0.14);
+    animation: shakeError 0.4s ease;
+}
+
+.booking-inline-error.hidden {
+    display: none !important;
+}
+
+.booking-inline-error i.fa-exclamation-triangle {
+    font-size: 1.25rem;
+    color: #dc2626;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.booking-inline-error-body {
+    flex: 1;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.booking-inline-error-body strong {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #7f1d1d;
+    margin-bottom: 2px;
+}
+
+.booking-inline-error-close {
+    background: rgba(220, 38, 38, 0.1);
+    border: none;
+    color: #991b1b;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.booking-inline-error-close:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.student-curriculum-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    border: 1.5px solid var(--agnelli-border);
+    border-left: 4px solid var(--agnelli-red);
+    border-radius: 14px;
+    padding: 12px 15px;
+    margin-bottom: 16px;
+}
+
+.student-curriculum-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.student-curriculum-left i {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--agnelli-soft);
+    color: var(--agnelli-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.student-curriculum-left strong {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--agnelli-dark);
+}
+
+.student-curriculum-left small {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.3;
+}
+
+.student-curriculum-select {
+    width: auto !important;
+    min-width: 210px;
+    padding: 8px 12px !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    border: 1.5px solid var(--agnelli-border) !important;
+    background-color: #ffffff !important;
+    color: var(--agnelli-dark) !important;
+}
+
+.q-pill:disabled,
+.q-pill.disabled-by-curriculum {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
 }
 
 .date-error-msg {

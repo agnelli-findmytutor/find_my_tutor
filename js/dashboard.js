@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (fmtUser) {
             if (fmtUser.role === 'admin' || role === 'admin') role = 'admin';
+            else if (fmtUser.role === 'staff' || role === 'staff') role = 'staff';
             else if (fmtUser.role === 'tutor' || role === 'tutor') role = 'tutor';
         }
     } else if (fmtUser) {
@@ -58,13 +59,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const displayEmail = fmtUser?.google_email || user.email || fmtUser?.email || "";
     const displayAvatar = user.user_metadata?.avatar_url || fmtUser?.avatar_url || 'https://via.placeholder.com/150';
 
+    const roleLabelMap = {
+        studente: 'Studente',
+        tutor: 'Studente Tutor',
+        staff: 'Staff FSL',
+        admin: 'Amministratore'
+    };
+    const roleReadable = roleLabelMap[role] || 'Studente';
+
     document.getElementById('userName').textContent = displayName;
     document.getElementById('welcomeName').textContent = displayName.split(' ')[0];
     document.getElementById('userEmail').textContent = displayEmail;
     document.getElementById('userAvatar').src = displayAvatar;
-    
+
+    const sidebarRolePill = document.getElementById('sidebarRolePill');
+    if (sidebarRolePill) sidebarRolePill.textContent = roleReadable;
+
+    const kpiAccountRole = document.getElementById('kpiAccountRole');
+    if (kpiAccountRole) kpiAccountRole.textContent = roleReadable;
+
+    const kpiAccountProvider = document.getElementById('kpiAccountProvider');
+    if (kpiAccountProvider) {
+        if (hasMastercomData && sbUser) {
+            kpiAccountProvider.textContent = 'Mastercom + Google Unificati';
+        } else if (hasMastercomData) {
+            kpiAccountProvider.textContent = `Registro Mastercom (${fmtUser.class_info || 'Attivo'})`;
+        } else {
+            kpiAccountProvider.textContent = 'Google Workspace Agnelli';
+        }
+    }
+
+    const kpiThirdValue = document.getElementById('kpiThirdValue');
+    if (kpiThirdValue && fmtUser && Array.isArray(fmtUser.materie)) {
+        kpiThirdValue.textContent = fmtUser.materie.length;
+    }
+
     const badge = document.getElementById('profileRoleBadge');
-    badge.className = `role-status-dot badge-${role}`;
+    if (badge) badge.className = `role-status-dot badge-${role}`;
 
     // Mostra sezione profilo Mastercom se utente possiede dati da registro
     const mcSection = document.getElementById('mastercomProfileSection');
@@ -106,8 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (gName) gName.textContent = displayName;
         if (gEmail) gEmail.innerHTML = `<i class="fas fa-envelope"></i> ${escapeHtml(displayEmail)}`;
         if (gRole) {
-            const roleLabel = role === 'admin' ? 'Amministratore' : (role === 'tutor' ? 'Studente Tutor' : 'Studente');
-            gRole.innerHTML = `<i class="fas fa-user-graduate"></i> ${roleLabel}`;
+            gRole.innerHTML = `<i class="fas fa-user-graduate"></i> ${roleReadable}`;
         }
     }
 
@@ -246,12 +276,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Mostra/Nascondi elementi in base al ruolo
+    if (role === 'tutor' || role === 'staff' || role === 'admin') {
+        document.getElementById('btnBecomeTutorNav')?.classList.add('hidden');
+    }
+    if (role === 'staff' || role === 'admin') {
+        document.getElementById('btnStaffArea')?.classList.remove('hidden');
+    }
+    if (role === 'admin') {
+        document.getElementById('btnAdminArea')?.classList.remove('hidden');
+    }
     if (role === 'tutor' || role === 'admin') {
-        document.getElementById('btnAgendaTutor').classList.remove('hidden');
-        document.getElementById('navFSL').classList.remove('hidden');
-        document.getElementById('btnDowngrade').classList.remove('hidden');
-        document.getElementById('tutorLessonsSection').classList.remove('hidden');
-        document.getElementById('tutorRatingSection').classList.remove('hidden');
+        document.getElementById('btnAgendaTutor')?.classList.remove('hidden');
+        document.getElementById('navFSL')?.classList.remove('hidden');
+        document.getElementById('btnDowngrade')?.classList.remove('hidden');
+        document.getElementById('tutorLessonsSection')?.classList.remove('hidden');
+        document.getElementById('tutorRatingSection')?.classList.remove('hidden');
         loadTutorData(user.id);
         loadFSLData(user.id);
     }
@@ -260,30 +299,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadStudentLessons() {
         const container = document.getElementById('studentLessonsList');
         let lessons = [];
+        const today = new Date().toISOString().split('T')[0];
 
         if (isMastercomUser) {
             const res = await FMT_API.getAppointments(user.id);
-            const today = new Date().toISOString().split('T')[0];
             const rawList = Array.isArray(res) ? res : ((res && res.appointments) ? res.appointments : []);
-            lessons = rawList
-                .filter(l => l.status === 'Confermato' && l.date >= today)
-                .slice(0, 3);
+            lessons = rawList.filter(l => l.status === 'Confermato' && l.date >= today);
         } else {
             const { data: sbLessons } = await sb.from('appointments')
                 .select('*')
                 .eq('user_id', user.id)
                 .eq('status', 'Confermato')
-                .gte('date', new Date().toISOString().split('T')[0])
-                .order('date', { ascending: true })
-                .limit(3);
+                .gte('date', today)
+                .order('date', { ascending: true });
             lessons = sbLessons || [];
         }
 
-        if (lessons && lessons.length > 0) {
+        const kpiStudentCount = document.getElementById('kpiStudentCount');
+        if (kpiStudentCount) kpiStudentCount.textContent = lessons.length;
+
+        const topLessons = lessons.slice(0, 3);
+        if (topLessons.length > 0) {
             container.innerHTML = '';
-            lessons.forEach(l => {
+            topLessons.forEach(l => {
                 const isGroup = l.is_group;
-                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : '';
+                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #eff6ff;' : '';
                 
                 const groupInfo = isGroup && l.group_members 
                     ? (() => {
@@ -299,10 +339,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="mini-lesson-card" style="${style}">
                         <div class="info">
                             <h4>${escapeHtml(l.subject)}</h4>
-                            <p>Tutor: ${escapeHtml(l.tutor_name_cache)}</p>
+                            <p><i class="fas fa-user-graduate" style="color:#D32F2F;"></i> Tutor: ${escapeHtml(l.tutor_name_cache || 'Assegnato')}</p>
                             ${groupInfo}
                         </div>
-                        <div class="time-tag">${l.date.split('-').reverse().join('/')}</div>
+                        <div class="time-tag"><i class="far fa-calendar-alt"></i> ${l.date.split('-').reverse().join('/')}</div>
                     </div>`;
             });
         }
@@ -311,16 +351,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Caricamento Lezioni Tutor (Lezioni che insegno)
     async function loadTutorData(tutorId) {
         const container = document.getElementById('tutorLessonsList');
-        const { data: lessons } = await sb.from('appointments')
-            .select('*')
-            .eq('tutor_id', tutorId)
-            .eq('status', 'Confermato')
-            .gte('date', new Date().toISOString().split('T')[0])
-            .order('date', { ascending: true })
-            .limit(3);
+        const today = new Date().toISOString().split('T')[0];
+
+        let lessons = [];
+        try {
+            const { data: sbLessons } = await sb.from('appointments')
+                .select('*')
+                .eq('tutor_id', tutorId)
+                .eq('status', 'Confermato')
+                .gte('date', today)
+                .order('date', { ascending: true })
+                .limit(6);
+            if (sbLessons) lessons = sbLessons;
+        } catch(e) {}
+
+        if (lessons.length === 0 && typeof FMT_API !== 'undefined' && FMT_API.getTutorAppointments) {
+            try {
+                const localApps = await FMT_API.getTutorAppointments(tutorId);
+                if (Array.isArray(localApps)) {
+                    lessons = localApps.filter(l => l.status === 'Confermato' && l.date >= today);
+                }
+            } catch(e) {}
+        }
 
         if (lessons && lessons.length > 0) {
-            // Raggruppa per la dashboard tutor (Logica migliorata)
             const grouped = [];
             const map = new Map();
             lessons.forEach(l => {
@@ -351,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.innerHTML = '';
             grouped.slice(0, 3).forEach(l => {
                 const isGroup = l.is_group;
-                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #E3F2FD;' : 'border-left: 4px solid #D32F2F;';
+                const style = isGroup ? 'border-left: 4px solid #1565C0; background: #eff6ff;' : 'border-left: 4px solid #D32F2F;';
                 
                 const studentText = isGroup 
                     ? `Org: ${escapeHtml(l.organizer_name)} (+${l.all_students.length - 1})`
@@ -363,7 +417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <h4>${escapeHtml(l.subject)}</h4>
                             <p>${studentText}</p>
                         </div>
-                        <div class="time-tag" style="background: #FFEBEE; color: #B71C1C;">${l.time_slot}</div>
+                        <div class="time-tag">${escapeHtml(l.time_slot || l.date)}</div>
                     </div>`;
             });
         }
@@ -377,27 +431,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const starsContainer = document.getElementById('tutorStars');
-        starsContainer.innerHTML = '';
-        for(let i=0; i<5; i++) {
-            starsContainer.innerHTML += i < Math.round(avg) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+        if (starsContainer) {
+            starsContainer.innerHTML = '';
+            for(let i=0; i<5; i++) {
+                starsContainer.innerHTML += i < Math.round(avg) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+            }
         }
-        document.getElementById('ratingText').textContent = ratings.length > 0 ? `Media: ${avg}/5 (${ratings.length} voti)` : "Nessuna recensione";
+        const ratingTextEl = document.getElementById('ratingText');
+        if (ratingTextEl) {
+            ratingTextEl.textContent = (ratings && ratings.length > 0) ? `Media: ${avg}/5 (${ratings.length} voti)` : "Nessuna recensione ancora ricevuta";
+        }
     }
 
     // --- CARICAMENTO E CALCOLO FSL ---
     async function loadFSLData(tutorId) {
         const today = new Date().toISOString().split('T')[0];
-        // Prendiamo solo le lezioni passate e confermate
-        const { data: lessons } = await sb.from('appointments')
-            .select('duration')
-            .eq('tutor_id', tutorId)
-            .eq('status', 'Confermato')
-            .lt('date', today);
+        let lessons = [];
+        try {
+            const { data: sbLessons } = await sb.from('appointments')
+                .select('duration')
+                .eq('tutor_id', tutorId)
+                .eq('status', 'Confermato')
+                .lt('date', today);
+            if (sbLessons) lessons = sbLessons;
+        } catch(e) {}
 
         let totalMinutes = 0;
         if (lessons) {
             lessons.forEach(l => {
-                // duration è salvata come "60 min" o "90 min"
                 totalMinutes += parseInt(l.duration) || 0;
             });
         }
@@ -406,12 +467,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const remainingMinutes = totalMinutes % 60;
 
         document.getElementById('FSLHours').textContent = hours;
+
+        // Aggiorna anche la 3° KPI card per i Tutor con le ore FSL
+        const kpiThirdIcon = document.getElementById('kpiThirdIcon');
+        const kpiThirdLabel = document.getElementById('kpiThirdLabel');
+        const kpiThirdValue = document.getElementById('kpiThirdValue');
+        const kpiThirdSub = document.getElementById('kpiThirdSub');
+        if (kpiThirdLabel && kpiThirdValue) {
+            if (kpiThirdIcon) kpiThirdIcon.innerHTML = '<i class="fas fa-medal"></i>';
+            kpiThirdLabel.textContent = 'Ore FSL Maturate';
+            kpiThirdValue.textContent = `${hours}h${remainingMinutes > 0 ? ' 30m' : ''}`;
+            if (kpiThirdSub) kpiThirdSub.textContent = '1h ripetizione = 1h FSL';
+        }
         
         const extraBox = document.getElementById('FSLExtraMinutes');
-        if (remainingMinutes > 0) {
-            extraBox.classList.remove('hidden');
-        } else {
-            extraBox.classList.add('hidden');
+        if (extraBox) {
+            if (remainingMinutes > 0) {
+                extraBox.classList.remove('hidden');
+            } else {
+                extraBox.classList.add('hidden');
+            }
         }
     }
 
@@ -446,64 +521,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (mobileLogoutBtn) mobileLogoutBtn.onclick = performLogout;
 
     // --- GESTIONE DOWNGRADE (NUOVA LOGICA A 2 STEP) ---
-
-    // Apre il primo modale
     document.getElementById('btnDowngrade').onclick = () => {
         document.getElementById('downgradeModal').classList.remove('hidden');
     };
 
-    // Chiude il primo modale (Annulla Step 1)
     document.getElementById('btnCancelDowngrade').onclick = () => {
         document.getElementById('downgradeModal').classList.add('hidden');
     };
 
-    // Conferma Step 1 -> Passa a Step 2
     document.getElementById('btnConfirmDowngrade').onclick = () => {
         document.getElementById('downgradeModal').classList.add('hidden');
         document.getElementById('downgradeStep2Modal').classList.remove('hidden');
     };
 
-    // Chiude il secondo modale (Annulla Step 2)
     document.getElementById('btnCancelDowngrade2').onclick = () => {
         document.getElementById('downgradeStep2Modal').classList.add('hidden');
     };
 
-    // Conferma Finale Downgrade (Esegue update su DB)
     document.getElementById('btnFinalConfirmDowngrade').onclick = async () => {
         const { error } = await sb.from('profiles').update({ role: 'studente' }).eq('id', user.id);
         if (!error) {
             document.getElementById('downgradeStep2Modal').classList.add('hidden');
             document.getElementById('successModal').classList.remove('hidden');
-            localStorage.setItem('fmt_role', 'studente'); // Aggiorna la cache locale
+            localStorage.setItem('fmt_role', 'studente');
         } else {
             alert("Errore durante il downgrade: " + error.message);
         }
     };
 
-    // Chiude modale successo e ricarica
     document.getElementById('btnSuccessClose').onclick = () => window.location.reload();
 
-    // --- GESTIONE DELETE ACCOUNT (NUOVA LOGICA MODALE) ---
-
-    // Apre il modale di cancellazione (invece del confirm nativo)
+    // --- GESTIONE DELETE ACCOUNT ---
     document.getElementById('deleteBtn').onclick = () => {
         document.getElementById('deleteAccountModal').classList.remove('hidden');
     };
 
-    // Annulla cancellazione (Chiude modale)
     document.getElementById('btnCancelDelete').onclick = () => {
         document.getElementById('deleteAccountModal').classList.add('hidden');
     };
 
-    // Conferma cancellazione (Chiama la funzione)
     document.getElementById('btnConfirmDeleteAccount').onclick = async () => {
         await deleteAccount();
     };
 
-    // Funzione effettiva di cancellazione
     async function deleteAccount() {
         try {
-            // Chiamiamo la funzione SQL personalizzata per eliminare l'utente da Authentication e Profiles
             const { error } = await sb.rpc('delete_self');
             if (error) throw error;
             localStorage.clear();
@@ -512,9 +574,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = "index.html";
         } catch (error) {
             console.error("Errore cancellazione:", error);
-            // Mostra l'errore reale per il debug
             alert("Errore durante l'eliminazione: " + (error.message || "Riprova più tardi."));
-            // Chiudi il modale anche in caso di errore per evitare blocco UI
             document.getElementById('deleteAccountModal').classList.add('hidden');
         }
     }

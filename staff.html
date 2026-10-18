@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Staff FSL - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Staff FSL - Certificazione Ore FindMyTutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="theme-color" content="#D32F2F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FindMyTutor">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
@@ -16,106 +20,427 @@
     <link rel="stylesheet" href="css/mobile-app.css">
     <script src="js/pwa-init.js"></script>
     <style>
-        .staff-wrapper { max-width: 1150px; margin: 110px auto 60px; padding: 0 24px; }
-        .staff-header {
+        /* ==========================================================================
+           STAFF FSL DASHBOARD - FIND MY TUTOR (AGNELLI RED EDITION)
+           ========================================================================== */
+        :root {
+            --agnelli-red: #D32F2F;
+            --agnelli-dark: #B71C1C;
+            --agnelli-deeper: #9A0007;
+            --agnelli-soft: #FFEBEE;
+            --agnelli-tint: #FFF5F5;
+            --agnelli-border: #FFCDD2;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(211, 47, 47, 0.06) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(183, 28, 28, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+        }
+
+        .staff-wrapper {
+            max-width: 1200px;
+            margin: 105px auto 60px;
+            padding: 0 24px;
+        }
+
+        /* HEADER CARD */
+        .staff-hero-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 28px 32px;
+            border: 1px solid rgba(211, 47, 47, 0.12);
+            border-top: 6px solid var(--agnelli-red);
+            box-shadow: 0 14px 38px rgba(15, 23, 42, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .staff-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--agnelli-soft);
+            color: var(--agnelli-red);
+            border: 1px solid var(--agnelli-border);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+
+        .staff-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--agnelli-red);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+        }
+
+        .staff-hero-card h1 {
+            font-size: 2.05rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-dark);
+            letter-spacing: -0.6px;
+        }
+
+        .staff-hero-card h1 span {
+            color: var(--agnelli-red);
+        }
+
+        .staff-hero-card p {
+            margin: 6px 0 0;
+            color: var(--text-muted);
+            font-size: 0.94rem;
+        }
+
+        .staff-hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-staff-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-staff-top.outline {
+            background: var(--agnelli-tint);
+            color: var(--agnelli-dark);
+            border: 1px solid var(--agnelli-border);
+        }
+
+        .btn-staff-top.outline:hover {
+            background: var(--agnelli-soft);
+            transform: translateY(-2px);
+        }
+
+        .btn-staff-top.primary {
+            background: linear-gradient(135deg, var(--agnelli-red) 0%, var(--agnelli-dark) 100%);
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(211, 47, 47, 0.25);
+        }
+
+        /* KPI ROW */
+        .staff-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .staff-kpi-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 22px 24px;
+            border: 1px solid rgba(211, 47, 47, 0.1);
+            border-top: 4px solid var(--agnelli-red);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .staff-kpi-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--agnelli-soft) 0%, #ffcdd2 100%);
+            color: var(--agnelli-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .staff-kpi-info span {
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .staff-kpi-info h3 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin: 2px 0;
+            color: var(--text-dark);
+        }
+
+        .staff-kpi-info small {
+            font-size: 0.76rem;
+            color: #94a3b8;
+        }
+
+        /* MAIN TABLE CARD */
+        .fsl-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(211, 47, 47, 0.1);
+            border-top: 5px solid var(--agnelli-red);
+            margin-bottom: 30px;
+        }
+
+        .fsl-card-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
             flex-wrap: wrap;
             gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
         }
-        .staff-header h1 {
-            font-size: 2rem;
+
+        .fsl-card-toolbar h3 {
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--text-dark);
+            margin: 0 0 4px 0;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
-        .staff-header h1 i {
-            color: var(--red-main);
-            background: var(--red-soft);
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+
+        .fsl-card-toolbar h3 i {
+            color: var(--agnelli-red);
+        }
+
+        .fsl-card-toolbar p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin: 0;
+        }
+
+        .staff-filters {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .staff-search-box {
+            position: relative;
+            min-width: 240px;
+        }
+
+        .staff-search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.88rem;
+        }
+
+        .staff-search-box input {
+            width: 100%;
+            padding: 9px 14px 9px 38px;
+            border-radius: 50px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .staff-search-box input:focus {
+            border-color: var(--agnelli-red);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.12);
+        }
+
+        .filter-pill-btn {
+            background: #f8fafc;
+            color: #475569;
+            border: 1.5px solid #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
+            gap: 6px;
+            transition: all 0.2s ease;
         }
-        .fsl-card {
-            background: white;
-            padding: 32px;
-            border-radius: 20px;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.06);
-            border-top: 5px solid var(--red-main);
-            margin-bottom: 24px;
+
+        .filter-pill-btn.active {
+            background: var(--agnelli-soft);
+            color: var(--agnelli-red);
+            border-color: var(--agnelli-border);
         }
-        .fsl-card h3 {
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 6px;
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
         }
-        .fsl-card p {
-            color: var(--text-light);
-            font-size: 0.95rem;
+
+        .table th,
+        .table td {
+            padding: 15px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.92rem;
         }
-        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .table th, .table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+
         .table th {
-            background: #fff5f5;
-            color: var(--red-dark);
-            font-weight: 700;
-            font-size: 0.82rem;
+            background: var(--agnelli-tint);
+            color: var(--agnelli-dark);
+            font-weight: 800;
+            font-size: 0.78rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
         }
-        .table tr:hover td { background: #fafafa; }
+
+        .table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .class-chip {
+            background: var(--agnelli-tint);
+            color: var(--agnelli-dark);
+            border: 1px solid var(--agnelli-border);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: inline-block;
+        }
+
+        .hours-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .hours-badge.pending {
+            background: var(--agnelli-soft);
+            color: var(--agnelli-red);
+            border: 1px solid var(--agnelli-border);
+        }
+
+        .hours-badge.done {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
         .btn-register {
-            background: linear-gradient(135deg, #D32F2F, #9A0007);
+            background: linear-gradient(135deg, var(--agnelli-red), var(--agnelli-deeper));
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            padding: 9px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.84rem;
+            font-family: inherit;
             cursor: pointer;
             transition: all 0.25s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.25);
+            gap: 7px;
+            box-shadow: 0 6px 14px rgba(211, 47, 47, 0.25);
         }
+
         .btn-register:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.35);
+            box-shadow: 0 8px 20px rgba(211, 47, 47, 0.35);
         }
+
         .btn-register:disabled {
             background: #e2e8f0;
             color: #94a3b8;
             box-shadow: none;
             cursor: not-allowed;
         }
+
+        /* TOAST NOTIFICATION */
+        .staff-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 14px 22px;
+            border-radius: 16px;
+            border-left: 5px solid #16a34a;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 10001;
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .staff-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
         @media (max-width: 900px) {
-            .staff-wrapper { margin-top: 20px; padding: 0 16px; }
-            .fsl-card { padding: 20px; }
+            .staff-wrapper {
+                margin-top: 75px;
+                padding: 0 16px;
+            }
+            .staff-kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .fsl-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
+
 <body>
     <header>
-        <div class="logo">
-            <a href="index.html" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px;">
-                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-                <span>FindMyTutor</span>
-            </a>
-        </div>
-        <nav class="desktop-nav">
+        <a href="index.html" class="logo" style="text-decoration:none; color:inherit;">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <span>FindMyTutor</span>
+        </a>
+        <nav>
             <ul class="nav-links">
                 <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="dashboard.html"><i class="fas fa-columns"></i> Dashboard</a></li>
+                <li><a href="progetto.html"><i class="fas fa-project-diagram"></i> Il nostro progetto</a></li>
+                <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Area Personale</a></li>
             </ul>
         </nav>
         <div class="header-actions">
@@ -123,43 +448,169 @@
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
+    <div class="overlay-menu"></div>
 
-    <div class="staff-wrapper fade-wrapper">
-        <div class="staff-header">
-            <h1><i class="fas fa-user-tie"></i> Dashboard Staff FSL</h1>
+    <main class="staff-wrapper fade-wrapper reveal">
+        <div class="staff-hero-card">
+            <div>
+                <div class="staff-badge">
+                    <span class="staff-pulse-dot"></span>
+                    <span>Segreteria &amp; Docenti Referenti &bull; FSL</span>
+                </div>
+                <h1>Registro Certificazione <span>Ore FSL</span></h1>
+                <p>Monitora e convalida le ore di tutoraggio svolte dagli studenti Tutor dell'Istituto Agnelli.</p>
+            </div>
+            <div class="staff-hero-actions">
+                <button type="button" class="btn-staff-top outline" id="btnRefreshStaff">
+                    <i class="fas fa-sync-alt"></i> Aggiorna Elenco
+                </button>
+                <a href="dashboard.html" class="btn-staff-top primary">
+                    <i class="fas fa-th-large"></i> Area Personale
+                </a>
+            </div>
         </div>
-        
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="staff-kpi-grid">
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-icon"><i class="fas fa-user-graduate"></i></div>
+                <div class="staff-kpi-info">
+                    <span>Tutor in Elenco</span>
+                    <h3 id="staffKpiTutors">0</h3>
+                    <small>Studenti Tutor abilitati</small>
+                </div>
+            </div>
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-icon"><i class="fas fa-history"></i></div>
+                <div class="staff-kpi-info">
+                    <span>Ore Storiche Totali</span>
+                    <h3 id="staffKpiTotalHours">0.0 h</h3>
+                    <small>Dall'inizio dell'anno scolastico</small>
+                </div>
+            </div>
+            <div class="staff-kpi-card">
+                <div class="staff-kpi-icon"><i class="fas fa-award"></i></div>
+                <div class="staff-kpi-info">
+                    <span>Ore da Certificare</span>
+                    <h3 id="staffKpiPendingHours">0.0 h</h3>
+                    <small>In attesa di registrazione FSL</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABELLA CERTIFICAZIONE -->
         <div class="fsl-card">
-            <h3>Certificazione Ore FSL Tutor</h3>
-            <p>Visualizza e registra le ore FSL svolte dai tutor. Le ore registrate vengono azzerate in questa vista operativa, ma il tutor vedrà sempre il totale storico maturato.</p>
-            <div style="overflow-x: auto; margin-top: 18px;">
+            <div class="fsl-card-toolbar">
+                <div>
+                    <h3><i class="fas fa-clipboard-check"></i> Riepilogo Ore per Studente Tutor</h3>
+                    <p>Le ore registrate vengono scalate dalla colonna "Ore da Registrare", mantenendo intatto il totale storico del Tutor.</p>
+                </div>
+                <div class="staff-filters">
+                    <div class="staff-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="staffSearchInput" placeholder="Cerca tutor o classe...">
+                    </div>
+                    <button type="button" class="filter-pill-btn" id="btnFilterOnlyPending">
+                        <i class="fas fa-filter"></i> Solo da certificare
+                    </button>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
                 <table class="table" id="tutorsTable">
                     <thead>
                         <tr>
-                            <th>Tutor</th>
+                            <th>Studente Tutor</th>
                             <th>Classe</th>
-                            <th>Ore Totali Storiche</th>
+                            <th>Ore Storiche Totali</th>
+                            <th>Già Registrate</th>
                             <th>Ore da Registrare</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="5">Caricamento in corso...</td></tr>
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">Caricamento registro FSL in corso...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </main>
+
+    <!-- MODALE CONFERMA REGISTRAZIONE ORE -->
+    <div id="staffConfirmModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon success" style="background:var(--agnelli-soft); color:var(--agnelli-red);">
+                <i class="fas fa-award"></i>
+            </div>
+            <h3>Conferma Certificazione FSL</h3>
+            <p id="staffModalText">Vuoi registrare le ore FSL per questo tutor?</p>
+            <div class="modal-actions">
+                <button type="button" id="btnCancelStaffModal" class="btn-modal secondary">Annulla</button>
+                <button type="button" id="btnConfirmStaffModal" class="btn-modal danger">Conferma e Registra</button>
+            </div>
+        </div>
     </div>
+
+    <div id="staffToast" class="staff-toast">
+        <i class="fas fa-check-circle" style="color:#4ade80;"></i>
+        <span id="staffToastMsg">Ore registrate con successo!</span>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-wrapper">
+            <div class="footer-top-strip">
+                <div class="footer-brand-lockup">
+                    <div class="footer-logo-badge">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-brand-info">
+                        <span class="footer-brand-name">FindMyTutor</span>
+                        <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
+                    </div>
+                </div>
+                <div class="footer-status-tag">
+                    <span class="status-pulse-dot"></span>
+                    <span>Area Staff FSL &bull; A.S. 2025/2026</span>
+                </div>
+            </div>
+
+            <div class="footer-bottom-bar">
+                <div class="footer-copy">
+                    &copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Sviluppato dagli studenti per l'Istituto Internazionale Edoardo Agnelli.
+                </div>
+                <div class="footer-legal-links">
+                    <a href="index.html">Home</a>
+                    <span class="sep">&bull;</span>
+                    <a href="dashboard.html">Dashboard</a>
+                    <span class="sep">&bull;</span>
+                    <span class="security-chip"><i class="fas fa-shield-alt"></i> Registro Certificato FSL</span>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/api_config.js"></script>
     <script src="script.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="js/mobile-nav.js"></script>
+    <script src="js/email_service.js"></script>
     <script>
         const SUPABASE_URL = 'https://dyyulhpyfdrjhbuogjjf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5eXVsaHB5ZmRyamhidW9nampmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODU2ODAsImV4cCI6MjA4NjA2MTY4MH0.D5XglxgjIfpiPBcRywP12_jsiHF5FDJyiynhCfLy3F8';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const escapeHtml = (unsafe) => {
+            if (typeof unsafe !== 'string') return unsafe || '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
 
         document.addEventListener('DOMContentLoaded', async () => {
             const cachedRole = localStorage.getItem('fmt_role');
@@ -168,17 +619,94 @@
                 return;
             }
 
-            await loadTutors();
+            let allTutorRows = [];
+            let onlyPendingFilter = false;
+            let pendingAction = null;
+
+            const searchInput = document.getElementById('staffSearchInput');
+            const btnFilterPending = document.getElementById('btnFilterOnlyPending');
+            const btnRefresh = document.getElementById('btnRefreshStaff');
+            const confirmModal = document.getElementById('staffConfirmModal');
+            const btnCancelModal = document.getElementById('btnCancelStaffModal');
+            const btnConfirmModal = document.getElementById('btnConfirmStaffModal');
+
+            function showToast(msg) {
+                const toast = document.getElementById('staffToast');
+                const toastMsg = document.getElementById('staffToastMsg');
+                if (toast && toastMsg) {
+                    toastMsg.textContent = msg;
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3200);
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => renderTable());
+            }
+
+            if (btnFilterPending) {
+                btnFilterPending.addEventListener('click', () => {
+                    onlyPendingFilter = !onlyPendingFilter;
+                    btnFilterPending.classList.toggle('active', onlyPendingFilter);
+                    renderTable();
+                });
+            }
+
+            if (btnRefresh) {
+                btnRefresh.addEventListener('click', () => loadTutors());
+            }
+
+            if (btnCancelModal) {
+                btnCancelModal.addEventListener('click', () => {
+                    confirmModal.classList.add('hidden');
+                    pendingAction = null;
+                });
+            }
+
+            if (btnConfirmModal) {
+                btnConfirmModal.addEventListener('click', async () => {
+                    if (!pendingAction) return;
+                    const { tutorId, currentAck, hoursToAdd } = pendingAction;
+                    const tutorObj = allTutorRows.find(t => String(t.id) === String(tutorId)) || {};
+                    confirmModal.classList.add('hidden');
+                    try {
+                        const newTotal = currentAck + hoursToAdd;
+                        const { error } = await sb.from('profiles').update({ fsl_acknowledged: newTotal }).eq('id', tutorId);
+                        if (!error) {
+                            if (window.FMTEmailService) {
+                                window.FMTEmailService.notifyFslHoursAcknowledged({
+                                    tutorId: tutorId,
+                                    tutorName: tutorObj.full_name || 'Tutor',
+                                    tutorEmail: tutorObj.email || '',
+                                    hoursAcknowledged: Math.round(newTotal * 100) / 100
+                                }).catch(console.warn);
+                            }
+                            showToast(`Registrate ${hoursToAdd.toFixed(2)} ore FSL con successo!`);
+                            await loadTutors();
+                        } else {
+                            alert("Errore Supabase: " + error.message);
+                        }
+                    } catch (e) {
+                        alert("Errore di rete.");
+                    } finally {
+                        pendingAction = null;
+                    }
+                });
+            }
 
             async function loadTutors() {
+                const tbody = document.querySelector('#tutorsTable tbody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748b;"><i class="fas fa-spinner fa-spin"></i> Caricamento dati...</td></tr>';
+
                 try {
                     const { data: tutorsData, error: tutorsError } = await sb.from('profiles').select('*').eq('role', 'tutor');
                     if (tutorsError) throw tutorsError;
-                    
-                    const tbody = document.querySelector('#tutorsTable tbody');
-                    tbody.innerHTML = '';
 
                     const today = new Date().toISOString().split('T')[0];
+                    allTutorRows = [];
+
+                    let sumHistoric = 0;
+                    let sumPending = 0;
 
                     if (tutorsData && tutorsData.length > 0) {
                         for (let t of tutorsData) {
@@ -186,61 +714,106 @@
                                 .select('duration, status, date')
                                 .eq('tutor_id', t.id)
                                 .neq('status', 'Cancellata');
-                                
+
                             let totalMinutes = 0;
                             if (apps) {
                                 apps.forEach(a => {
-                                    if (a.date < today || a.status === 'Conclusa') {
+                                    if (a.date < today || a.status === 'Conclusa' || a.status === 'Svolta') {
                                         const dStr = String(a.duration).replace('min', '').trim();
                                         totalMinutes += isNaN(parseInt(dStr)) ? 60 : parseInt(dStr);
                                     }
                                 });
                             }
+
                             const totalHours = totalMinutes / 60.0;
                             const fslAck = parseFloat(t.fsl_acknowledged || 0);
                             const unacknowledgedHours = Math.max(0, totalHours - fslAck);
 
-                            const tr = document.createElement('tr');
-                            const btnDisabled = unacknowledgedHours <= 0 ? 'disabled' : '';
-                            tr.innerHTML = `
-                                <td><strong>${t.full_name || 'N.D.'}</strong></td>
-                                <td><span style="background:#fff5f5; color:#c62828; padding:3px 10px; border-radius:99px; font-weight:600; font-size:0.82rem;">${t.class_info || '-'}</span></td>
-                                <td>${totalHours.toFixed(2)} h</td>
-                                <td><span style="color:#d32f2f; font-weight:700;">${unacknowledgedHours.toFixed(2)} h</span></td>
-                                <td>
-                                    <button class="btn-register" ${btnDisabled} onclick="registerHours('${t.id}', ${fslAck}, ${unacknowledgedHours})">
-                                        <i class="fas fa-check-circle"></i> Registra Ore
-                                    </button>
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
+                            sumHistoric += totalHours;
+                            sumPending += unacknowledgedHours;
+
+                            allTutorRows.push({
+                                id: t.id,
+                                full_name: t.full_name || 'N.D.',
+                                email: t.email || '',
+                                class_info: t.class_info || '-',
+                                totalHours,
+                                fslAck,
+                                unacknowledgedHours
+                            });
                         }
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5">Nessun tutor trovato.</td></tr>';
                     }
-                } catch(e) {
+
+                    document.getElementById('staffKpiTutors').textContent = allTutorRows.length;
+                    document.getElementById('staffKpiTotalHours').textContent = `${sumHistoric.toFixed(1)} h`;
+                    document.getElementById('staffKpiPendingHours').textContent = `${sumPending.toFixed(1)} h`;
+
+                    renderTable();
+                } catch (e) {
                     console.error("Errore:", e);
-                    document.querySelector('#tutorsTable tbody').innerHTML = '<tr><td colspan="5">Errore caricamento dati.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#d32f2f;">Errore caricamento dati.</td></tr>';
                 }
             }
 
-            window.registerHours = async (tutorId, currentAck, hoursToAdd) => {
-                if (!confirm(`Vuoi registrare ${hoursToAdd.toFixed(2)} ore FSL per questo tutor?`)) return;
-                try {
-                    const newTotal = currentAck + hoursToAdd;
-                    const { error } = await sb.from('profiles').update({ fsl_acknowledged: newTotal }).eq('id', tutorId);
-                    
-                    if (!error) {
-                        alert("Ore registrate con successo.");
-                        loadTutors();
-                    } else {
-                        alert("Errore Supabase: " + error.message);
-                    }
-                } catch(e) {
-                    alert("Errore di rete.");
+            function renderTable() {
+                const tbody = document.querySelector('#tutorsTable tbody');
+                tbody.innerHTML = '';
+
+                const q = (searchInput?.value || '').trim().toLowerCase();
+                const filtered = allTutorRows.filter(row => {
+                    if (onlyPendingFilter && row.unacknowledgedHours <= 0) return false;
+                    if (!q) return true;
+                    return row.full_name.toLowerCase().includes(q) ||
+                           row.class_info.toLowerCase().includes(q) ||
+                           row.email.toLowerCase().includes(q);
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748b;">Nessun tutor trovato con i filtri selezionati.</td></tr>';
+                    return;
                 }
+
+                filtered.forEach(t => {
+                    const tr = document.createElement('tr');
+                    const hasPending = t.unacknowledgedHours > 0;
+                    const btnDisabled = !hasPending ? 'disabled' : '';
+                    const pendingBadgeClass = hasPending ? 'pending' : 'done';
+
+                    tr.innerHTML = `
+                        <td>
+                            <strong>${escapeHtml(t.full_name)}</strong><br>
+                            <small style="color:#64748b;">${escapeHtml(t.email)}</small>
+                        </td>
+                        <td><span class="class-chip">${escapeHtml(t.class_info)}</span></td>
+                        <td><strong>${t.totalHours.toFixed(2)} h</strong></td>
+                        <td style="color:#16a34a; font-weight:700;">${t.fslAck.toFixed(2)} h</td>
+                        <td>
+                            <span class="hours-badge ${pendingBadgeClass}">
+                                <i class="fas ${hasPending ? 'fa-clock' : 'fa-check'}"></i> ${t.unacknowledgedHours.toFixed(2)} h
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-register" ${btnDisabled} onclick="openRegisterModal('${t.id}', '${escapeHtml(t.full_name)}', ${t.fslAck}, ${t.unacknowledgedHours})">
+                                <i class="fas fa-check-circle"></i> Registra Ore
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            window.openRegisterModal = (tutorId, tutorName, currentAck, hoursToAdd) => {
+                pendingAction = { tutorId, currentAck, hoursToAdd };
+                const modalText = document.getElementById('staffModalText');
+                if (modalText) {
+                    modalText.innerHTML = `Stai per certificare e registrare <strong>${hoursToAdd.toFixed(2)} ore FSL</strong> per <strong>${tutorName}</strong>.<br><br>Confermi l'operazione?`;
+                }
+                confirmModal.classList.remove('hidden');
             };
+
+            await loadTutors();
         });
     </script>
 </body>
+
 </html>

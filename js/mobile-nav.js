@@ -64,6 +64,8 @@ function getPageTitle(path) {
             return 'Diventa Tutor';
         case 'progetto.html':
             return 'Il Progetto';
+        case 'staff.html':
+            return 'Staff FSL';
         case 'admin.html':
             return 'Pannello Admin';
         default:
@@ -216,7 +218,9 @@ function injectEduTrackMoreMenu(isLoggedIn, user, role) {
 
     const avatarUrl = user?.avatar_url || localStorage.getItem('fmt_avatar') || 'https://via.placeholder.com/150';
     const userName = user?.full_name || (isLoggedIn ? 'Studente' : 'Visitatore');
-    const userSub = isLoggedIn ? (role === 'admin' ? 'Amministratore' : (role === 'tutor' ? 'Tutor Ufficiale' : 'Studente Agnelli')) : 'FindMyTutor Agnelli';
+    const userSub = isLoggedIn
+        ? (role === 'admin' ? 'Amministratore' : (role === 'staff' ? 'Staff FSL' : (role === 'tutor' ? 'Tutor Ufficiale' : 'Studente Agnelli')))
+        : 'FindMyTutor Agnelli';
 
     moreMenu.innerHTML = `
         <div class="more-menu-header">
@@ -249,6 +253,10 @@ function injectEduTrackMoreMenu(isLoggedIn, user, role) {
             <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="mm-item">
                 <i class="fa-solid fa-envelope"></i><span>Contatti</span>
             </a>
+            ${(role === 'staff' || role === 'admin') ? `
+            <a href="staff.html" class="mm-item">
+                <i class="fa-solid fa-user-tie"></i><span>Staff FSL</span>
+            </a>` : ''}
             ${role === 'admin' ? `
             <a href="admin.html" class="mm-item">
                 <i class="fa-solid fa-shield-halved"></i><span>Admin</span>

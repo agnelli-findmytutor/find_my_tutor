@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Il Nostro Progetto - La Storia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+    <title>Il Nostro Progetto - Find My Tutor Agnelli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="theme-color" content="#D32F2F">
@@ -24,15 +24,15 @@
 
 <body>
     <header>
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration:none; color:inherit;">
             <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
             <span>FindMyTutor</span>
-        </div>
+        </a>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="progetto.html">Il nostro progetto</a></li>
-                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="progetto.html" class="active"><i class="fas fa-project-diagram"></i> Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html"><i class="fas fa-user-graduate"></i> Diventa Tutor</a></li>
             </ul>
         </nav>
         <div class="header-actions">
@@ -40,41 +40,108 @@
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
+    <div class="overlay-menu"></div>
 
+    <!-- HERO SECTION -->
     <section class="story-hero">
-        <div class="hero-overlay"></div>
+        <div class="story-hero-glow glow-1"></div>
+        <div class="story-hero-glow glow-2"></div>
         <div class="hero-text reveal">
-            <span class="badge-white">La Nostra Storia</span>
-            <h1>Due classi, <br>una visione comune.</h1>
-            <p>Find My Tutor è il risultato dell’unione di due progetti inizialmente distinti. <br>Questa è la
-                cronistoria di come la 3° Liceo B e la 2° Liceo A hanno trasformato un'idea in realtà.</p>
+            <div class="story-badge">
+                <span class="story-pulse-dot"></span>
+                <span>La Nostra Storia &bull; Istituto Edoardo Agnelli</span>
+            </div>
+            <h1>Due classi, <br><span class="text-gradient">una visione comune.</span></h1>
+            <p>Find My Tutor è nato dall'unione di due progetti studenteschi inizialmente distinti. Scopri come la <strong>3° Liceo B</strong> e la <strong>2° Liceo A</strong> hanno trasformato un'idea di inclusione e supporto reciproco nella piattaforma ufficiale dell'Istituto.</p>
+
+            <div class="story-stats-row">
+                <div class="story-stat-pill">
+                    <i class="fas fa-calendar-star"></i>
+                    <div>
+                        <strong>Aprile 2021</strong>
+                        <span>Genesi del Progetto</span>
+                    </div>
+                </div>
+                <div class="story-stat-pill">
+                    <i class="fas fa-award"></i>
+                    <div>
+                        <strong>1h = 1h FSL</strong>
+                        <span>Crediti Formativi Ufficiali</span>
+                    </div>
+                </div>
+                <div class="story-stat-pill">
+                    <i class="fas fa-school"></i>
+                    <div>
+                        <span>Copertura Totale</span>
+                        <strong>ITT &amp; Liceo Scientifico</strong>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
+    <!-- I 3 PILASTRI DEL PROGETTO -->
+    <section class="project-pillars-section">
+        <div class="pillars-container">
+            <div class="pillars-header reveal">
+                <span class="section-eyebrow"><i class="fas fa-compass"></i> I Valori Fondanti</span>
+                <h2>Perché Find My Tutor fa la differenza</h2>
+                <p>Un ecosistema pensato dagli studenti per gli studenti, costruito su tre pilastri fondamentali.</p>
+            </div>
+
+            <div class="pillars-grid">
+                <div class="pillar-card reveal">
+                    <div class="pillar-icon"><i class="fas fa-people-arrows"></i></div>
+                    <span class="pillar-step">01</span>
+                    <h3>Peer-to-Peer Autentico</h3>
+                    <p>Imparare da chi ha affrontato le stesse verifiche, gli stessi programmi e gli stessi docenti abbatte l'ansia e rende lo studio più chiaro ed efficace.</p>
+                </div>
+
+                <div class="pillar-card featured reveal">
+                    <div class="pillar-icon"><i class="fas fa-award"></i></div>
+                    <span class="pillar-step">02</span>
+                    <h3>Valorizzazione &amp; Ore FSL</h3>
+                    <p>Ogni ora dedicata ad aiutare un compagno viene certificata ufficialmente dallo Staff come ora di <strong>Formazione Scuola-Lavoro (FSL)</strong>.</p>
+                </div>
+
+                <div class="pillar-card reveal">
+                    <div class="pillar-icon"><i class="fas fa-bolt"></i></div>
+                    <span class="pillar-step">03</span>
+                    <h3>Innovazione Mastercom</h3>
+                    <p>Dalla prima versione web del 2022 all'integrazione diretta con il Registro Elettronico Mastercom per suggerire le materie da potenziare in tempo reale.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE STORICA -->
     <section class="timeline-section">
+        <div class="timeline-intro reveal">
+            <span class="section-eyebrow"><i class="fas fa-history"></i> Cronistoria Ufficiale</span>
+            <h2>Dal primo prototipo a oggi</h2>
+            <p>Ripercorri tutte le tappe che hanno portato alla nascita e all'evoluzione di Find My Tutor.</p>
+        </div>
 
         <div class="timeline-year reveal">
-            <span>2021</span>
+            <span><i class="fas fa-flag"></i> 2021 &bull; La Genesi</span>
         </div>
 
         <div class="timeline-container">
 
             <div class="timeline-item left reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Aprile 2021</div>
+                    <div class="date-badge"><i class="far fa-calendar-alt"></i> Aprile 2021</div>
                     <h3>Le Origini Parallele</h3>
 
                     <div class="dual-story">
                         <div class="story-part">
                             <h4><i class="fas fa-users"></i> 3° Liceo B</h4>
-                            <p>Partecipa agli incontri con <strong>Stellantis</strong> per apprendere gestione ed
-                                economia aziendale nell'ambito del FSL.</p>
+                            <p>Partecipa agli incontri con <strong>Stellantis</strong> per apprendere gestione ed economia aziendale nell'ambito del percorso FSL.</p>
                         </div>
                         <div class="story-separator"></div>
                         <div class="story-part">
                             <h4><i class="fas fa-pencil-alt"></i> 2° Liceo A</h4>
-                            <p>Partecipa a <em>"#leparolechesiamo"</em>, proponendo idee per una scuola futura basata su
-                                innovazione e inclusione.</p>
+                            <p>Partecipa al concorso <em>"#leparolechesiamo"</em>, proponendo idee per una scuola futura basata su innovazione e inclusione.</p>
                         </div>
                     </div>
                 </div>
@@ -82,106 +149,133 @@
 
             <div class="timeline-item right reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Maggio 2021</div>
+                    <div class="date-badge"><i class="far fa-lightbulb"></i> Maggio 2021</div>
                     <h3>Nascono le Idee</h3>
-                    <p>La <strong>3°B</strong> deve ideare un servizio utile alla scuola in un mese. <br>
-                        Parallelamente, il gruppo inclusione della <strong>2°A</strong> propone un'app per l'aiuto
-                        reciproco. Il Preside rimane colpito dalla bozza.</p>
+                    <p>La <strong>3°B</strong> deve ideare un servizio utile alla scuola in un mese. Parallelamente, il gruppo inclusione della <strong>2°A</strong> propone un'applicazione per l'aiuto reciproco tra pari. Il Preside rimane colpito dalla qualità della bozza.</p>
                 </div>
             </div>
 
             <div class="timeline-item left reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Giugno 2021</div>
+                    <div class="date-badge"><i class="fas fa-laptop-code"></i> Giugno 2021</div>
                     <h3>Prototipo "Agnelli Ripetizioni"</h3>
-                    <p>La 3°B progetta la prima piattaforma di prenotazione. Vengono scelti due addetti con l'obiettivo
-                        di completare il sito entro settembre.</p>
+                    <p>La 3°B progetta la prima piattaforma di prenotazione. Vengono scelti due sviluppatori con l'obiettivo di completare il primo prototipo del sito entro settembre.</p>
                 </div>
             </div>
 
             <div class="timeline-item right reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Agosto 2021</div>
-                    <h3>Pronti al lancio</h3>
-                    <p>Gli addetti della 3°B ultimano il sito e creano il logo. Il progetto è tecnicamente pronto per il
-                        nuovo anno scolastico.</p>
+                    <div class="date-badge"><i class="fas fa-paint-brush"></i> Agosto 2021</div>
+                    <h3>Pronti al Lancio</h3>
+                    <p>Gli addetti della 3°B ultimano la struttura web e creano il primo logo identificativo. Il progetto è tecnicamente pronto per il nuovo anno scolastico.</p>
                 </div>
             </div>
 
             <div class="timeline-item center-highlight reveal">
                 <div class="timeline-content fusion-card">
                     <div class="fusion-icon"><i class="fas fa-handshake"></i></div>
-                    <div class="date-badge">Settembre 2021</div>
+                    <div class="date-badge"><i class="fas fa-star"></i> Settembre 2021</div>
                     <h3>La Grande Fusione</h3>
-                    <p>La 4°B presenta il lavoro. Il Preside svela che anche la 3°A (ex 2°A) ha un'idea simile.
-                        Nonostante la 2°A non abbia vinto il concorso, ottiene una menzione speciale. <strong>Il Preside
-                            propone di unire le forze.</strong> Nasce un unico grande progetto supportato dai fondi
-                        della scuola.</p>
+                    <p>La 4°B presenta il lavoro. Il Preside svela che anche la 3°A (ex 2°A) ha sviluppato un'idea affine. Nonostante la 2°A non abbia vinto il concorso esterno, ottiene una menzione speciale: <strong>il Preside propone di unire le forze</strong> in un unico grande progetto d'Istituto.</p>
                 </div>
             </div>
 
         </div>
 
         <div class="timeline-year reveal">
-            <span>2022</span>
+            <span><i class="fas fa-rocket"></i> 2022 &bull; Il Lancio</span>
         </div>
 
         <div class="timeline-container">
 
             <div class="timeline-item left reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Febbraio 2022</div>
+                    <div class="date-badge"><i class="fas fa-signature"></i> Febbraio 2022</div>
                     <h3>Benvenuto "Find My Tutor"</h3>
-                    <p>Accordo raggiunto: ripetizioni individuali e di gruppo tramite sito e app. Nasce ufficialmente il
-                        nome <strong>Find My Tutor</strong>.</p>
+                    <p>Accordo raggiunto tra i due team: ripetizioni individuali e di gruppo accessibili a tutti gli indirizzi. Nasce ufficialmente il nome <strong>Find My Tutor</strong>.</p>
                 </div>
             </div>
 
             <div class="timeline-item right reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Marzo 2022</div>
+                    <div class="date-badge"><i class="fas fa-tasks"></i> Marzo 2022</div>
                     <h3>Tabella di Marcia</h3>
-                    <p>Pianificazione completata. La road-map per lo sviluppo è pronta e i lavori hanno inizio.</p>
+                    <p>Pianificazione operativa completata. La roadmap per lo sviluppo e il coordinamento con i docenti referenti ha ufficialmente inizio.</p>
                 </div>
             </div>
 
             <div class="timeline-item left reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Maggio 2022</div>
+                    <div class="date-badge"><i class="fas fa-palette"></i> Maggio 2022</div>
                     <h3>Design e Servizi</h3>
-                    <p>Definizione finale dei servizi supportati. Il team di design lavora alle prime bozze grafiche
-                        dell'interfaccia.</p>
+                    <p>Definizione finale dei flussi di prenotazione. Il team di design elabora l'identità visiva ispirata ai colori ufficiali dell'Istituto Agnelli.</p>
                 </div>
             </div>
 
             <div class="timeline-item right reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Giugno 2022</div>
+                    <div class="date-badge"><i class="fas fa-code"></i> Giugno 2022</div>
                     <h3>Sviluppo Finale</h3>
-                    <p>Inizia la programmazione vera e propria del sito, affidata a due studenti della 4°B con scadenza
-                        a settembre.</p>
+                    <p>Inizia la programmazione completa della piattaforma web, affidata a due studenti della 4°B con rilascio previsto per l'apertura dell'anno scolastico.</p>
                 </div>
             </div>
 
             <div class="timeline-item left reveal">
                 <div class="timeline-content">
-                    <div class="date-badge">Agosto 2022</div>
-                    <h3>Pivot Strategico</h3>
-                    <p>Sito completato e funzionante. Si decide di <strong>abbandonare l'app</strong> smartphone per
-                        concentrare tutto sul sito web, più accessibile e gestibile.</p>
+                    <div class="date-badge"><i class="fas fa-mobile-alt"></i> Agosto 2022</div>
+                    <h3>Pivot Strategico Web-First</h3>
+                    <p>Piattaforma completata e testata. Si sceglie un approccio <strong>Web App universale</strong> accessibile da qualsiasi smartphone e PC senza barriere di installazione.</p>
                 </div>
             </div>
 
             <div class="timeline-item center-highlight reveal">
                 <div class="timeline-content success-card">
                     <div class="fusion-icon"><i class="fas fa-rocket"></i></div>
-                    <div class="date-badge">Settembre 2022</div>
-                    <h3>Il Lancio Ufficiale</h3>
-                    <p>Il progetto è completo. <strong>Find My Tutor</strong> viene messo in servizio per tutti gli
-                        studenti dell'Istituto Agnelli.</p>
+                    <div class="date-badge"><i class="fas fa-check-circle"></i> Settembre 2022</div>
+                    <h3>Il Lancio Ufficiale in Istituto</h3>
+                    <p>Il progetto entra ufficialmente in servizio per tutti gli studenti del Liceo e dell'Istituto Tecnico Tecnologico Edoardo Agnelli.</p>
                 </div>
             </div>
 
+        </div>
+
+        <div class="timeline-year reveal">
+            <span><i class="fas fa-bolt"></i> 2025 / 2026 &bull; Nuova Generazione</span>
+        </div>
+
+        <div class="timeline-container">
+            <div class="timeline-item center-highlight reveal">
+                <div class="timeline-content evolution-card">
+                    <div class="fusion-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="date-badge"><i class="fas fa-sparkles"></i> A.S. 2025 / 2026</div>
+                    <h3>Integrazione Mastercom &amp; Piattaforma 2.0</h3>
+                    <p>Find My Tutor compie un salto generazionale: accesso unificato con il <strong>Registro Elettronico Mastercom</strong> e Google Workspace, rilevamento automatico delle materie da potenziare, prenotazione guidata in 4 step, gestione aule d'Istituto e pannello dedicato per la certificazione digitale delle <strong>ore FSL</strong>.</p>
+                    <div class="evolution-badges">
+                        <span><i class="fas fa-sync-alt"></i> Sync Mastercom</span>
+                        <span><i class="fas fa-door-open"></i> Aule &amp; Google Meet</span>
+                        <span><i class="fas fa-certificate"></i> Registro Ore FSL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALL TO ACTION FINALE -->
+    <section class="story-cta-section">
+        <div class="story-cta-card reveal">
+            <div class="story-cta-content">
+                <span class="story-cta-tag"><i class="fas fa-graduation-cap"></i> Entra nella Community Agnelli</span>
+                <h2>Fai parte anche tu della storia di Find My Tutor</h2>
+                <p>Che tu voglia chiarire un argomento prima della prossima verifica o mettere le tue competenze a disposizione dei compagni maturando ore FSL, inizia da qui.</p>
+                <div class="story-cta-buttons">
+                    <a href="prenota.html" class="story-btn-primary">
+                        <i class="fas fa-calendar-check"></i> Prenota una Lezione
+                    </a>
+                    <a href="diventa_tutor.html" class="story-btn-secondary">
+                        <i class="fas fa-user-graduate"></i> Candidati come Tutor
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -243,7 +337,7 @@
 
                 <!-- Col 4: Contatti & Canali -->
                 <div class="footer-grid-col col-contact">
-                    <h4 class="footer-col-title">Assistenza & Social</h4>
+                    <h4 class="footer-col-title">Assistenza &amp; Social</h4>
                     <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
                         <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
                         <div class="f-contact-details">
@@ -279,13 +373,14 @@
             <i class="fas fa-arrow-up"></i>
         </button>
     </footer>
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/api_config.js"></script>
-        <script src="js/gestione_utente.js"></script>
-        <script src="js/login.js"></script>
-        <script src="script.js"></script>
-        <script src="js/global_maintenance.js"></script>
-        <script src="js/mobile-nav.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api_config.js"></script>
+    <script src="js/gestione_utente.js"></script>
+    <script src="js/login.js"></script>
+    <script src="script.js"></script>
+    <script src="js/global_maintenance.js"></script>
+    <script src="js/mobile-nav.js"></script>
 </body>
 
 </html>

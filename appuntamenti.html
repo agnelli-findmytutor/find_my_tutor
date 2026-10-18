@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Agenda Tutor - FindMyTutor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+    <title>Agenda Tutor - Find My Tutor Agnelli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="theme-color" content="#D32F2F">
@@ -24,18 +24,16 @@
 
 <body>
 
-    <div class="overlay-menu"></div>
-
     <header>
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration:none; color:inherit;">
             <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
             <span>FindMyTutor</span>
-        </div>
+        </a>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="progetto.html">Il nostro progetto</a></li>
-                <li><a href="diventa_tutor.html">Diventa Tutor</a></li>
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="progetto.html"><i class="fas fa-project-diagram"></i> Il nostro progetto</a></li>
+                <li><a href="diventa_tutor.html"><i class="fas fa-user-graduate"></i> Diventa Tutor</a></li>
             </ul>
         </nav>
         <div class="header-actions">
@@ -43,28 +41,61 @@
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
         </div>
     </header>
+    <div class="overlay-menu"></div>
 
     <main class="agenda-wrapper">
 
         <div class="page-title reveal">
-            <h1>La tua Agenda Tutor</h1>
-            <p>Visualizza le lezioni programmate e gestisci gli imprevisti.</p>
+            <div class="page-header-badge">
+                <span class="pulse-dot"></span>
+                <span>Area Docenza Studenti &bull; Istituto Agnelli</span>
+            </div>
+            <h1>La tua <span class="highlight-red">Agenda Tutor</span></h1>
+            <p>Gestisci le lezioni prenotate dai tuoi compagni, prenota le aule pomeridiane e monitora lo storico FSL.</p>
+        </div>
+
+        <!-- KPI SUMMARY TUTOR -->
+        <div class="tutor-kpi-grid reveal">
+            <div class="tutor-kpi-card">
+                <div class="tutor-kpi-icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="tutor-kpi-info">
+                    <span>In Programma</span>
+                    <h3 id="tutorKpiUpcoming">0</h3>
+                    <small>Lezioni confermate future</small>
+                </div>
+            </div>
+            <div class="tutor-kpi-card">
+                <div class="tutor-kpi-icon"><i class="fas fa-check-double"></i></div>
+                <div class="tutor-kpi-info">
+                    <span>Lezioni Svolte</span>
+                    <h3 id="tutorKpiPast">0</h3>
+                    <small>Valide per il monte ore FSL</small>
+                </div>
+            </div>
+            <div class="tutor-kpi-card">
+                <div class="tutor-kpi-icon"><i class="fas fa-door-open"></i></div>
+                <div class="tutor-kpi-info">
+                    <span>Aule Prenotate</span>
+                    <h3 id="tutorKpiRooms">0</h3>
+                    <small>Spazi riservati in Istituto</small>
+                </div>
+            </div>
         </div>
 
         <div class="notice-container reveal">
             <div class="notice-header">
                 <i class="fas fa-exclamation-circle"></i>
-                <span>Linee Guida Disdetta</span>
+                <span>Linee Guida Ufficiali per Disdetta</span>
             </div>
             <div class="notice-body">
-                <p>Se devi annullare una lezione già prenotata, usa queste motivazioni ufficiali:</p>
+                <p>Se per un imprevisto devi annullare una lezione già confermata, clicca su una delle motivazioni standard qui sotto per copiarla:</p>
 
                 <div class="copy-grid">
                     <div class="copy-card">
                         <div class="card-icon"><i class="fas fa-user-clock"></i></div>
                         <div class="card-text">
                             <strong>Imprevisto Personale</strong>
-                            <small>"Assenza imprevista del tutor"</small>
+                            <small>"Assenza imprevista del tutor assegnato"</small>
                         </div>
                         <button onclick="copyText('Assenza imprevista del tutor assegnato')" class="btn-copy">
                             <i class="far fa-copy"></i> Copia
@@ -85,10 +116,11 @@
             </div>
         </div>
 
-        <!-- SEZIONE LEZIONI (Spostata sopra e rinnovata) -->
+        <!-- SEZIONE LEZIONI -->
         <div class="lessons-section reveal">
             <div class="section-header-main">
                 <h3><i class="fas fa-chalkboard-teacher"></i> Gestione Lezioni</h3>
+                <a href="dashboard.html" class="btn-copy" style="text-decoration:none;"><i class="fas fa-medal"></i> Vedi Ore FSL</a>
             </div>
 
             <!-- BOX AVVISO CANCELLAZIONI (Appare solo se ci sono novità) -->
@@ -96,9 +128,15 @@
 
             <!-- NAVIGAZIONE TABS -->
             <div class="tabs-nav">
-                <button class="tab-btn active" onclick="switchTab('upcoming')">In Programma</button>
-                <button class="tab-btn" onclick="switchTab('past')">Passate</button>
-                <button class="tab-btn" onclick="switchTab('cancelled')">Cancellate</button>
+                <button class="tab-btn active" onclick="switchTab('upcoming')">
+                    <i class="far fa-calendar-check"></i> In Programma <span id="tabCountUpcoming" class="tab-count-pill">0</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('past')">
+                    <i class="fas fa-history"></i> Passate <span id="tabCountPast" class="tab-count-pill">0</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('cancelled')">
+                    <i class="fas fa-ban"></i> Cancellate <span id="tabCountCancelled" class="tab-count-pill">0</span>
+                </button>
             </div>
 
             <!-- CONTENUTI TABS -->
@@ -117,19 +155,19 @@
 
             <div class="booking-widget reveal">
                 <div class="widget-header">
-                    <h3><i class="fas fa-calendar-plus"></i> Nuova Prenotazione</h3>
-                    <p>Seleziona i dettagli per bloccare l'aula.</p>
+                    <h3><i class="fas fa-calendar-plus"></i> Nuova Prenotazione Aula</h3>
+                    <p>Seleziona la data e l'aula d'Istituto da abbinare alla tua lezione.</p>
                 </div>
                 <form id="roomBookingForm" class="widget-form">
                     <div class="inputs-grid">
 
                         <div class="input-box" style="grid-column: 1 / -1;">
-                            <label><i class="far fa-calendar-alt"></i> Data</label>
+                            <label><i class="far fa-calendar-alt"></i> Data della Lezione</label>
                             <input type="date" id="selectDate" required class="date-input" style="width: 100%;">
                         </div>
 
                         <div class="input-box">
-                            <label><i class="fas fa-door-open"></i> Aula</label>
+                            <label><i class="fas fa-door-open"></i> Aula d'Istituto</label>
                             <select id="selectRoom" required>
                                 <option value="Aula Magna">Aula Magna</option>
                                 <option value="Aula 3A">Aula 3A</option>
@@ -159,13 +197,13 @@
 
                     </div>
 
-                    <button type="submit" class="btn-widget-confirm">Conferma Prenotazione</button>
+                    <button type="submit" class="btn-widget-confirm"><i class="fas fa-check-circle"></i> Conferma Prenotazione Aula</button>
                 </form>
             </div>
 
             <div class="booked-rooms-section reveal">
                 <div class="section-header">
-                    <h3><i class="fas fa-list-ul"></i> Le tue Aule</h3>
+                    <h3><i class="fas fa-list-ul"></i> Le tue Aule Prenotate</h3>
                 </div>
                 <div id="roomBookingsList" class="booked-rooms-grid">
                     <div class="loader-placeholder">Caricamento...</div>
@@ -175,13 +213,14 @@
         </div>
 
     </main>
+
     <div id="deleteModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning">
                 <i class="fas fa-trash-alt"></i>
             </div>
             <h3>Elimina Prenotazione</h3>
-            <p>Sei sicuro di voler cancellare questa prenotazione? L'operazione non può essere annullata.</p>
+            <p>Sei sicuro di voler cancellare questa prenotazione aula? L'operazione non può essere annullata.</p>
             <div class="modal-actions">
                 <button id="btnCancelDelete" class="btn-modal secondary">Annulla</button>
                 <button id="btnConfirmDelete" class="btn-modal danger">Sì, Cancella</button>
@@ -199,6 +238,7 @@
             <button id="btnSuccessClose" class="btn-modal success-btn" style="width:100%">OK</button>
         </div>
     </div>
+
     <div id="warningModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning">
@@ -210,6 +250,7 @@
                 style="width:100%; background:#FF9800; color:white;">Ho capito</button>
         </div>
     </div>
+
     <div id="cancelLessonModal" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
@@ -237,16 +278,93 @@
             </div>
         </div>
     </div>
+
     <div id="toast"><i class="fas fa-check"></i> Testo copiato!</div>
+
+    <footer class="app-footer">
+        <div class="footer-wrapper">
+            <div class="footer-top-strip">
+                <div class="footer-brand-lockup">
+                    <div class="footer-logo-badge">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-brand-info">
+                        <span class="footer-brand-name">FindMyTutor</span>
+                        <span class="footer-brand-subtitle">Istituto Internazionale Edoardo Agnelli &bull; Torino</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-main-grid">
+                <div class="footer-grid-col col-main">
+                    <p class="footer-mission-text">
+                        La piattaforma ufficiale di peer-tutoring dell'Istituto Agnelli. Creata e gestita dagli studenti per supportare lo studio quotidiano, valorizzare le eccellenze e certificare le ore FSL.
+                    </p>
+                    <div class="footer-cert-pills">
+                        <span class="cert-pill"><i class="fas fa-shield-alt"></i> Accesso Mastercom</span>
+                        <span class="cert-pill"><i class="fab fa-google"></i> Google Workspace</span>
+                        <span class="cert-pill"><i class="fas fa-award"></i> Ore FSL Valide</span>
+                    </div>
+                </div>
+
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Navigazione</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home Principale</a></li>
+                        <li><a href="prenota.html"><i class="fas fa-chevron-right"></i> Prenota Ripetizione</a></li>
+                        <li><a href="appuntamenti.html"><i class="fas fa-chevron-right"></i> Agenda Tutor</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-chevron-right"></i> Il nostro Progetto</a></li>
+                        <li><a href="dashboard.html"><i class="fas fa-chevron-right"></i> Area Personale</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-grid-col">
+                    <h4 class="footer-col-title">Istituto Agnelli</h4>
+                    <ul class="footer-nav-list">
+                        <li><a href="https://registro.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Registro Mastercom</a></li>
+                        <li><a href="https://www.istitutoagnelli.it" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Sito Istituzionale</a></li>
+                        <li><a href="progetto.html"><i class="fas fa-history"></i> Storia del Progetto</a></li>
+                        <li><a href="diventa_tutor.html"><i class="fas fa-graduation-cap"></i> Candidatura Staff</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-grid-col col-contact">
+                    <h4 class="footer-col-title">Assistenza &amp; Social</h4>
+                    <a href="mailto:staff.findmytutor@istitutoagnelli.it" class="footer-contact-card" title="Scrivici un'email">
+                        <div class="f-contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="f-contact-details">
+                            <small>Assistenza Ufficiale</small>
+                            <span>staff.findmytutor@<br>istitutoagnelli.it</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-bottom-bar">
+                <div class="footer-copy">
+                    &copy; 2026 <strong>FindMyTutor Agnelli</strong> &bull; Sviluppato dagli studenti per l'Istituto Internazionale Edoardo Agnelli.
+                </div>
+                <div class="footer-legal-links">
+                    <a href="#">Privacy Policy</a>
+                    <span class="sep">&bull;</span>
+                    <a href="#">Termini d'Uso</a>
+                </div>
+            </div>
+        </div>
+
+        <button id="scrollToTop" class="scroll-top-btn" title="Torna all'inizio">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/api_config.js"></script>
     <script src="js/gestione_utente.js"></script>
     <script src="script.js"></script>
+    <script src="js/email_service.js"></script>
     <script src="js/appuntamenti.js"></script>
     <script src="js/global_maintenance.js"></script>
     <script src="js/mobile-nav.js"></script>
-
 
 </body>
 
