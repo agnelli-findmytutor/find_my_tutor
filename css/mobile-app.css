@@ -47,6 +47,13 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+@media (min-width: 901px) {
+  .sidebar-overlay, .more-menu, .bottom-nav, .topbar {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MOBILE VIEWPORT & APP SHELL (< 900px)
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -56,13 +63,18 @@
     filter: none !important;
     perspective: none !important;
     animation: none !important;
+    min-height: 100% !important;
+    height: auto !important;
   }
 
   html {
     font-size: 15px;
     -webkit-text-size-adjust: 100%;
-    overscroll-behavior-y: contain;
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: auto !important;
   }
 
   body {
@@ -70,10 +82,15 @@
     color: var(--c-text);
     padding-bottom: calc(var(--bottom-h) + var(--safe-bottom) + 28px) !important;
     -webkit-font-smoothing: antialiased;
-    -webkit-overflow-scrolling: touch;
-    touch-action: manipulation;
-    overscroll-behavior-y: contain;
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  main, section, .agenda-wrapper, .dashboard-wrapper, .application-wrapper, .container-agenda, .card-box {
+    touch-action: pan-y !important;
   }
 
   /* Nascondi bottone scroll-to-top che copre la bottom nav */
@@ -107,10 +124,15 @@
     height: calc(var(--topbar-h) + var(--safe-top));
     min-height: calc(var(--topbar-h) + var(--safe-top));
     gap: 12px;
-    z-index: 900;
+    z-index: 99990 !important;
+    pointer-events: auto !important;
     box-sizing: border-box;
     flex-wrap: nowrap;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+
+  .topbar, .topbar * {
+    pointer-events: auto;
   }
 
   .tb-left {
@@ -264,8 +286,9 @@
     height: calc(var(--bottom-h) + max(10px, var(--safe-bottom))) !important;
     min-height: calc(var(--bottom-h) + max(10px, var(--safe-bottom))) !important;
     box-sizing: border-box !important;
-    z-index: 980 !important;
-    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.06) !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08) !important;
     transform: translate3d(0, 0, 0) !important;
     -webkit-transform: translate3d(0, 0, 0) !important;
   }
@@ -287,6 +310,13 @@
     position: relative;
     transition: color var(--t);
     -webkit-tap-highlight-color: transparent;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation;
+  }
+
+  .bn-item * {
+    pointer-events: none !important;
   }
 
   .bn-item i {
@@ -334,7 +364,7 @@
     background: rgba(0, 0, 0, 0.6) !important;
     backdrop-filter: blur(6px) !important;
     -webkit-backdrop-filter: blur(6px) !important;
-    z-index: 990 !important;
+    z-index: 99998 !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -355,7 +385,7 @@
     background: var(--c-surface) !important;
     border-top-left-radius: 24px !important;
     border-top-right-radius: 24px !important;
-    z-index: 1000 !important;
+    z-index: 100000 !important;
     padding: 20px 20px max(24px, calc(16px + var(--safe-bottom))) !important;
     transform: translateY(100%) !important;
     transition: transform 0.32s var(--ease-spring), visibility 0.32s !important;
